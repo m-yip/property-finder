@@ -211,7 +211,7 @@ const BONUSES = [
   { id: "condition",   label: "Good condition",       icon: "solar:star-shine-bold",    points: 2 },
   { id: "furnished",   label: "Modern furnishings",   icon: "solar:palette-bold",       points: 2 },
   { id: "balcony",     label: "Balcony",              icon: "solar:city-bold",          points: 3 },
-  { id: "water_view",  label: "Water views",          icon: "solar:waterfall-down-bold", points: 4 },
+  { id: "water_view",  label: "Water views",          icon: "mdi:waves",                 points: 4 },
   { id: "light",       label: "Lots of light",        icon: "solar:sun-bold",           points: 2 },
 ];
 
