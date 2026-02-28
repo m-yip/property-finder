@@ -275,10 +275,31 @@ function Bar({ value, max = 5 }) {
   );
 }
 
-function ProgressBar({ current, total }) {
+function ProgressBar({ sectionIdx, total, completedSections, onJump }) {
   return (
-    <div style={{ height: 3, background: "#c4c1e0", borderRadius: 2, overflow: "hidden" }}>
-      <div style={{ width: `${(current / total) * 100}%`, height: "100%", background: "linear-gradient(90deg,#7c73e6,#9b95eb)", borderRadius: 2, transition: "width 0.4s" }} />
+    <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+      {Array.from({ length: total }, (_, i) => {
+        const done = completedSections[i];
+        const active = i === sectionIdx;
+        return (
+          <div key={i} style={{ display: "flex", alignItems: "center", flex: i < total - 1 ? 1 : "none" }}>
+            <button
+              onClick={() => onJump(i)}
+              title={`Section ${i + 1}`}
+              style={{
+                width: active ? 10 : 8, height: active ? 10 : 8,
+                borderRadius: "50%", flexShrink: 0, padding: 0, cursor: "pointer", border: "none",
+                background: done ? "#7c73e6" : active ? "#9b95eb" : "#c4c1e0",
+                boxShadow: active ? "0 0 0 2px #fff, 0 0 0 3px #7c73e6" : "none",
+                transition: "all 0.2s",
+              }}
+            />
+            {i < total - 1 && (
+              <div style={{ flex: 1, height: 2, background: done ? "#7c73e6" : "#e0dff0", transition: "background 0.3s", marginLeft: 2, marginRight: 2 }} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -573,8 +594,7 @@ function ScoringWizard({ property, onClose, onSave }) {
     else onClose();
   }
 
-  const progressCurrent = sectionIdx + (sectionComplete ? 1 : answeredInSection / section.questions.length);
-  const progressTotal = SECTIONS.length;
+  const completedSections = SECTIONS.map(s => s.questions.every(q => scores[q.id] !== undefined));
 
   return (
     <div ref={scrollRef} style={{
@@ -591,7 +611,7 @@ function ScoringWizard({ property, onClose, onSave }) {
             ← {sectionIdx === 0 ? "Overview" : "Back"}
           </button>
           <div style={{ flex: 1, padding: "0 16px" }}>
-            <ProgressBar current={progressCurrent} total={progressTotal} />
+            <ProgressBar sectionIdx={sectionIdx} total={SECTIONS.length} completedSections={completedSections} onJump={setSectionIdx} />
           </div>
           <div style={{ fontSize: 13, fontWeight: 800, color: Object.keys(scores).length > 0 ? scoreColor(runningTotal) : "#B0A8BC", fontFamily: "'Fraunces', serif", minWidth: 40, textAlign: "right" }}>
             {Object.keys(scores).length > 0 ? `${runningTotal}/100` : "—"}
