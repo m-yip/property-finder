@@ -1208,7 +1208,7 @@ ${trimmed}`
 function Leaderboard({ properties, onClose, onRescore }) {
   const scored = [...properties]
     .filter(p => p.scores && Object.keys(p.scores).length > 0)
-    .sort((a, b) => getTotal(b.scores) - getTotal(a.scores));
+    .sort((a, b) => (getTotal(b.scores) + getBonusTotal(b.bonuses)) - (getTotal(a.scores) + getBonusTotal(a.bonuses)));
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(124,115,230,0.2)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
@@ -1229,7 +1229,7 @@ function Leaderboard({ properties, onClose, onRescore }) {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {scored.map((p, i) => {
-              const total = getTotal(p.scores);
+              const total = getTotal(p.scores) + getBonusTotal(p.bonuses);
               const col = scoreColor(total);
               const isFirst = i === 0;
               const sectionAvgs = SECTIONS.map(s => ({ title: s.title, avg: s.questions.reduce((sum, q) => sum + (p.scores[q.id] ?? 0), 0) / s.questions.length }));
@@ -1331,7 +1331,7 @@ export default function NestWell() {
   }
 
   function saveScores(updated) {
-    setProperties(prev => prev.map(p => p.id === updated.id ? { ...p, scores: updated.scores, status: "viewed" } : p));
+    setProperties(prev => prev.map(p => p.id === updated.id ? { ...p, scores: updated.scores, bonuses: updated.bonuses, status: "viewed" } : p));
   }
 
   function deleteProperty(id) {
