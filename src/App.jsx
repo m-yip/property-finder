@@ -1289,6 +1289,33 @@ export default function NestWell() {
   const [overviewProp, setOverviewProp] = useState(null);
   const [scoringProp, setScoringProp] = useState(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Load from API on mount, fall back to localStorage
+  useEffect(() => {
+    fetch('/api/data')
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok && Array.isArray(res.data)) setProperties(res.data);
+        else throw new Error('no data');
+      })
+      .catch(() => {
+        const saved = localStorage.getItem('nest-well-properties');
+        if (saved) try { setProperties(JSON.parse(saved)); } catch {}
+      })
+      .finally(() => setDataLoaded(true));
+  }, []);
+
+  // Auto-save on every change (after initial load)
+  useEffect(() => {
+    if (!dataLoaded) return;
+    localStorage.setItem('nest-well-properties', JSON.stringify(properties));
+    fetch('/api/data', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: properties }),
+    }).catch(() => {});
+  }, [properties, dataLoaded]);
 
   function addProperty(prop) {
     setProperties(prev => [...prev, prop]);
