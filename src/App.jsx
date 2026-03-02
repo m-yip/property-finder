@@ -220,6 +220,19 @@ function getBonusTotal(bonuses) {
   return BONUSES.filter(b => bonuses[b.id]).reduce((sum, b) => sum + b.points, 0);
 }
 
+function mergeProperties(local, remote) {
+  const localMap = new Map(local.map(p => [p.id, p]));
+  const remoteMap = new Map(remote.map(p => [p.id, p]));
+  const allIds = new Set([...localMap.keys(), ...remoteMap.keys()]);
+  return [...allIds].map(id => {
+    const l = localMap.get(id);
+    const r = remoteMap.get(id);
+    if (!l) return r;
+    if (!r) return l;
+    return (l.updatedAt || 0) >= (r.updatedAt || 0) ? l : r;
+  });
+}
+
 // ─── SCORE DOTS ────────────────────────────────────────────────────────────
 function ScoreDots({ value, onChange, anchors = {} }) {
   const [hovered, setHovered] = useState(null);
@@ -1310,6 +1323,7 @@ export default function NestWell() {
   const [scoringProp, setScoringProp] = useState(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const isRemoteUpdate = useRef(false);
 
   // Load from API on mount, fall back to localStorage
   useEffect(() => {
@@ -1326,9 +1340,10 @@ export default function NestWell() {
       .finally(() => setDataLoaded(true));
   }, []);
 
-  // Auto-save on every change (after initial load)
+  // Auto-save on every local change (skip when update came from server poll)
   useEffect(() => {
     if (!dataLoaded) return;
+    if (isRemoteUpdate.current) { isRemoteUpdate.current = false; return; }
     localStorage.setItem('nest-well-properties', JSON.stringify(properties));
     fetch('/api/data', {
       method: 'PUT',
@@ -1337,21 +1352,61 @@ export default function NestWell() {
     }).catch(() => {});
   }, [properties, dataLoaded]);
 
+  // Poll every 30s to pick up changes from other devices
+  useEffect(() => {
+    if (!dataLoaded) return;
+    const interval = setInterval(() => {
+      fetch('/api/data')
+        .then(r => r.json())
+        .then(res => {
+          if (res.ok && Array.isArray(res.data)) {
+            isRemoteUpdate.current = true;
+            setProperties(prev => mergeProperties(prev, res.data));
+          }
+        })
+        .catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [dataLoaded]);
+
   function addProperty(prop) {
-    setProperties(prev => [...prev, prop]);
+    setProperties(prev => [...prev, { ...prop, updatedAt: Date.now() }]);
     if (prop.status === "viewed") setOverviewProp(prop);
   }
 
   function moveProperty(id, newStatus) {
-    setProperties(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+    setProperties(prev => prev.map(p => p.id === id ? { ...p, status: newStatus, updatedAt: Date.now() } : p));
     if (newStatus === "viewed") {
       const prop = properties.find(p => p.id === id);
       if (prop) setOverviewProp({ ...prop, status: "viewed" });
     }
   }
 
-  function saveScores(updated) {
-    setProperties(prev => prev.map(p => p.id === updated.id ? { ...p, scores: updated.scores, bonuses: updated.bonuses, status: "viewed" } : p));
+  async function saveScores(updated) {
+    const ts = Date.now();
+    // Optimistic local update
+    setProperties(prev => prev.map(p => p.id === updated.id
+      ? { ...p, scores: updated.scores, bonuses: updated.bonuses, status: "viewed", updatedAt: ts }
+      : p
+    ));
+    // Explicit merge-save: fetch latest server state, apply update, write back
+    // This prevents another device's stale auto-save from overwriting bonuses
+    try {
+      const res = await fetch('/api/data').then(r => r.json());
+      if (res.ok && Array.isArray(res.data)) {
+        const exists = res.data.some(p => p.id === updated.id);
+        const merged = exists
+          ? res.data.map(p => p.id === updated.id
+              ? { ...p, scores: updated.scores, bonuses: updated.bonuses, status: "viewed", updatedAt: ts }
+              : p)
+          : [...res.data, { ...updated, updatedAt: ts }];
+        await fetch('/api/data', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: merged }),
+        });
+      }
+    } catch { /* auto-save fallback will handle it */ }
   }
 
   function deleteProperty(id) {
