@@ -779,10 +779,27 @@ function ScoringWizard({ property, onClose, onSave }) {
 }
 
 // ─── PROPERTY CARD (kanban tile) ────────────────────────────────────────────
-function PropertyCard({ property, onOpen, onDelete, onMove }) {
+function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
   const total = getTotal(property.scores) + getBonusTotal(property.bonuses);
   const hasScore = property.scores && Object.keys(property.scores).length > 0;
   const col = COLUMNS.find(c => c.id === property.status);
+  const [editingDate, setEditingDate] = useState(false);
+  const [dateVal, setDateVal] = useState('');
+  const [timeVal, setTimeVal] = useState('');
+
+  function startEditDate(e) {
+    e.stopPropagation();
+    const [d, t] = (property.viewingDate || 'T').split('T');
+    setDateVal(d || '');
+    setTimeVal(t || '');
+    setEditingDate(true);
+  }
+
+  function saveDate(e) {
+    e.stopPropagation();
+    onUpdate(property.id, { viewingDate: dateVal ? `${dateVal}T${timeVal || '00:00'}` : null, updatedAt: Date.now() });
+    setEditingDate(false);
+  }
 
   return (
     <div
@@ -888,6 +905,36 @@ function PropertyCard({ property, onOpen, onDelete, onMove }) {
             </button>
           ))}
         </div>
+
+        {/* Viewing date entry — booked column only */}
+        {property.status === "booked" && (
+          <div style={{ borderTop: "1px solid #f0eef8", padding: "8px 13px" }} onClick={e => e.stopPropagation()}>
+            {editingDate ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <input type="date" value={dateVal} onChange={e => setDateVal(e.target.value)}
+                  style={{ flex: 1, fontSize: 11, padding: "4px 7px", borderRadius: 6, border: "1px solid #c4c1e0", outline: "none", fontFamily: "'DM Sans', sans-serif" }} />
+                <input type="time" value={timeVal} onChange={e => setTimeVal(e.target.value)}
+                  style={{ width: 72, fontSize: 11, padding: "4px 7px", borderRadius: 6, border: "1px solid #c4c1e0", outline: "none", fontFamily: "'DM Sans', sans-serif" }} />
+                <button onClick={saveDate}
+                  style={{ background: "#7c73e6", border: "none", borderRadius: 6, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 8px", cursor: "pointer" }}>✓</button>
+                <button onClick={e => { e.stopPropagation(); setEditingDate(false); }}
+                  style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 6, color: "#A89DB0", fontSize: 11, padding: "4px 8px", cursor: "pointer" }}>✕</button>
+              </div>
+            ) : (
+              <button onClick={startEditDate} style={{
+                background: "none", border: "none", padding: 0, cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 5,
+                fontSize: 11, fontWeight: 600,
+                color: property.viewingDate ? "#2563EB" : "#A89DB0",
+              }}>
+                <Icon icon="solar:calendar-bold" width={13} />
+                {property.viewingDate
+                  ? new Date(property.viewingDate).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                  : "Set viewing date"}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1409,6 +1456,10 @@ export default function NestWell() {
     } catch { /* auto-save fallback will handle it */ }
   }
 
+  function updateProperty(id, fields) {
+    setProperties(prev => prev.map(p => p.id === id ? { ...p, ...fields } : p));
+  }
+
   function deleteProperty(id) {
     setProperties(prev => prev.filter(p => p.id !== id));
     if (overviewProp?.id === id) setOverviewProp(null);
@@ -1479,6 +1530,14 @@ export default function NestWell() {
       }}>
         {COLUMNS.map((col, ci) => {
           const colProps = properties.filter(p => p.status === col.id);
+          if (col.id === "booked") {
+            colProps.sort((a, b) => {
+              if (!a.viewingDate && !b.viewingDate) return 0;
+              if (!a.viewingDate) return 1;
+              if (!b.viewingDate) return -1;
+              return new Date(a.viewingDate) - new Date(b.viewingDate);
+            });
+          }
           return (
             <div key={col.id} style={{
               borderRight: ci < 3 ? "1px solid #e0dff0" : "none",
@@ -1497,7 +1556,7 @@ export default function NestWell() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {colProps.map(p => (
-                  <PropertyCard key={p.id} property={p} onOpen={handleCardOpen} onDelete={deleteProperty} onMove={moveProperty} />
+                  <PropertyCard key={p.id} property={p} onOpen={handleCardOpen} onDelete={deleteProperty} onMove={moveProperty} onUpdate={updateProperty} />
                 ))}
                 {colProps.length === 0 && (
                   <div style={{ height: 90, borderRadius: 12, border: `1px dashed ${col.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#C4BCCC" }}>
