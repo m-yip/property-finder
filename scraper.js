@@ -462,58 +462,96 @@ function parseFoxtons(html) {
 // ── Chestertons ───────────────────────────────────────────────────────────────
 
 function parseChestertons(html) {
+  // Attempt 1: __NEXT_DATA__ (older pages)
   const nd = tryExtractNextData(html)
-  if (!nd) return parseGeneric(html)
+  if (nd) {
+    const prop = deepFind(nd, 'property') || deepFind(nd, 'listing') || deepFind(nd, 'propertyDetails')
+    if (prop && typeof prop === 'object') return extractChestertonsProp(prop, html)
+  }
 
-  let prop = deepFind(nd, 'property') || deepFind(nd, 'listing') || deepFind(nd, 'propertyDetails')
-  if (!prop || typeof prop !== 'object') return parseGeneric(html)
+  // Attempt 2: Homeflow Pegasus / Next.js App Router RSC payloads
+  // Data lives in: self.__next_f.push([1, "<encoded RSC string>"])
+  const rscRe = /self\.__next_f\.push\(\[1,"((?:[^"\\]|\\[\s\S])*)"\]\)/g
+  for (const m of html.matchAll(rscRe)) {
+    try {
+      const decoded = JSON.parse('"' + m[1] + '"')
+      if (!decoded.includes('"property":')) continue
+      const propIdx = decoded.indexOf('"property":')
+      const braceIdx = decoded.indexOf('{', propIdx + 11)
+      if (braceIdx === -1) continue
+      const propJson = extractBalancedJson(decoded, braceIdx)
+      if (!propJson) continue
+      const prop = JSON.parse(propJson)
+      if (prop && (prop.id || prop.displayAddress || prop.bedrooms != null)) {
+        return extractChestertonsProp(prop, html)
+      }
+    } catch {}
+  }
 
+  return parseGeneric(html)
+}
+
+function extractChestertonsProp(prop, html) {
   const r = {}
-  const addr = prop.address || {}
-  r.address = prop.displayAddress || prop.fullAddress
-    || [addr.street || addr.line1, addr.area || addr.line2, addr.postcode || addr.postalCode].filter(Boolean).join(', ')
-    || (typeof addr === 'string' ? addr : '') || ''
 
-  const rawPrice = prop.guidePrice || prop.askingPrice || prop.price || prop.salePrice || prop.rentalPrice
-  if (rawPrice) Object.assign(r, parsePriceString(String(rawPrice)))
-  if (!r.priceType) r.priceType = (prop.listingType || prop.channel || '').toLowerCase().includes('let') ? 'rent' : 'buy'
+  r.address = prop.displayAddress
+    || [prop.roadName, prop.town, prop.postcode].filter(Boolean).join(', ')
+    || (typeof prop.address === 'string' ? prop.address : '')
+    || ''
 
-  r.bedrooms     = toNum(prop.bedrooms || prop.numberOfBedrooms || prop.numBedrooms)
-  r.bathrooms    = toNum(prop.bathrooms || prop.numberOfBathrooms || prop.numBathrooms)
-  r.estateAgent  = 'Chestertons'
-  r.agentContact = prop.branch?.telephone || prop.branch?.phone || prop.contactTelephone || prop.agentPhone || ''
-
-  const fa = prop.floorArea || prop.grossInternalArea || prop.internalArea || prop.size || prop.sqft
-  if (fa) {
-    const val  = toNum(typeof fa === 'object' ? (fa.value ?? fa.sqFeet ?? fa.sqMetres) : fa)
-    const unit = (typeof fa === 'object' ? fa.unit || fa.unitText || '' : '').toLowerCase()
-    r.sqft = unit.includes('m') && !unit.includes('sqf') ? Math.round(val * 10.764) : val
+  // Price — Homeflow uses priceValue (int) + formattedPrice, fallback to string
+  if (prop.priceValue) {
+    r.price = prop.priceValue
+    r.priceType = (prop.primaryChannel || '').toLowerCase().includes('let') ? 'rent' : 'buy'
+  } else {
+    const rawPrice = prop.formattedPrice || prop.guidePrice || prop.askingPrice || prop.price || ''
+    if (rawPrice) Object.assign(r, parsePriceString(String(rawPrice)))
   }
-  if (!r.sqft) r.sqft = extractSqftFromHtml(html)
+  if (!r.priceType) r.priceType = (prop.primaryChannel || prop.channel || prop.listingType || '').toLowerCase().includes('let') ? 'rent' : 'buy'
 
-  const imgs     = prop.images || prop.photos || prop.media || prop.floorPlans || []
-  const mainImgs = imgs.filter ? imgs.filter(i => !i?.type?.toLowerCase().includes('floor')) : imgs
-  if (Array.isArray(mainImgs) && mainImgs.length > 0) {
-    const img  = mainImgs[0]
-    r.imageUrl = typeof img === 'string' ? img : img?.url || img?.src || img?.mediaUrl || img?.originalUrl || ''
-  }
+  r.bedrooms  = toNum(prop.bedrooms  ?? prop.numberOfBedrooms)
+  r.bathrooms = toNum(prop.bathrooms ?? prop.numberOfBathrooms)
 
-  r.description = prop.description || prop.fullDescription || prop.propertyDescription
-    || prop.marketingDescription || prop.longDescription || ''
+  const branch = prop.agencyBranchName || prop.agencyBranchLabel || ''
+  r.estateAgent  = prop.agencyName || ('Chestertons' + (branch ? `, ${capitalise(branch)}` : ''))
+  r.agentContact = prop.contactTelephone || prop.branch?.telephone || prop.agentPhone || ''
+
+  // Sqft — squareFeetInternal preferred, then squareFeet, then parse from HTML
+  r.sqft = toNum(prop.squareFeetInternal || prop.squareFeet) || extractSqftFromHtml(html)
+
+  // Hero image
+  r.imageUrl = prop.mainPhoto
+    || (Array.isArray(prop.photos) && prop.photos[0])
+    || getMeta(html, 'og:image') || ''
+
+  // Description
+  const rawDesc = prop.shortDescription || prop.description || prop.fullDescription || ''
+  r.description = rawDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+
+  // Tenure & lease
   r.tenure = prop.tenure || prop.tenureType || ''
   if (r.tenure) r.tenure = r.tenure.charAt(0).toUpperCase() + r.tenure.slice(1).toLowerCase()
 
-  const ll = prop.leaseLength || prop.leaseRemaining || prop.yearsRemainingOnLease || prop.remainingYears
-  if (ll) r.leaseLength = `${ll} years remaining`
-  if (!r.leaseLength) r.leaseLength = extractLeaseFromText(r.description || '')
-  if (!r.leaseLength) r.leaseLength = extractLeaseFromText(html)
+  const ll = prop.tenureUnexpiredYears || prop.leaseLength || prop.leaseRemaining || prop.yearsRemainingOnLease
+  if (ll) r.leaseLength = /year/i.test(String(ll)) ? String(ll) : `${ll} years remaining`
+  if (!r.leaseLength) r.leaseLength = extractLeaseFromText(r.description || '') || extractLeaseFromText(html)
 
-  const sc = prop.serviceCharge || prop.annualServiceCharge || prop.maintenanceCharge
-  if (sc) r.serviceCharge = toNum(sc)
+  // Service charge — Homeflow uses annualServiceCharge as a £-prefixed string
+  if (prop.annualServiceCharge != null) {
+    const sc = toNum(String(prop.annualServiceCharge).replace(/[£,\s]/g, ''))
+    if (sc) r.serviceCharge = sc
+  }
   if (!r.serviceCharge) r.serviceCharge = extractHtmlCharge(html, 'service.charge|management.charge')
-  const gr = prop.groundRent || prop.annualGroundRent
-  if (gr != null) r.groundRent = toNum(gr)
-  if (r.groundRent == null && /peppercorn/i.test(r.tenure || r.description || '')) r.groundRent = 0
+
+  // Ground rent
+  if (prop.annualGroundRent != null) {
+    r.groundRent = toNum(String(prop.annualGroundRent).replace(/[£,\s]/g, ''))
+  }
+  if (r.groundRent == null && /peppercorn/i.test(r.tenure + ' ' + r.description)) r.groundRent = 0
+  if (r.groundRent == null) {
+    const gr = extractHtmlCharge(html, 'ground.rent')
+    if (gr != null) r.groundRent = gr
+  }
 
   return r
 }
