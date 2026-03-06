@@ -369,10 +369,11 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
                 Score: {total}/100
               </div>
             )}
-            <button onClick={() => { setEditForm({ address: property.address || property.name || "", price: property.price || "", bedrooms: property.bedrooms || "", bathrooms: property.bathrooms || "", sqft: property.sqft || "", agent: property.agent || "", agentPhone: property.agentPhone || "", leaseLength: property.leaseLength || "", tenure: property.tenure || "", serviceCharge: property.serviceCharge ?? "", groundRent: property.groundRent ?? "", image: property.image || "" }); setEditing(true); }}
+            <button onClick={() => { setEditForm({ address: property.address || property.name || "", price: property.price || "", bedrooms: property.bedrooms || "", bathrooms: property.bathrooms || "", sqft: property.sqft || "", agent: property.agent || "", agentPhone: property.agentPhone || "", leaseLength: property.leaseLength || "", tenure: property.tenure || "", serviceCharge: property.serviceCharge ?? "", groundRent: property.groundRent ?? "", image: property.image || "", notes: property.notes || "" }); setEditing(true); }}
               style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 8, color: "#7c73e6", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
               <Icon icon="solar:pen-bold" width={14} /> Edit
             </button>
+
             {onDelete && (
               <button onClick={() => { if (window.confirm("Delete this property?")) onDelete(property.id); }}
                 style={{ background: "none", border: "1px solid #FECACA", borderRadius: 8, color: "#DC2626", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}
@@ -555,6 +556,34 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
           </div>
         )}
 
+        {/* Notes — always shown, inline editable */}
+        {(() => {
+          const [notesEditing, setNotesEditing] = useState(false);
+          const [notesVal, setNotesVal] = useState(property.notes || "");
+          return (
+            <div style={{ background: "#FFFDF5", border: "1px solid #F5E6B0", borderRadius: 14, padding: "14px 16px", marginBottom: 16, boxShadow: "0 2px 8px rgba(200,170,0,0.06)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#B8960A", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
+                <Icon icon="solar:notes-bold" width={13} /> My Notes
+              </div>
+              {notesEditing ? (
+                <textarea
+                  autoFocus
+                  value={notesVal}
+                  onChange={e => setNotesVal(e.target.value)}
+                  onBlur={() => { onEdit?.({ notes: notesVal }); setNotesEditing(false); }}
+                  rows={4}
+                  placeholder="Add your notes here…"
+                  style={{ width: "100%", fontSize: 13, color: "#5C4D00", lineHeight: 1.7, border: "none", background: "transparent", resize: "vertical", outline: "none", fontFamily: "'DM Sans', sans-serif" }}
+                />
+              ) : (
+                <div onClick={() => setNotesEditing(true)} style={{ fontSize: 13, color: notesVal ? "#5C4D00" : "#C8A80A", lineHeight: 1.7, cursor: "text", minHeight: 24, whiteSpace: "pre-line" }}>
+                  {notesVal || "Click to add notes…"}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Map */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}><Icon icon="solar:map-point-bold" width={13} /> Location</div>
@@ -600,6 +629,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
                 <div><label style={labelSt}>Ground Rent /yr</label><input type="number" value={editForm.groundRent} onChange={e => setEditForm(f => ({ ...f, groundRent: e.target.value === "" ? null : Number(e.target.value) }))} style={inputSt} placeholder="0 = Peppercorn" /></div>
               </div>
               <div><label style={labelSt}>Image URL</label><input value={editForm.image} onChange={e => setEditForm(f => ({ ...f, image: e.target.value }))} style={inputSt} placeholder="https://..." /></div>
+              <div><label style={labelSt}>Notes</label><textarea value={editForm.notes || ""} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} rows={4} placeholder="Add your notes here…" style={{ ...inputSt, resize: "vertical", height: "auto" }} /></div>
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
               <button onClick={() => setEditing(false)} style={{ flex: 1, padding: "12px", background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 11, color: "#6D6077", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Cancel</button>
