@@ -1538,6 +1538,11 @@ export default function NestWell() {
               return new Date(a.viewingDate) - new Date(b.viewingDate);
             });
           }
+          if (col.id === "viewed") {
+            colProps.sort((a, b) =>
+              (getTotal(b.scores) + getBonusTotal(b.bonuses)) - (getTotal(a.scores) + getBonusTotal(a.bonuses))
+            );
+          }
           return (
             <div key={col.id} style={{
               borderRight: ci < 3 ? "1px solid #e0dff0" : "none",
