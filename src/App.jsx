@@ -423,7 +423,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove 
                     padding: "10px 14px",
                     background: active ? col.accent : "transparent",
                     border: "none",
-                    borderBottom: i < COLUMNS.length - 1 ? "1px solid #f5f5f5" : "none",
+                    borderBottom: "1px solid #f5f5f5",
                     color: active ? col.color : "#1C1427",
                     fontSize: 13, fontWeight: active ? 700 : 500,
                     cursor: active ? "default" : "pointer",
@@ -436,6 +436,20 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove 
                   </button>
                 );
               })}
+              <button onClick={() => { onMove?.(property.id, "archived"); setPickerOpen(false); }} style={{
+                display: "flex", alignItems: "center", gap: 10, width: "100%",
+                padding: "10px 14px",
+                background: property.status === "archived" ? "#f5f5f5" : "transparent",
+                border: "none",
+                color: "#A89DB0",
+                fontSize: 13, fontWeight: 500,
+                cursor: "pointer",
+                fontFamily: "'DM Sans', sans-serif",
+                textAlign: "left"
+              }}>
+                <Icon icon="solar:archive-bold" width={16} style={{ color: "#C4BAC8", flexShrink: 0 }} />
+                Archive
+              </button>
             </div>
           </>
         )}
@@ -904,6 +918,10 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
               → {c.label}
             </button>
           ))}
+          <button onClick={e => { e.stopPropagation(); onMove?.(property.id, "archived"); }}
+            style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: "none", border: `1px solid #e0dff0`, color: "#C4BAC8", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+            Archive
+          </button>
         </div>
 
         {/* Viewing date entry — booked column only */}
@@ -1362,6 +1380,65 @@ function Leaderboard({ properties, onClose, onRescore }) {
   );
 }
 
+// ─── ARCHIVE ────────────────────────────────────────────────────────────────
+function Archive({ properties, onClose, onUnarchive, onOpen }) {
+  const archived = properties.filter(p => p.status === "archived");
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(28,20,39,0.25)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 22, padding: "28px 24px", boxShadow: "0 24px 60px rgba(28,20,39,0.12)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 800, color: "#1C1427", display: "flex", alignItems: "center", gap: 10 }}>
+            <Icon icon="solar:archive-bold" width={26} style={{ color: "#A89DB0" }} /> Archived
+          </h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
+        </div>
+
+        {archived.length === 0 ? (
+          <div style={{ textAlign: "center", padding: 60, color: "#A89DB0" }}>
+            <div style={{ marginBottom: 16, color: "#e0dff0", display: "flex", justifyContent: "center" }}><Icon icon="solar:archive-bold" width={48} /></div>
+            <p>No archived properties yet.</p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {archived.map(p => {
+              const hasScore = p.scores && Object.keys(p.scores).length > 0;
+              const total = hasScore ? getTotal(p.scores) + getBonusTotal(p.bonuses) : null;
+              const col = total !== null ? scoreColor(total) : "#A89DB0";
+              return (
+                <div key={p.id} style={{ borderRadius: 14, border: "1px solid #e0dff0", background: "#FAFAFA", overflow: "hidden", display: "flex", gap: 0 }}>
+                  {p.image && (
+                    <div style={{ width: 80, flexShrink: 0 }}>
+                      <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.75 }} />
+                    </div>
+                  )}
+                  <div style={{ flex: 1, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 14, fontWeight: 700, color: "#6B6B7A", lineHeight: 1.3 }}>{p.name}</div>
+                      {p.price && <div style={{ fontSize: 12, color: "#A89DB0", marginTop: 2 }}>{p.price}</div>}
+                      <div style={{ fontSize: 11, color: "#C4BAC8", marginTop: 4 }}>
+                        {[p.bedrooms && `${p.bedrooms} bed`, p.bathrooms && `${p.bathrooms} bath`].filter(Boolean).join(" · ")}
+                      </div>
+                    </div>
+                    {total !== null && (
+                      <div style={{ width: 40, height: 40, borderRadius: "50%", flexShrink: 0, background: `${col}12`, border: `2px solid ${col}66`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: `${col}99`, fontFamily: "'Fraunces', serif" }}>{total}</div>
+                    )}
+                    <button onClick={() => { onUnarchive(p.id); }} title="Restore to Listing"
+                      style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 8, padding: "5px 10px", color: "#A89DB0", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>
+                      Restore
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
 export default function NestWell() {
   const [properties, setProperties] = useState([]);
@@ -1369,6 +1446,7 @@ export default function NestWell() {
   const [overviewProp, setOverviewProp] = useState(null);
   const [scoringProp, setScoringProp] = useState(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const isRemoteUpdate = useRef(false);
 
@@ -1427,6 +1505,9 @@ export default function NestWell() {
       const prop = properties.find(p => p.id === id);
       if (prop) setOverviewProp({ ...prop, status: "viewed" });
     }
+    if (newStatus === "archived") {
+      if (overviewProp?.id === id) setOverviewProp(null);
+    }
   }
 
   async function saveScores(updated) {
@@ -1469,7 +1550,8 @@ export default function NestWell() {
     setOverviewProp(property);
   }
 
-  const scoredCount = properties.filter(p => p.scores && Object.keys(p.scores).length > 0).length;
+  const scoredCount = properties.filter(p => p.scores && Object.keys(p.scores).length > 0 && p.status !== "archived").length;
+  const archivedCount = properties.filter(p => p.status === "archived").length;
 
   return (
     <div style={{
@@ -1503,10 +1585,15 @@ export default function NestWell() {
             Nest<span style={{ color: "#7c73e6" }}> Well</span>
           </h1>
           <span style={{ fontSize: 11, color: "#A89DB0", fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", borderLeft: "1px solid #e0dff0", paddingLeft: 14 }}>
-            {properties.length} {properties.length === 1 ? "property" : "properties"}
+            {properties.filter(p => p.status !== "archived").length} {properties.filter(p => p.status !== "archived").length === 1 ? "property" : "properties"}
           </span>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          {archivedCount > 0 && (
+            <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
+              <Icon icon="solar:archive-bold" width={14} /> Archive ({archivedCount})
+            </button>
+          )}
           {scoredCount > 0 && (
             <button onClick={() => setShowLeaderboard(true)} style={{ ...ghostBtnSt, borderColor: "#a8a5d8", color: "#7c73e6", background: "#f0eff9", padding: "11px 22px", fontSize: 15, display: "flex", alignItems: "center", gap: 7 }}>
               <Icon icon="solar:cup-star-bold" width={16} /> Leaderboard ({scoredCount})
@@ -1529,7 +1616,7 @@ export default function NestWell() {
         minHeight: "calc(100vh - 62px)", overflowX: "auto",
       }}>
         {COLUMNS.map((col, ci) => {
-          const colProps = properties.filter(p => p.status === col.id);
+          const colProps = properties.filter(p => p.status === col.id && p.status !== "archived");
           if (col.id === "booked") {
             colProps.sort((a, b) => {
               if (!a.viewingDate && !b.viewingDate) return 0;
@@ -1607,6 +1694,14 @@ export default function NestWell() {
           properties={properties}
           onClose={() => setShowLeaderboard(false)}
           onRescore={prop => { setOverviewProp(prop); }}
+        />
+      )}
+
+      {showArchive && (
+        <Archive
+          properties={properties}
+          onClose={() => setShowArchive(false)}
+          onUnarchive={id => moveProperty(id, "listing")}
         />
       )}
     </div>
