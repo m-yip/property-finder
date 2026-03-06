@@ -337,11 +337,13 @@ function MapEmbed({ address }) {
 }
 
 // ─── PROPERTY OVERVIEW ─────────────────────────────────────────────────────
-function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove }) {
+function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove, onEdit }) {
   const hasScore = property.scores && Object.keys(property.scores).length > 0;
   const total = getTotal(property.scores) + getBonusTotal(property.bonuses);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState(null);
 
   function openPicker(e) {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -367,6 +369,10 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove 
                 Score: {total}/100
               </div>
             )}
+            <button onClick={() => { setEditForm({ address: property.address || property.name || "", price: property.price || "", bedrooms: property.bedrooms || "", bathrooms: property.bathrooms || "", sqft: property.sqft || "", agent: property.agent || "", agentPhone: property.agentPhone || "", leaseLength: property.leaseLength || "", tenure: property.tenure || "", serviceCharge: property.serviceCharge ?? "", groundRent: property.groundRent ?? "", image: property.image || "" }); setEditing(true); }}
+              style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 8, color: "#7c73e6", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
+              <Icon icon="solar:pen-bold" width={14} /> Edit
+            </button>
             {onDelete && (
               <button onClick={() => { if (window.confirm("Delete this property?")) onDelete(property.id); }}
                 style={{ background: "none", border: "1px solid #FECACA", borderRadius: 8, color: "#DC2626", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}
@@ -565,6 +571,45 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove 
         </div>
 
       </div>
+
+      {/* Edit overlay */}
+      {editing && editForm && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(124,115,230,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+          onClick={e => e.target === e.currentTarget && setEditing(false)}>
+          <div style={{ width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 20, padding: 28, boxShadow: "0 24px 60px rgba(124,115,230,0.2)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 800, color: "#1C1427" }}>Edit Details</h2>
+              <button onClick={() => setEditing(false)} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div><label style={labelSt}>Address</label><input value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} style={inputSt} /></div>
+              <div><label style={labelSt}>Price</label><input value={editForm.price} onChange={e => setEditForm(f => ({ ...f, price: e.target.value }))} style={inputSt} placeholder="e.g. £450,000 or £2,500 pcm" /></div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                <div><label style={labelSt}>Bedrooms</label><input value={editForm.bedrooms} onChange={e => setEditForm(f => ({ ...f, bedrooms: e.target.value }))} style={inputSt} /></div>
+                <div><label style={labelSt}>Bathrooms</label><input value={editForm.bathrooms} onChange={e => setEditForm(f => ({ ...f, bathrooms: e.target.value }))} style={inputSt} /></div>
+                <div><label style={labelSt}>Sq ft</label><input value={editForm.sqft} onChange={e => setEditForm(f => ({ ...f, sqft: e.target.value }))} style={inputSt} /></div>
+              </div>
+              <div><label style={labelSt}>Estate Agent</label><input value={editForm.agent} onChange={e => setEditForm(f => ({ ...f, agent: e.target.value }))} style={inputSt} /></div>
+              <div><label style={labelSt}>Agent Phone</label><input value={editForm.agentPhone} onChange={e => setEditForm(f => ({ ...f, agentPhone: e.target.value }))} style={inputSt} /></div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div><label style={labelSt}>Tenure</label><input value={editForm.tenure} onChange={e => setEditForm(f => ({ ...f, tenure: e.target.value }))} style={inputSt} placeholder="Leasehold / Freehold" /></div>
+                <div><label style={labelSt}>Lease Length</label><input value={editForm.leaseLength} onChange={e => setEditForm(f => ({ ...f, leaseLength: e.target.value }))} style={inputSt} placeholder="e.g. 125 years" /></div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div><label style={labelSt}>Service Charge /yr</label><input type="number" value={editForm.serviceCharge} onChange={e => setEditForm(f => ({ ...f, serviceCharge: e.target.value === "" ? null : Number(e.target.value) }))} style={inputSt} placeholder="e.g. 2400" /></div>
+                <div><label style={labelSt}>Ground Rent /yr</label><input type="number" value={editForm.groundRent} onChange={e => setEditForm(f => ({ ...f, groundRent: e.target.value === "" ? null : Number(e.target.value) }))} style={inputSt} placeholder="0 = Peppercorn" /></div>
+              </div>
+              <div><label style={labelSt}>Image URL</label><input value={editForm.image} onChange={e => setEditForm(f => ({ ...f, image: e.target.value }))} style={inputSt} placeholder="https://..." /></div>
+            </div>
+            <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
+              <button onClick={() => setEditing(false)} style={{ flex: 1, padding: "12px", background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 11, color: "#6D6077", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Cancel</button>
+              <button onClick={() => { onEdit?.({ ...editForm, name: editForm.address || property.name }); setEditing(false); }} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#9b95eb,#7c73e6)", border: "none", borderRadius: 11, color: "#FFFFFF", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 16px rgba(124,115,230,0.3)" }}>
+                Save Changes ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1233,36 +1278,42 @@ ${trimmed}`
             }}>
               {loading ? "⏳ Extracting details..." : "Extract Details →"}
             </button>
+            <button onClick={() => { setExtracted({ address: "", name: "", price: "", bedrooms: "", bathrooms: "", sqft: "", image: "", agent: "", agentPhone: "", serviceCharge: null, groundRent: null, leaseLength: "", tenure: "", description: "", epcRating: "", dateListed: "" }); setStep("confirm"); }}
+              style={{ width: "100%", marginTop: 10, padding: "11px", background: "none", border: "1px solid #e0dff0", borderRadius: 12, color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+              Enter details manually →
+            </button>
           </>
         )}
 
         {step === "confirm" && extracted && (
           <>
-            {extracted.image ? (
-              <div style={{ position: "relative", height: 160, borderRadius: 12, overflow: "hidden", marginBottom: 16 }}>
+            {extracted.image && (
+              <div style={{ position: "relative", height: 140, borderRadius: 12, overflow: "hidden", marginBottom: 16 }}>
                 <img src={extracted.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(28,20,39,0.88) 0%, transparent 55%)" }} />
-                <div style={{ position: "absolute", bottom: 12, left: 14, right: 14 }}>
-                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.3 }}>{extracted.address || extracted.name}</div>
-                  {extracted.price && <div style={{ fontSize: 13, color: "#a8a5d8", marginTop: 2, fontWeight: 600 }}>{extracted.price}</div>}
-                </div>
-              </div>
-            ) : (
-              <div style={{ marginBottom: 16, padding: "14px 16px", background: "#f5f3fc", borderRadius: 12, border: "1px solid #c4c1e0" }}>
-                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 700, color: "#1C1427" }}>{extracted.address || extracted.name}</div>
-                {extracted.price && <div style={{ fontSize: 13, color: "#7c73e6", marginTop: 3, fontWeight: 600 }}>{extracted.price}</div>}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(28,20,39,0.7) 0%, transparent 55%)" }} />
               </div>
             )}
 
-            {(extracted.bedrooms || extracted.sqft || extracted.agent) && (
-              <div style={{ fontSize: 12, color: "#6D6077", marginBottom: 20, lineHeight: 1.7 }}>
-                {extracted.bedrooms && `${extracted.bedrooms} bed`}
-                {extracted.bathrooms && ` · ${extracted.bathrooms} bath`}
-                {extracted.sqft && ` · ${extracted.sqft} sqft`}
-                {extracted.agent && ` · ${extracted.agent}`}
-                {extracted.leaseLength && ` · Lease: ${extracted.leaseLength}`}
+            {/* Editable fields */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+              <div>
+                <label style={labelSt}>Address</label>
+                <input value={extracted.address || extracted.name || ""} onChange={e => setExtracted(x => ({ ...x, address: e.target.value, name: e.target.value }))} style={inputSt} placeholder="e.g. 12 Elm Street, London, E1 4AB" />
               </div>
-            )}
+              <div>
+                <label style={labelSt}>Price</label>
+                <input value={extracted.price || ""} onChange={e => setExtracted(x => ({ ...x, price: e.target.value }))} style={inputSt} placeholder="e.g. £450,000 or £2,500 pcm" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                <div><label style={labelSt}>Bedrooms</label><input value={extracted.bedrooms || ""} onChange={e => setExtracted(x => ({ ...x, bedrooms: e.target.value }))} style={inputSt} placeholder="e.g. 2" /></div>
+                <div><label style={labelSt}>Bathrooms</label><input value={extracted.bathrooms || ""} onChange={e => setExtracted(x => ({ ...x, bathrooms: e.target.value }))} style={inputSt} placeholder="e.g. 1" /></div>
+                <div><label style={labelSt}>Sq ft</label><input value={extracted.sqft || ""} onChange={e => setExtracted(x => ({ ...x, sqft: e.target.value }))} style={inputSt} placeholder="e.g. 750" /></div>
+              </div>
+              <div>
+                <label style={labelSt}>Estate Agent</label>
+                <input value={extracted.agent || ""} onChange={e => setExtracted(x => ({ ...x, agent: e.target.value }))} style={inputSt} placeholder="e.g. Knight Frank" />
+              </div>
+            </div>
 
             <label style={labelSt}>Where does this sit?</label>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
@@ -1670,6 +1721,7 @@ export default function NestWell() {
           onClose={() => setOverviewProp(null)}
           onDelete={deleteProperty}
           onStartScoring={() => setScoringProp(properties.find(p => p.id === overviewProp.id) || overviewProp)}
+          onEdit={fields => updateProperty(overviewProp.id, fields)}
           onMove={(id, newStatus) => {
             moveProperty(id, newStatus);
             if (newStatus !== "viewed") setOverviewProp(null);
