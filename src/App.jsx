@@ -233,6 +233,45 @@ function mergeProperties(local, remote) {
   });
 }
 
+// ─── SCORING SUMMARY GENERATOR ──────────────────────────────────────────────
+function generateScoringSummary(property, scores, bonuses) {
+  const total = getTotal(scores) + getBonusTotal(bonuses);
+  const verdict = total >= 75 ? "strong contender" : total >= 55 ? "decent option" : total >= 40 ? "mixed bag" : "weak fit";
+
+  // Per-section sentences
+  const lines = [];
+  SECTIONS.forEach(s => {
+    const answered = s.questions.filter(q => scores[q.id] !== undefined);
+    if (!answered.length) return;
+    const avg = answered.reduce((sum, q) => sum + scores[q.id], 0) / answered.length;
+
+    // Pick standout questions (score 1 or 5, or highest/lowest in section)
+    const sorted = [...answered].sort((a, b) => scores[b.id] - scores[a.id]);
+    const best = sorted[0];
+    const worst = sorted[sorted.length - 1];
+
+    const parts = [];
+    if (scores[best.id] >= 4) parts.push(best.anchors[scores[best.id]].toLowerCase());
+    if (scores[worst.id] <= 2 && worst.id !== best.id) parts.push(`${worst.label.toLowerCase()}: ${worst.anchors[scores[worst.id]].toLowerCase()}`);
+
+    if (parts.length) {
+      lines.push(`**${s.title}**: ${parts.join('; ')}.`);
+    } else {
+      const mid = answered.find(q => scores[q.id] === 3);
+      if (mid) lines.push(`**${s.title}**: ${mid.anchors[3].toLowerCase()}.`);
+    }
+  });
+
+  // Bonuses
+  const activeBonus = BONUSES.filter(b => bonuses?.[b.id]);
+  const bonusLine = activeBonus.length
+    ? `Deal-makers: ${activeBonus.map(b => b.label.toLowerCase()).join(', ')} (+${getBonusTotal(bonuses)} pts).`
+    : '';
+
+  const header = `Scored ${total}/100 — ${verdict}.`;
+  return [header, ...lines, bonusLine].filter(Boolean).join('\n');
+}
+
 // ─── SCORE DOTS ────────────────────────────────────────────────────────────
 function ScoreDots({ value, onChange, anchors = {} }) {
   const [hovered, setHovered] = useState(null);
@@ -499,6 +538,64 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
           </div>
         )}
 
+        {/* Score breakdown by section */}
+        {hasScore && (
+          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 16, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 8px rgba(124,115,230,0.06)" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 5 }}>
+              <Icon icon="solar:chart-2-bold" width={13} /> Score Breakdown
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+              {SECTIONS.map(s => {
+                const answered = s.questions.filter(q => property.scores[q.id] !== undefined);
+                if (!answered.length) return null;
+                const weighted = answered.reduce((sum, q) => sum + property.scores[q.id] * q.weight, 0);
+                const maxW = answered.reduce((sum, q) => sum + 5 * q.weight, 0);
+                const pct = Math.round((weighted / maxW) * 100);
+                const col = scoreColor(pct);
+                return (
+                  <div key={s.id}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <Icon icon={s.icon} width={13} style={{ color: "#A89DB0" }} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#1C1427" }}>{s.title}</span>
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: col, fontFamily: "'Fraunces', serif" }}>{pct}%</span>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 3, background: "#f0eef8", overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: col, borderRadius: 3, transition: "width 0.4s" }} />
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 12px", marginTop: 5 }}>
+                      {answered.map(q => (
+                        <span key={q.id} style={{ fontSize: 11, color: "#A89DB0" }}>
+                          {q.label}: <span style={{ fontWeight: 700, color: property.scores[q.id] >= 4 ? "#059669" : property.scores[q.id] <= 2 ? "#DC2626" : "#6D6077" }}>{property.scores[q.id]}/5</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              {getBonusTotal(property.bonuses) > 0 && (
+                <div style={{ borderTop: "1px solid #f0eef8", paddingTop: 10, marginTop: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <Icon icon="solar:stars-bold" width={13} style={{ color: "#A89DB0" }} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1C1427" }}>Deal-makers</span>
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#7c73e6", fontFamily: "'Fraunces', serif" }}>+{getBonusTotal(property.bonuses)} pts</span>
+                </div>
+              )}
+              {getBonusTotal(property.bonuses) > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 12px" }}>
+                  {BONUSES.filter(b => property.bonuses?.[b.id]).map(b => (
+                    <span key={b.id} style={{ fontSize: 11, color: "#7c73e6", fontWeight: 600 }}>
+                      <Icon icon={b.icon} width={11} style={{ verticalAlign: "middle", marginRight: 3 }} />{b.label} +{b.points}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Key stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 20 }}>
           {[
@@ -513,6 +610,16 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
             </div>
           ))}
         </div>
+
+        {/* Scoring summary */}
+        {property.scoringSummary && (
+          <div style={{ background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 14, padding: "16px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(124,115,230,0.08)" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#7c73e6", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
+              <Icon icon="solar:clipboard-list-bold" width={13} /> Scoring Notes
+            </div>
+            <p style={{ fontSize: 13, color: "#1C1427", lineHeight: 1.75, margin: 0, whiteSpace: "pre-line" }}>{property.scoringSummary}</p>
+          </div>
+        )}
 
         {/* Description */}
         {property.description && (
@@ -669,6 +776,8 @@ function ScoringWizard({ property, onClose, onSave }) {
   const [sectionIdx, setSectionIdx] = useState(0);
   const [scores, setScores] = useState(property.scores || {});
   const [bonuses, setBonuses] = useState(property.bonuses || {});
+  const [showSummary, setShowSummary] = useState(false);
+  const [summaryText, setSummaryText] = useState("");
   const scrollRef = useRef(null);
   const section = SECTIONS[sectionIdx];
   const isLastSection = sectionIdx === SECTIONS.length - 1;
@@ -680,18 +789,24 @@ function ScoringWizard({ property, onClose, onSave }) {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  }, [sectionIdx]);
+  }, [sectionIdx, showSummary]);
 
   function next() {
     if (sectionIdx < SECTIONS.length - 1) setSectionIdx(s => s + 1);
   }
 
+  function openSummary() {
+    setSummaryText(generateScoringSummary(property, scores, bonuses));
+    setShowSummary(true);
+  }
+
   function save() {
-    onSave({ ...property, scores, bonuses });
+    onSave({ ...property, scores, bonuses, scoringSummary: summaryText });
     onClose();
   }
 
   function goBack() {
+    if (showSummary) { setShowSummary(false); return; }
     if (sectionIdx > 0) setSectionIdx(s => s - 1);
     else onClose();
   }
@@ -841,7 +956,7 @@ function ScoringWizard({ property, onClose, onSave }) {
         {/* Next / Save button */}
         <div style={{ marginTop: 20 }}>
           <button
-            onClick={isLastSection ? save : next}
+            onClick={isLastSection ? openSummary : next}
             disabled={!sectionComplete}
             style={{
               width: "100%", padding: "16px",
@@ -854,7 +969,7 @@ function ScoringWizard({ property, onClose, onSave }) {
               transition: "all 0.2s"
             }}
           >
-            {isLastSection ? "Save Scorecard →" : `Next: ${SECTIONS[sectionIdx + 1].title} →`}
+            {isLastSection ? "Review & Save →" : `Next: ${SECTIONS[sectionIdx + 1].title} →`}
           </button>
           {!sectionComplete && (
             <div style={{ textAlign: "center", fontSize: 12, color: "#A89DB0", marginTop: 8 }}>
@@ -863,6 +978,38 @@ function ScoringWizard({ property, onClose, onSave }) {
           )}
         </div>
       </div>
+
+      {/* Summary screen */}
+      {showSummary && (
+        <div style={{ position: "absolute", inset: 0, background: "#fafafa", overflowY: "auto", zIndex: 10, animation: "slideIn 0.25s ease" }}>
+          <div style={{ maxWidth: 540, margin: "0 auto", padding: "0 20px 80px" }}>
+            {/* Nav */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0 12px", position: "sticky", top: 0, background: "rgba(250,250,250,0.95)", backdropFilter: "blur(10px)", zIndex: 10, marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20, borderBottom: "1px solid #e0dff0" }}>
+              <button onClick={() => setShowSummary(false)} style={ghostBtnSt}>← Back</button>
+              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 700, color: scoreColor(combinedTotal) }}>{combinedTotal}/100</div>
+              <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#C4C1E0", display: "flex", alignItems: "center" }}>
+                <Icon icon="solar:close-square-bold" width={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: "24px 0 20px" }}>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 800, color: "#1C1427", marginBottom: 6 }}>Scoring Summary</h2>
+              <p style={{ fontSize: 13, color: "#A89DB0", marginBottom: 20 }}>Edit this summary to add your own notes before saving.</p>
+
+              <textarea
+                value={summaryText}
+                onChange={e => setSummaryText(e.target.value)}
+                rows={14}
+                style={{ width: "100%", fontSize: 14, color: "#1C1427", lineHeight: 1.75, border: "1px solid #c4c1e0", borderRadius: 14, padding: "16px", background: "#FFFFFF", resize: "vertical", outline: "none", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 2px 8px rgba(124,115,230,0.06)", boxSizing: "border-box" }}
+              />
+            </div>
+
+            <button onClick={save} style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#9b95eb,#7c73e6)", border: "none", borderRadius: 13, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 20px rgba(124,115,230,0.3)" }}>
+              Save Scorecard ✓
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
