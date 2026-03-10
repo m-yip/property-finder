@@ -500,6 +500,57 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
           </>
         )}
 
+        {/* Written score summary — shown under image when scored */}
+        {hasScore && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${scoreColor(total)}15`, border: `2px solid ${scoreColor(total)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: scoreColor(total), fontFamily: "'Fraunces', serif", flexShrink: 0 }}>{total}</div>
+                <span style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 700, color: "#1C1427" }}>
+                  {total >= 75 ? "Strong contender" : total >= 55 ? "Decent option" : total >= 40 ? "Mixed bag" : "Weak fit"}
+                </span>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {SECTIONS.map(s => {
+                const answered = s.questions.filter(q => property.scores[q.id] !== undefined);
+                if (!answered.length) return null;
+                const weighted = answered.reduce((sum, q) => sum + property.scores[q.id] * q.weight, 0);
+                const maxW = answered.reduce((sum, q) => sum + 5 * q.weight, 0);
+                const pct = Math.round((weighted / maxW) * 100);
+                const col = scoreColor(pct);
+                const sorted = [...answered].sort((a, b) => property.scores[b.id] - property.scores[a.id]);
+                const highlight = sorted[0];
+                const lowlight = sorted[sorted.length - 1];
+                return (
+                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <Icon icon={s.icon} width={14} style={{ color: "#A89DB0", flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "#6D6077", width: 100, flexShrink: 0 }}>{s.title}</span>
+                    <div style={{ flex: 1, height: 4, borderRadius: 2, background: "#f0eef8", overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: col, borderRadius: 2 }} />
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: col, fontFamily: "'Fraunces', serif", width: 32, textAlign: "right" }}>{pct}%</span>
+                    <span style={{ fontSize: 11, color: "#A89DB0", width: 130, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {property.scores[highlight.id] >= 4
+                        ? highlight.anchors[property.scores[highlight.id]]
+                        : property.scores[lowlight.id] <= 2
+                          ? lowlight.anchors[property.scores[lowlight.id]]
+                          : highlight.anchors[property.scores[highlight.id]]}
+                    </span>
+                  </div>
+                );
+              })}
+              {getBonusTotal(property.bonuses) > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Icon icon="solar:stars-bold" width={14} style={{ color: "#7c73e6", flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: "#6D6077", width: 100, flexShrink: 0 }}>Deal-makers</span>
+                  <span style={{ fontSize: 12, color: "#7c73e6", fontWeight: 600 }}>{BONUSES.filter(b => property.bonuses?.[b.id]).map(b => b.label).join(', ')} (+{getBonusTotal(property.bonuses)} pts)</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Price block — Rightmove-style: big number, qualifier below */}
         {property.price && (
           <div style={{ marginBottom: 20, padding: "20px 22px", background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, boxShadow: "0 2px 8px rgba(124,115,230,0.06)" }}>
@@ -535,64 +586,6 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
             }}>
               {hasScore ? "Edit →" : "Start →"}
             </button>
-          </div>
-        )}
-
-        {/* Score breakdown by section */}
-        {hasScore && (
-          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 16, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 8px rgba(124,115,230,0.06)" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 5 }}>
-              <Icon icon="solar:chart-2-bold" width={13} /> Score Breakdown
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-              {SECTIONS.map(s => {
-                const answered = s.questions.filter(q => property.scores[q.id] !== undefined);
-                if (!answered.length) return null;
-                const weighted = answered.reduce((sum, q) => sum + property.scores[q.id] * q.weight, 0);
-                const maxW = answered.reduce((sum, q) => sum + 5 * q.weight, 0);
-                const pct = Math.round((weighted / maxW) * 100);
-                const col = scoreColor(pct);
-                return (
-                  <div key={s.id}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Icon icon={s.icon} width={13} style={{ color: "#A89DB0" }} />
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#1C1427" }}>{s.title}</span>
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: col, fontFamily: "'Fraunces', serif" }}>{pct}%</span>
-                    </div>
-                    <div style={{ height: 5, borderRadius: 3, background: "#f0eef8", overflow: "hidden" }}>
-                      <div style={{ width: `${pct}%`, height: "100%", background: col, borderRadius: 3, transition: "width 0.4s" }} />
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 12px", marginTop: 5 }}>
-                      {answered.map(q => (
-                        <span key={q.id} style={{ fontSize: 11, color: "#A89DB0" }}>
-                          {q.label}: <span style={{ fontWeight: 700, color: property.scores[q.id] >= 4 ? "#059669" : property.scores[q.id] <= 2 ? "#DC2626" : "#6D6077" }}>{property.scores[q.id]}/5</span>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-              {getBonusTotal(property.bonuses) > 0 && (
-                <div style={{ borderTop: "1px solid #f0eef8", paddingTop: 10, marginTop: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <Icon icon="solar:stars-bold" width={13} style={{ color: "#A89DB0" }} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1C1427" }}>Deal-makers</span>
-                  </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#7c73e6", fontFamily: "'Fraunces', serif" }}>+{getBonusTotal(property.bonuses)} pts</span>
-                </div>
-              )}
-              {getBonusTotal(property.bonuses) > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 12px" }}>
-                  {BONUSES.filter(b => property.bonuses?.[b.id]).map(b => (
-                    <span key={b.id} style={{ fontSize: 11, color: "#7c73e6", fontWeight: 600 }}>
-                      <Icon icon={b.icon} width={11} style={{ verticalAlign: "middle", marginRight: 3 }} />{b.label} +{b.points}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         )}
 
@@ -690,6 +683,64 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
             </div>
           );
         })()}
+
+        {/* Score breakdown by section — detailed, at bottom */}
+        {hasScore && (
+          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 16, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 8px rgba(124,115,230,0.06)" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 5 }}>
+              <Icon icon="solar:chart-2-bold" width={13} /> Score Breakdown
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {SECTIONS.map(s => {
+                const answered = s.questions.filter(q => property.scores[q.id] !== undefined);
+                if (!answered.length) return null;
+                const weighted = answered.reduce((sum, q) => sum + property.scores[q.id] * q.weight, 0);
+                const maxW = answered.reduce((sum, q) => sum + 5 * q.weight, 0);
+                const pct = Math.round((weighted / maxW) * 100);
+                const col = scoreColor(pct);
+                return (
+                  <div key={s.id}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <Icon icon={s.icon} width={13} style={{ color: "#A89DB0" }} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#1C1427" }}>{s.title}</span>
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: col, fontFamily: "'Fraunces', serif" }}>{pct}%</span>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 3, background: "#f0eef8", overflow: "hidden", marginBottom: 6 }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: col, borderRadius: 3 }} />
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px" }}>
+                      {answered.map(q => (
+                        <span key={q.id} style={{ fontSize: 11, color: "#A89DB0" }}>
+                          {q.label}: <span style={{ fontWeight: 700, color: property.scores[q.id] >= 4 ? "#059669" : property.scores[q.id] <= 2 ? "#DC2626" : "#6D6077" }}>{property.scores[q.id]}/5</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              {getBonusTotal(property.bonuses) > 0 && (
+                <>
+                  <div style={{ borderTop: "1px solid #f0eef8", paddingTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <Icon icon="solar:stars-bold" width={13} style={{ color: "#A89DB0" }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#1C1427" }}>Deal-makers</span>
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#7c73e6", fontFamily: "'Fraunces', serif" }}>+{getBonusTotal(property.bonuses)} pts</span>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px" }}>
+                    {BONUSES.filter(b => property.bonuses?.[b.id]).map(b => (
+                      <span key={b.id} style={{ fontSize: 11, color: "#7c73e6", fontWeight: 600 }}>
+                        <Icon icon={b.icon} width={11} style={{ verticalAlign: "middle", marginRight: 3 }} />{b.label} +{b.points}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Map */}
         <div style={{ marginBottom: 24 }}>
