@@ -1818,6 +1818,7 @@ export default function NestWell() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [narrow, setNarrow] = useState(() => window.innerWidth < 816);
   const isRemoteUpdate = useRef(false);
 
   // On mount: read board code from URL, or check for migration
@@ -1868,6 +1869,13 @@ export default function NestWell() {
     window.history.pushState({}, '', `?board=${code}`);
     setBoardCode(code);
   }
+
+  // Narrow breakpoint
+  useEffect(() => {
+    const fn = () => setNarrow(window.innerWidth < 816);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
 
   // Close board menu on outside click
   useEffect(() => {
@@ -2003,16 +2011,22 @@ export default function NestWell() {
         height: 62, position: "sticky", top: 0, zIndex: 50,
         background: "rgba(250,250,250,0.95)", backdropFilter: "blur(14px)"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <h1 onClick={handleGoHome} style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px", color: "#1C1427", cursor: "pointer" }} title="Back to home">
+        <div style={{ display: "flex", alignItems: "center", gap: narrow ? 8 : 14 }}>
+          <h1 onClick={handleGoHome} style={{ fontFamily: "'Fraunces', serif", fontSize: narrow ? 17 : 22, fontWeight: 800, letterSpacing: "-0.5px", color: "#1C1427", cursor: "pointer", whiteSpace: "nowrap" }} title="Back to home">
             Nest<span style={{ color: "#6254d0" }}> Well</span>
           </h1>
           {/* Board name dropdown trigger */}
-          <div ref={boardMenuRef} style={{ position: "relative", borderLeft: "1px solid #e0dff0", paddingLeft: 14 }}>
+          <div ref={boardMenuRef} style={{ position: "relative", borderLeft: "1px solid #e0dff0", paddingLeft: narrow ? 8 : 14 }}>
             <button onClick={() => { if (!showBoardMenu) setBoardMenuName(boardName); setShowBoardMenu(v => !v); }}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 5 }}>
-              <span style={{ fontSize: 13, color: boardName ? "#6D6077" : "#C4C1E0", fontWeight: 600 }}>{boardName || "Unnamed board"}</span>
-              <Icon icon="solar:alt-arrow-down-bold" width={12} style={{ color: "#C4C1E0", transition: "transform 0.15s", transform: showBoardMenu ? "rotate(180deg)" : "rotate(0deg)" }} />
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 4 }}>
+              {narrow ? (
+                <Icon icon="solar:settings-bold" width={16} style={{ color: showBoardMenu ? "#6254d0" : "#A89DB0" }} />
+              ) : (
+                <>
+                  <span style={{ fontSize: 13, color: boardName ? "#6D6077" : "#C4C1E0", fontWeight: 600 }}>{boardName || "Unnamed board"}</span>
+                  <Icon icon="solar:alt-arrow-down-bold" width={12} style={{ color: "#C4C1E0", transition: "transform 0.15s", transform: showBoardMenu ? "rotate(180deg)" : "rotate(0deg)" }} />
+                </>
+              )}
             </button>
             {showBoardMenu && (
               <div style={{ position: "absolute", top: "calc(100% + 10px)", left: 0, background: "#fff", border: "1px solid #e0dff0", borderRadius: 12, boxShadow: "0 8px 24px rgba(28,20,39,0.10)", padding: 16, width: 260, zIndex: 200, animation: "fadeUp 0.15s ease" }}>
@@ -2036,28 +2050,51 @@ export default function NestWell() {
               </div>
             )}
           </div>
-          <span style={{ fontSize: 11, color: "#A89DB0", fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", borderLeft: "1px solid #e0dff0", paddingLeft: 14 }}>
-            {properties.filter(p => p.status !== "archived").length} {properties.filter(p => p.status !== "archived").length === 1 ? "property" : "properties"}
-          </span>
+          {!narrow && (
+            <span style={{ fontSize: 11, color: "#A89DB0", fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", borderLeft: "1px solid #e0dff0", paddingLeft: 14 }}>
+              {properties.filter(p => p.status !== "archived").length} {properties.filter(p => p.status !== "archived").length === 1 ? "property" : "properties"}
+            </span>
+          )}
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: narrow ? 4 : 10, alignItems: "center" }}>
           {archivedCount > 0 && (
-            <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
-              <Icon icon="solar:archive-bold" width={14} /> Archive ({archivedCount})
-            </button>
+            narrow ? (
+              <div style={{ position: "relative" }}>
+                <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", padding: "8px", display: "flex", alignItems: "center" }} title="Archive">
+                  <Icon icon="solar:archive-bold" width={18} />
+                </button>
+                <span style={{ position: "absolute", top: 2, right: 2, background: "#A89DB0", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", lineHeight: 1 }}>{archivedCount}</span>
+              </div>
+            ) : (
+              <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
+                <Icon icon="solar:archive-bold" width={14} /> Archive ({archivedCount})
+              </button>
+            )
           )}
           {scoredCount > 0 && (
-            <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
-              <Icon icon="solar:cup-star-bold" width={14} style={{ color: "#6254d0" }} /> Leaderboard ({scoredCount})
-            </button>
+            narrow ? (
+              <div style={{ position: "relative" }}>
+                <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", cursor: "pointer", padding: "8px", display: "flex", alignItems: "center" }} title="Leaderboard">
+                  <Icon icon="solar:cup-star-bold" width={18} style={{ color: "#6254d0" }} />
+                </button>
+                <span style={{ position: "absolute", top: 2, right: 2, background: "#6254d0", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", lineHeight: 1 }}>{scoredCount}</span>
+              </div>
+            ) : (
+              <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
+                <Icon icon="solar:cup-star-bold" width={14} style={{ color: "#6254d0" }} /> Leaderboard ({scoredCount})
+              </button>
+            )
           )}
           <button onClick={() => setShowAdd(true)} style={{
-            padding: "11px 22px", background: "linear-gradient(135deg,#9b95eb,#6254d0)",
-            border: "none", borderRadius: 10, color: "#FFFFFF", fontSize: 15, fontWeight: 700,
+            padding: narrow ? "10px 14px" : "11px 22px",
+            background: "linear-gradient(135deg,#9b95eb,#6254d0)",
+            border: "none", borderRadius: 10, color: "#FFFFFF",
+            fontSize: narrow ? 18 : 15, fontWeight: 700,
             cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-            boxShadow: "0 3px 12px rgba(98,84,208,0.3)"
-          }}>
-            + Add Property
+            boxShadow: "0 3px 12px rgba(98,84,208,0.3)",
+            display: "flex", alignItems: "center", gap: narrow ? 0 : 6,
+          }} title="Add property">
+            {narrow ? <Icon icon="solar:add-square-bold" width={20} /> : "+ Add Property"}
           </button>
         </div>
       </div>
