@@ -1834,7 +1834,8 @@ export default function NestWell() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const narrow = useNarrow();
+  const narrow = useNarrow();       // < 768px — full mobile
+  const medium = useNarrow(823);    // < 823px — icon-only header links
   const isRemoteUpdate = useRef(false);
 
   // On mount: read board code from URL, or check for migration
@@ -2033,7 +2034,7 @@ export default function NestWell() {
                 <Icon icon="solar:settings-bold" width={16} style={{ color: showBoardMenu ? "#6254d0" : "#A89DB0" }} />
               ) : (
                 <>
-                  <span style={{ fontSize: 13, color: boardName ? "#6D6077" : "#C4C1E0", fontWeight: 600 }}>{boardName || "Unnamed board"}</span>
+                  <span style={{ fontSize: 13, color: boardName ? "#6D6077" : "#C4C1E0", fontWeight: 600, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{boardName ? (boardName.length > 25 ? boardName.slice(0, 25) + "…" : boardName) : "Unnamed board"}</span>
                   <Icon icon="solar:alt-arrow-down-bold" width={12} style={{ color: "#C4C1E0", transition: "transform 0.15s", transform: showBoardMenu ? "rotate(180deg)" : "rotate(0deg)" }} />
                 </>
               )}
@@ -2075,6 +2076,10 @@ export default function NestWell() {
                 </button>
                 <span style={{ position: "absolute", top: 2, right: 2, background: "#A89DB0", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", lineHeight: 1 }}>{archivedCount}</span>
               </div>
+            ) : medium ? (
+              <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", padding: "6px", display: "flex", alignItems: "center" }} title={`Archive (${archivedCount})`}>
+                <Icon icon="solar:archive-bold" width={18} />
+              </button>
             ) : (
               <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
                 <Icon icon="solar:archive-bold" width={14} /> Archive ({archivedCount})
@@ -2089,6 +2094,10 @@ export default function NestWell() {
                 </button>
                 <span style={{ position: "absolute", top: 2, right: 2, background: "#6254d0", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", lineHeight: 1 }}>{scoredCount}</span>
               </div>
+            ) : medium ? (
+              <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", cursor: "pointer", padding: "6px", display: "flex", alignItems: "center" }} title={`Leaderboard (${scoredCount})`}>
+                <Icon icon="solar:cup-star-bold" width={18} style={{ color: "#6254d0" }} />
+              </button>
             ) : (
               <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
                 <Icon icon="solar:cup-star-bold" width={14} style={{ color: "#6254d0" }} /> Leaderboard ({scoredCount})
