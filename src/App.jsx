@@ -1,6 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { Icon } from '@iconify/react';
 
+// ─── NARROW HOOK ────────────────────────────────────────────────────────────
+function useNarrow(bp = 816) {
+  const [n, setN] = useState(() => window.innerWidth < bp);
+  useEffect(() => {
+    const fn = () => setN(window.innerWidth < bp);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, [bp]);
+  return n;
+}
+
 // ─── DESCRIPTION MINING HELPERS ────────────────────────────────────────────
 function mineAmount(desc, keywords) {
   if (!desc) return null;
@@ -1477,11 +1488,12 @@ ${trimmed}`
     onClose();
   }
 
+  const narrow = useNarrow();
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(98,84,208,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(98,84,208,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 20, padding: 28, boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
-
+      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 480, maxHeight: "92vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: narrow ? "20px 20px 0 0" : 20, padding: 28, boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
+        {narrow && <div style={{ width: 36, height: 4, background: "#e0dff0", borderRadius: 2, margin: "-8px auto 20px" }} />}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, color: "#1C1427" }}>
             {step === "url" ? "Add a Property" : "Confirm Details"}
@@ -1583,14 +1595,16 @@ ${trimmed}`
 
 // ─── LEADERBOARD ────────────────────────────────────────────────────────────
 function Leaderboard({ properties, onClose, onRescore }) {
+  const narrow = useNarrow();
   const scored = [...properties]
     .filter(p => p.scores && Object.keys(p.scores).length > 0)
     .sort((a, b) => (getTotal(b.scores) + getBonusTotal(b.bonuses)) - (getTotal(a.scores) + getBonusTotal(a.bonuses)));
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(98,84,208,0.2)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(98,84,208,0.2)", backdropFilter: "blur(10px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 22, padding: "28px 24px", boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
+      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 620, maxHeight: "92vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: narrow ? "20px 20px 0 0" : 22, padding: "28px 24px", boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
+        {narrow && <div style={{ width: 36, height: 4, background: "#e0dff0", borderRadius: 2, margin: "-8px auto 20px" }} />}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 800, color: "#1C1427", display: "flex", alignItems: "center", gap: 10 }}>
             <Icon icon="solar:cup-star-bold" width={26} style={{ color: "#6254d0" }} /> Leaderboard
@@ -1661,12 +1675,14 @@ function Leaderboard({ properties, onClose, onRescore }) {
 
 // ─── ARCHIVE ────────────────────────────────────────────────────────────────
 function Archive({ properties, onClose, onUnarchive, onOpen }) {
+  const narrow = useNarrow();
   const archived = properties.filter(p => p.status === "archived");
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(28,20,39,0.25)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(28,20,39,0.25)", backdropFilter: "blur(10px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 22, padding: "28px 24px", boxShadow: "0 24px 60px rgba(28,20,39,0.12)" }}>
+      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 620, maxHeight: "92vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: narrow ? "20px 20px 0 0" : 22, padding: "28px 24px", boxShadow: "0 24px 60px rgba(28,20,39,0.12)" }}>
+        {narrow && <div style={{ width: 36, height: 4, background: "#e0dff0", borderRadius: 2, margin: "-8px auto 20px" }} />}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 800, color: "#1C1427", display: "flex", alignItems: "center", gap: 10 }}>
             <Icon icon="solar:archive-bold" width={26} style={{ color: "#A89DB0" }} /> Archived
@@ -1818,7 +1834,7 @@ export default function NestWell() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [narrow, setNarrow] = useState(() => window.innerWidth < 816);
+  const narrow = useNarrow();
   const isRemoteUpdate = useRef(false);
 
   // On mount: read board code from URL, or check for migration
@@ -1869,13 +1885,6 @@ export default function NestWell() {
     window.history.pushState({}, '', `?board=${code}`);
     setBoardCode(code);
   }
-
-  // Narrow breakpoint
-  useEffect(() => {
-    const fn = () => setNarrow(window.innerWidth < 816);
-    window.addEventListener('resize', fn);
-    return () => window.removeEventListener('resize', fn);
-  }, []);
 
   // Close board menu on outside click
   useEffect(() => {
@@ -1997,6 +2006,7 @@ export default function NestWell() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(98,84,208,0.18); border-radius: 3px; }
@@ -2011,8 +2021,8 @@ export default function NestWell() {
         height: 62, position: "sticky", top: 0, zIndex: 50,
         background: "rgba(250,250,250,0.95)", backdropFilter: "blur(14px)"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: narrow ? 8 : 14 }}>
-          <h1 onClick={handleGoHome} style={{ fontFamily: "'Fraunces', serif", fontSize: narrow ? 17 : 22, fontWeight: 800, letterSpacing: "-0.5px", color: "#1C1427", cursor: "pointer", whiteSpace: "nowrap" }} title="Back to home">
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <h1 onClick={handleGoHome} style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px", color: "#1C1427", cursor: "pointer", whiteSpace: "nowrap" }} title="Back to home">
             Nest<span style={{ color: "#6254d0" }}> Well</span>
           </h1>
           {/* Board name dropdown trigger */}
@@ -2056,7 +2066,7 @@ export default function NestWell() {
             </span>
           )}
         </div>
-        <div style={{ display: "flex", gap: narrow ? 4 : 10, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
           {archivedCount > 0 && (
             narrow ? (
               <div style={{ position: "relative" }}>
@@ -2085,22 +2095,23 @@ export default function NestWell() {
               </button>
             )
           )}
-          <button onClick={() => setShowAdd(true)} style={{
-            padding: narrow ? "10px 14px" : "11px 22px",
-            background: "linear-gradient(135deg,#9b95eb,#6254d0)",
-            border: "none", borderRadius: 10, color: "#FFFFFF",
-            fontSize: narrow ? 18 : 15, fontWeight: 700,
-            cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-            boxShadow: "0 3px 12px rgba(98,84,208,0.3)",
-            display: "flex", alignItems: "center", gap: narrow ? 0 : 6,
-          }} title="Add property">
-            {narrow ? <Icon icon="solar:add-square-bold" width={20} /> : "+ Add Property"}
-          </button>
+          {!narrow && (
+            <button onClick={() => setShowAdd(true)} style={{
+              padding: "11px 22px", background: "linear-gradient(135deg,#9b95eb,#6254d0)",
+              border: "none", borderRadius: 10, color: "#FFFFFF", fontSize: 15, fontWeight: 700,
+              cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+              boxShadow: "0 3px 12px rgba(98,84,208,0.3)"
+            }}>
+              + Add Property
+            </button>
+          )}
         </div>
       </div>
 
       {/* KANBAN */}
-      <div style={{
+      <div style={narrow ? {
+        display: "flex", flexDirection: "column", paddingBottom: 96,
+      } : {
         display: "grid", gridTemplateColumns: "repeat(4, minmax(250px, 1fr))",
         minHeight: "calc(100vh - 62px)", overflowX: "auto",
       }}>
@@ -2120,7 +2131,10 @@ export default function NestWell() {
             );
           }
           return (
-            <div key={col.id} style={{
+            <div key={col.id} style={narrow ? {
+              borderBottom: "1px solid #e0dff0", padding: "18px 16px",
+              background: "#fafafa",
+            } : {
               borderRight: ci < 3 ? "1px solid #e0dff0" : "none",
               padding: "22px 16px", minHeight: "calc(100vh - 62px)",
               background: ci % 2 === 0 ? "#fafafa" : "#fffaf8",
@@ -2140,7 +2154,7 @@ export default function NestWell() {
                   <PropertyCard key={p.id} property={p} onOpen={handleCardOpen} onDelete={deleteProperty} onMove={moveProperty} onUpdate={updateProperty} />
                 ))}
                 {colProps.length === 0 && (
-                  <div style={{ height: 90, borderRadius: 12, border: `1px dashed ${col.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#C4BCCC" }}>
+                  <div style={{ height: narrow ? 48 : 90, borderRadius: 12, border: `1px dashed ${col.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#C4BCCC" }}>
                     Empty
                   </div>
                 )}
@@ -2149,6 +2163,20 @@ export default function NestWell() {
           );
         })}
       </div>
+
+      {/* CIRCULAR FAB — mobile only */}
+      {narrow && (
+        <button onClick={() => setShowAdd(true)} style={{
+          position: "fixed", bottom: 24, right: 20, zIndex: 90,
+          width: 56, height: 56, borderRadius: "50%",
+          background: "linear-gradient(135deg,#9b95eb,#6254d0)",
+          border: "none", color: "#fff", cursor: "pointer",
+          boxShadow: "0 4px 20px rgba(98,84,208,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }} title="Add property">
+          <Icon icon="solar:add-circle-bold" width={28} />
+        </button>
+      )}
 
       {/* MODALS & OVERLAYS */}
       {showAdd && <AddModal onClose={() => setShowAdd(false)} onAdd={addProperty} />}
