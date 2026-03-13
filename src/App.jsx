@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Icon } from '@iconify/react';
 
 // ─── NARROW HOOK ────────────────────────────────────────────────────────────
-function useNarrow(bp = 816) {
+function useNarrow(bp = 768) {
   const [n, setN] = useState(() => window.innerWidth < bp);
   useEffect(() => {
     const fn = () => setN(window.innerWidth < bp);
