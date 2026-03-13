@@ -1718,8 +1718,90 @@ function Archive({ properties, onClose, onUnarchive, onOpen }) {
   );
 }
 
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function generateClientCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = ''
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)]
+  return code
+}
+
+// ─── LANDING PAGE ─────────────────────────────────────────────────────────────
+function LandingPage({ onStart, onJoin, migrationCode, starting }) {
+  const [showJoin, setShowJoin] = useState(false)
+  const [codeInput, setCodeInput] = useState('')
+  const [error, setError] = useState('')
+
+  function handleJoin() {
+    const code = codeInput.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (code.length < 4) { setError('Enter a valid board code'); return }
+    onJoin(code)
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#FAFAFE', backgroundImage: 'radial-gradient(ellipse at 10% 0%, rgba(124,115,230,0.1) 0%, transparent 50%), radial-gradient(ellipse at 90% 100%, rgba(124,115,230,0.06) 0%, transparent 50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,800&family=DM+Sans:wght@300;400;500;600;700&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      <div style={{ width: '100%', maxWidth: 400, animation: 'fadeUp 0.3s ease' }}>
+
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 800, color: '#1C1427', letterSpacing: '-0.5px' }}>
+            Nest<span style={{ color: '#7c73e6' }}> Well</span>
+          </h1>
+          <p style={{ fontSize: 14, color: '#6D6077', marginTop: 10, lineHeight: 1.6 }}>
+            Track, score and compare properties.<br />Solo, or together with a team.
+          </p>
+        </div>
+
+        {/* Migration recovery — shown when existing data found */}
+        {migrationCode && (
+          <div style={{ background: '#f0eff9', border: '1px solid #a8a5d8', borderRadius: 14, padding: '16px 18px', marginBottom: 16, animation: 'fadeUp 0.3s ease' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#7c73e6', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon icon="solar:bookmark-bold" width={13} /> Your existing board was found
+            </div>
+            <p style={{ fontSize: 13, color: '#6D6077', lineHeight: 1.5, marginBottom: 12 }}>We found properties from before. Open your board to continue where you left off.</p>
+            <button onClick={() => onJoin(migrationCode)} style={{ width: '100%', padding: '11px', background: '#7c73e6', border: 'none', borderRadius: 10, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+              Open my board →
+            </button>
+          </div>
+        )}
+
+        {/* Start new board */}
+        <button onClick={onStart} disabled={starting} style={{ width: '100%', padding: '15px', background: starting ? '#f0eff9' : 'linear-gradient(135deg,#9b95eb,#7c73e6)', color: starting ? '#B0A8BC' : '#fff', border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: starting ? 'none' : '0 4px 20px rgba(124,115,230,0.3)', marginBottom: 10, transition: 'all 0.2s' }}>
+          {starting ? 'Creating your board…' : 'Start my property search →'}
+        </button>
+
+        {/* Join existing board */}
+        {!showJoin ? (
+          <button onClick={() => setShowJoin(true)} style={{ width: '100%', padding: '12px', background: 'none', border: '1px solid #e0dff0', borderRadius: 13, color: '#6D6077', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+            I have a board code
+          </button>
+        ) : (
+          <div style={{ border: '1px solid #e0dff0', borderRadius: 13, padding: 16, background: '#FFFFFF' }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#A89DB0', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 8 }}>Enter board code</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input value={codeInput} onChange={e => { setCodeInput(e.target.value.toUpperCase()); setError('') }} onKeyDown={e => e.key === 'Enter' && handleJoin()} placeholder="e.g. NW4X7K" autoFocus
+                style={{ flex: 1, padding: '10px 12px', border: '1px solid #c4c1e0', borderRadius: 9, fontSize: 15, fontFamily: 'monospace', letterSpacing: 2, outline: 'none', color: '#1C1427', fontWeight: 700 }} />
+              <button onClick={handleJoin} style={{ padding: '10px 16px', background: '#7c73e6', border: 'none', borderRadius: 9, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Join</button>
+            </div>
+            {error && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 6 }}>{error}</div>}
+          </div>
+        )}
+
+        <p style={{ textAlign: 'center', fontSize: 12, color: '#C4C1E0', marginTop: 20, lineHeight: 1.6 }}>
+          Each board is private — bookmark your link to return anytime.<br />Share the link with others to search together.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
 export default function NestWell() {
+  const [boardCode, setBoardCode] = useState(null);
+  const [migrationCode, setMigrationCode] = useState(null);
+  const [starting, setStarting] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [properties, setProperties] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [overviewProp, setOverviewProp] = useState(null);
@@ -1729,49 +1811,76 @@ export default function NestWell() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const isRemoteUpdate = useRef(false);
 
-  // Load from API on mount, fall back to localStorage
+  // On mount: read board code from URL, or check for migration
   useEffect(() => {
-    fetch('/api/data')
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('board');
+    if (code) {
+      setBoardCode(code.toUpperCase());
+    } else {
+      fetch('/api/migration').then(r => r.json())
+        .then(res => { if (res.ok && res.code) setMigrationCode(res.code); })
+        .catch(() => {});
+    }
+  }, []);
+
+  async function handleCreateBoard() {
+    setStarting(true);
+    try {
+      const res = await fetch('/api/boards', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok) { window.history.pushState({}, '', `?board=${data.code}`); setBoardCode(data.code); setStarting(false); return; }
+      }
+    } catch {}
+    // Fallback: generate locally (dev / no db)
+    const code = generateClientCode();
+    window.history.pushState({}, '', `?board=${code}`);
+    setBoardCode(code);
+    setStarting(false);
+  }
+
+  function handleJoinBoard(code) {
+    window.history.pushState({}, '', `?board=${code}`);
+    setBoardCode(code);
+  }
+
+  // Load data when board code is set
+  useEffect(() => {
+    if (!boardCode) return;
+    fetch(`/api/boards/${boardCode}`)
       .then(r => r.json())
       .then(res => {
         if (res.ok && Array.isArray(res.data)) setProperties(res.data);
-        else throw new Error('no data');
+        else throw new Error('not found');
       })
       .catch(() => {
-        const saved = localStorage.getItem('nest-well-properties');
+        const saved = localStorage.getItem(`nest-well-board-${boardCode}`);
         if (saved) try { setProperties(JSON.parse(saved)); } catch {}
       })
       .finally(() => setDataLoaded(true));
-  }, []);
+  }, [boardCode]);
 
-  // Auto-save on every local change (skip when update came from server poll)
+  // Auto-save on every local change
   useEffect(() => {
-    if (!dataLoaded) return;
+    if (!dataLoaded || !boardCode) return;
     if (isRemoteUpdate.current) { isRemoteUpdate.current = false; return; }
-    localStorage.setItem('nest-well-properties', JSON.stringify(properties));
-    fetch('/api/data', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: properties }),
+    localStorage.setItem(`nest-well-board-${boardCode}`, JSON.stringify(properties));
+    fetch(`/api/boards/${boardCode}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: properties }),
     }).catch(() => {});
-  }, [properties, dataLoaded]);
+  }, [properties, dataLoaded, boardCode]);
 
-  // Poll every 30s to pick up changes from other devices
+  // Poll every 30s for changes from other devices
   useEffect(() => {
-    if (!dataLoaded) return;
+    if (!dataLoaded || !boardCode) return;
     const interval = setInterval(() => {
-      fetch('/api/data')
-        .then(r => r.json())
-        .then(res => {
-          if (res.ok && Array.isArray(res.data)) {
-            isRemoteUpdate.current = true;
-            setProperties(prev => mergeProperties(prev, res.data));
-          }
-        })
-        .catch(() => {});
+      fetch(`/api/boards/${boardCode}`).then(r => r.json()).then(res => {
+        if (res.ok && Array.isArray(res.data)) { isRemoteUpdate.current = true; setProperties(prev => mergeProperties(prev, res.data)); }
+      }).catch(() => {});
     }, 30000);
     return () => clearInterval(interval);
-  }, [dataLoaded]);
+  }, [dataLoaded, boardCode]);
 
   function addProperty(prop) {
     setProperties(prev => [...prev, { ...prop, updatedAt: Date.now() }]);
@@ -1799,7 +1908,7 @@ export default function NestWell() {
     // Explicit merge-save: fetch latest server state, apply update, write back
     // This prevents another device's stale auto-save from overwriting bonuses
     try {
-      const res = await fetch('/api/data').then(r => r.json());
+      const res = await fetch(`/api/boards/${boardCode}`).then(r => r.json());
       if (res.ok && Array.isArray(res.data)) {
         const exists = res.data.some(p => p.id === updated.id);
         const merged = exists
@@ -1807,10 +1916,8 @@ export default function NestWell() {
               ? { ...p, scores: updated.scores, bonuses: updated.bonuses, status: "viewed", updatedAt: ts }
               : p)
           : [...res.data, { ...updated, updatedAt: ts }];
-        await fetch('/api/data', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ data: merged }),
+        await fetch(`/api/boards/${boardCode}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: merged }),
         });
       }
     } catch { /* auto-save fallback will handle it */ }
@@ -1831,6 +1938,11 @@ export default function NestWell() {
 
   const scoredCount = properties.filter(p => p.scores && Object.keys(p.scores).length > 0 && p.status !== "archived").length;
   const archivedCount = properties.filter(p => p.status === "archived").length;
+
+  // Show landing page until a board code is set
+  if (!boardCode) {
+    return <LandingPage onStart={handleCreateBoard} onJoin={handleJoinBoard} migrationCode={migrationCode} starting={starting} />;
+  }
 
   return (
     <div style={{
@@ -1868,6 +1980,11 @@ export default function NestWell() {
           </span>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <button onClick={() => { navigator.clipboard.writeText(window.location.href); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+            style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 8, color: copied ? "#059669" : "#A89DB0", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "5px 10px", display: "flex", alignItems: "center", gap: 5, transition: "color 0.2s" }}>
+            <Icon icon={copied ? "solar:check-bold" : "solar:copy-bold"} width={13} />
+            {copied ? "Copied!" : "Share board"}
+          </button>
           {archivedCount > 0 && (
             <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
               <Icon icon="solar:archive-bold" width={14} /> Archive ({archivedCount})

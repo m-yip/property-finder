@@ -5,12 +5,22 @@ import { fileURLToPath } from 'url'
 import { fetchPropertyData } from './scraper.js'
 import pg from 'pg'
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // no ambiguous 0/O 1/I
+  let code = ''
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)]
+  return code
+}
+
 // ── Database setup ────────────────────────────────────────────────────────────
 let db = null
 
 async function initDb() {
   if (!process.env.DATABASE_URL) return
   db = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
+
+  // Keep legacy store table
   await db.query(`
     CREATE TABLE IF NOT EXISTS store (
       id   INTEGER PRIMARY KEY DEFAULT 1,
@@ -18,6 +28,37 @@ async function initDb() {
     )
   `)
   await db.query(`INSERT INTO store (id, data) VALUES (1, '[]'::jsonb) ON CONFLICT DO NOTHING`)
+
+  // New boards table — one row per board
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS boards (
+      code       TEXT PRIMARY KEY,
+      data       JSONB NOT NULL DEFAULT '[]'::jsonb,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `)
+
+  // Meta table — stores migration info
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS meta (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `)
+
+  // One-time migration: copy legacy store data into a board
+  const alreadyMigrated = await db.query("SELECT value FROM meta WHERE key = 'migration_board'")
+  if (!alreadyMigrated.rows.length) {
+    const storeResult = await db.query('SELECT data FROM store WHERE id = 1')
+    const existing = storeResult.rows[0]?.data
+    if (Array.isArray(existing) && existing.length > 0) {
+      const code = generateCode()
+      await db.query('INSERT INTO boards (code, data) VALUES ($1, $2) ON CONFLICT DO NOTHING', [code, JSON.stringify(existing)])
+      await db.query("INSERT INTO meta (key, value) VALUES ('migration_board', $1)", [code])
+      console.log(`MIGRATION: ${existing.length} existing properties moved to board ${code}`)
+    }
+  }
+
   console.log('Database connected')
 }
 
@@ -44,7 +85,65 @@ const MIME = {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
 
-  // ── Data sync endpoints ───────────────────────────────────────────────────
+  // ── Board endpoints ───────────────────────────────────────────────────────
+
+  // POST /api/boards — create a new board, return its code
+  if (url.pathname === '/api/boards' && req.method === 'POST') {
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    if (!db) return res.end(JSON.stringify({ ok: false, error: 'No database' }))
+    const code = generateCode()
+    await db.query('INSERT INTO boards (code, data) VALUES ($1, $2)', [code, '[]'])
+    return res.end(JSON.stringify({ ok: true, code }))
+  }
+
+  // GET /api/boards/:code  — load board data
+  // PUT /api/boards/:code  — save board data
+  const boardMatch = url.pathname.match(/^\/api\/boards\/([A-Z0-9]+)$/)
+  if (boardMatch) {
+    const code = boardMatch[1]
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+
+    if (req.method === 'GET') {
+      if (!db) return res.end(JSON.stringify({ ok: false, error: 'No database' }))
+      const result = await db.query('SELECT data FROM boards WHERE code = $1', [code])
+      if (!result.rows.length) {
+        res.statusCode = 404
+        return res.end(JSON.stringify({ ok: false, error: 'Board not found' }))
+      }
+      return res.end(JSON.stringify({ ok: true, data: result.rows[0].data }))
+    }
+
+    if (req.method === 'PUT') {
+      if (!db) return res.end(JSON.stringify({ ok: false, error: 'No database' }))
+      let body = ''
+      req.on('data', chunk => { body += chunk })
+      req.on('end', async () => {
+        try {
+          const { data } = JSON.parse(body)
+          await db.query('UPDATE boards SET data = $1 WHERE code = $2', [JSON.stringify(data), code])
+          res.end(JSON.stringify({ ok: true }))
+        } catch (err) {
+          res.statusCode = 400
+          res.end(JSON.stringify({ ok: false, error: err.message }))
+        }
+      })
+      return
+    }
+  }
+
+  // GET /api/migration — returns migration board code if one exists
+  if (url.pathname === '/api/migration' && req.method === 'GET') {
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    if (!db) return res.end(JSON.stringify({ ok: false }))
+    const result = await db.query("SELECT value FROM meta WHERE key = 'migration_board'")
+    if (result.rows.length) return res.end(JSON.stringify({ ok: true, code: result.rows[0].value }))
+    return res.end(JSON.stringify({ ok: false }))
+  }
+
+  // ── Legacy data endpoint (kept for safety) ────────────────────────────────
   if (url.pathname === '/api/data') {
     res.setHeader('Content-Type', 'application/json')
     res.setHeader('Access-Control-Allow-Origin', '*')
@@ -95,19 +194,16 @@ const server = http.createServer(async (req, res) => {
   // ── Static file serving ───────────────────────────────────────────────────
   let filePath = path.join(DIST, url.pathname)
 
-  // Directory → try index.html inside it
   if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
     filePath = path.join(filePath, 'index.html')
   }
 
-  // File not found → SPA fallback (all routes served by index.html)
   if (!fs.existsSync(filePath)) {
     filePath = path.join(DIST, 'index.html')
   }
 
   const ext = path.extname(filePath)
   res.setHeader('Content-Type', MIME[ext] || 'application/octet-stream')
-  // Cache assets (hashed filenames) aggressively; HTML never
   if (ext !== '.html') res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
 
   fs.createReadStream(filePath).pipe(res)
