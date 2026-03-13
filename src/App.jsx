@@ -1805,10 +1805,12 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
 export default function NestWell() {
   const [boardCode, setBoardCode] = useState(null);
   const [boardName, setBoardName] = useState('');
-  const [editingBoardName, setEditingBoardName] = useState(false);
+  const [showBoardMenu, setShowBoardMenu] = useState(false);
+  const [boardMenuName, setBoardMenuName] = useState('');
   const [migrationCode, setMigrationCode] = useState(null);
   const [starting, setStarting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const boardMenuRef = useRef(null);
   const [properties, setProperties] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [overviewProp, setOverviewProp] = useState(null);
@@ -1866,6 +1868,14 @@ export default function NestWell() {
     window.history.pushState({}, '', `?board=${code}`);
     setBoardCode(code);
   }
+
+  // Close board menu on outside click
+  useEffect(() => {
+    if (!showBoardMenu) return;
+    function handleClick(e) { if (boardMenuRef.current && !boardMenuRef.current.contains(e.target)) setShowBoardMenu(false); }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showBoardMenu]);
 
   // Load data when board code is set
   useEffect(() => {
@@ -1997,36 +2007,48 @@ export default function NestWell() {
           <h1 onClick={handleGoHome} style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px", color: "#1C1427", cursor: "pointer" }} title="Back to home">
             Nest<span style={{ color: "#7c73e6" }}> Well</span>
           </h1>
-          {editingBoardName ? (
-            <input autoFocus value={boardName} onChange={e => setBoardName(e.target.value)}
-              onBlur={() => { setEditingBoardName(false); saveBoardName(boardName); }}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') { setEditingBoardName(false); saveBoardName(boardName); } }}
-              style={{ fontSize: 13, fontWeight: 600, color: "#1C1427", fontFamily: "'DM Sans', sans-serif", border: "none", borderBottom: "2px solid #7c73e6", background: "transparent", outline: "none", width: 180, padding: "1px 0" }} />
-          ) : (
-            <span onClick={() => setEditingBoardName(true)} title="Click to rename board"
-              style={{ fontSize: 13, color: boardName ? "#6D6077" : "#C4C1E0", fontWeight: 600, letterSpacing: 0.3, borderLeft: "1px solid #e0dff0", paddingLeft: 14, cursor: "text", display: "flex", alignItems: "center", gap: 5 }}>
-              {boardName || "Unnamed board"}
-              <Icon icon="solar:pen-2-linear" width={12} style={{ opacity: 0.5 }} />
-            </span>
-          )}
+          {/* Board name dropdown trigger */}
+          <div ref={boardMenuRef} style={{ position: "relative", borderLeft: "1px solid #e0dff0", paddingLeft: 14 }}>
+            <button onClick={() => { if (!showBoardMenu) setBoardMenuName(boardName); setShowBoardMenu(v => !v); }}
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ fontSize: 13, color: boardName ? "#6D6077" : "#C4C1E0", fontWeight: 600 }}>{boardName || "Unnamed board"}</span>
+              <Icon icon="solar:alt-arrow-down-bold" width={12} style={{ color: "#C4C1E0", transition: "transform 0.15s", transform: showBoardMenu ? "rotate(180deg)" : "rotate(0deg)" }} />
+            </button>
+            {showBoardMenu && (
+              <div style={{ position: "absolute", top: "calc(100% + 10px)", left: 0, background: "#fff", border: "1px solid #e0dff0", borderRadius: 12, boxShadow: "0 8px 24px rgba(28,20,39,0.10)", padding: 16, width: 260, zIndex: 200, animation: "fadeUp 0.15s ease" }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>Board name</label>
+                <input autoFocus value={boardMenuName} onChange={e => setBoardMenuName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { saveBoardName(boardMenuName); setShowBoardMenu(false); } if (e.key === 'Escape') setShowBoardMenu(false); }}
+                  placeholder="e.g. London 2025"
+                  style={{ width: "100%", padding: "8px 10px", border: "1px solid #e0dff0", borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', sans-serif", color: "#1C1427", marginBottom: 8, outline: "none" }} />
+                <button onClick={() => { saveBoardName(boardMenuName); setShowBoardMenu(false); }}
+                  style={{ width: "100%", padding: "8px", background: "#7c73e6", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: 10 }}>
+                  Save name
+                </button>
+                <div style={{ borderTop: "1px solid #f0eff9", paddingTop: 10 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>Share this board</label>
+                  <button onClick={() => { navigator.clipboard.writeText(window.location.href); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                    style={{ width: "100%", padding: "8px 10px", background: copied ? "#f0fdf4" : "#f8f8fc", border: `1px solid ${copied ? "#86efac" : "#e0dff0"}`, borderRadius: 8, color: copied ? "#059669" : "#6D6077", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}>
+                    <Icon icon={copied ? "solar:check-bold" : "solar:copy-bold"} width={13} />
+                    {copied ? "Link copied!" : "Copy share link"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           <span style={{ fontSize: 11, color: "#A89DB0", fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", borderLeft: "1px solid #e0dff0", paddingLeft: 14 }}>
             {properties.filter(p => p.status !== "archived").length} {properties.filter(p => p.status !== "archived").length === 1 ? "property" : "properties"}
           </span>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <button onClick={() => { navigator.clipboard.writeText(window.location.href); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-            style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 8, color: copied ? "#059669" : "#A89DB0", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "5px 10px", display: "flex", alignItems: "center", gap: 5, transition: "color 0.2s" }}>
-            <Icon icon={copied ? "solar:check-bold" : "solar:copy-bold"} width={13} />
-            {copied ? "Copied!" : "Share board"}
-          </button>
           {archivedCount > 0 && (
             <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
               <Icon icon="solar:archive-bold" width={14} /> Archive ({archivedCount})
             </button>
           )}
           {scoredCount > 0 && (
-            <button onClick={() => setShowLeaderboard(true)} style={{ ...ghostBtnSt, borderColor: "#a8a5d8", color: "#7c73e6", background: "#f0eff9", padding: "11px 22px", fontSize: 15, display: "flex", alignItems: "center", gap: 7 }}>
-              <Icon icon="solar:cup-star-bold" width={16} /> Leaderboard ({scoredCount})
+            <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
+              <Icon icon="solar:cup-star-bold" width={14} /> Leaderboard ({scoredCount})
             </button>
           )}
           <button onClick={() => setShowAdd(true)} style={{
