@@ -34,9 +34,12 @@ async function initDb() {
     CREATE TABLE IF NOT EXISTS boards (
       code       TEXT PRIMARY KEY,
       data       JSONB NOT NULL DEFAULT '[]'::jsonb,
+      name       TEXT NOT NULL DEFAULT '',
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `)
+  // Add name column if upgrading from old schema
+  await db.query(`ALTER TABLE boards ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT ''`)
 
   // Meta table — stores migration info
   await db.query(`
@@ -92,8 +95,13 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', 'application/json')
     res.setHeader('Access-Control-Allow-Origin', '*')
     if (!db) return res.end(JSON.stringify({ ok: false, error: 'No database' }))
+    let body = ''
+    req.on('data', chunk => { body += chunk })
+    await new Promise(resolve => req.on('end', resolve))
+    let name = ''
+    try { name = JSON.parse(body).name || '' } catch {}
     const code = generateCode()
-    await db.query('INSERT INTO boards (code, data) VALUES ($1, $2)', [code, '[]'])
+    await db.query('INSERT INTO boards (code, data, name) VALUES ($1, $2, $3)', [code, '[]', name])
     return res.end(JSON.stringify({ ok: true, code }))
   }
 
@@ -107,12 +115,29 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET') {
       if (!db) return res.end(JSON.stringify({ ok: false, error: 'No database' }))
-      const result = await db.query('SELECT data FROM boards WHERE code = $1', [code])
+      const result = await db.query('SELECT data, name FROM boards WHERE code = $1', [code])
       if (!result.rows.length) {
         res.statusCode = 404
         return res.end(JSON.stringify({ ok: false, error: 'Board not found' }))
       }
-      return res.end(JSON.stringify({ ok: true, data: result.rows[0].data }))
+      return res.end(JSON.stringify({ ok: true, data: result.rows[0].data, name: result.rows[0].name || '' }))
+    }
+
+    if (req.method === 'PATCH') {
+      if (!db) return res.end(JSON.stringify({ ok: false, error: 'No database' }))
+      let body = ''
+      req.on('data', chunk => { body += chunk })
+      req.on('end', async () => {
+        try {
+          const { name } = JSON.parse(body)
+          await db.query('UPDATE boards SET name = $1 WHERE code = $2', [name || '', code])
+          res.end(JSON.stringify({ ok: true }))
+        } catch (err) {
+          res.statusCode = 400
+          res.end(JSON.stringify({ ok: false, error: err.message }))
+        }
+      })
+      return
     }
 
     if (req.method === 'PUT') {

@@ -1730,6 +1730,7 @@ function generateClientCode() {
 function LandingPage({ onStart, onJoin, migrationCode, starting }) {
   const [showJoin, setShowJoin] = useState(false)
   const [codeInput, setCodeInput] = useState('')
+  const [nameInput, setNameInput] = useState('')
   const [error, setError] = useState('')
 
   function handleJoin() {
@@ -1767,9 +1768,13 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
         )}
 
         {/* Start new board */}
-        <button onClick={onStart} disabled={starting} style={{ width: '100%', padding: '15px', background: starting ? '#f0eff9' : 'linear-gradient(135deg,#9b95eb,#7c73e6)', color: starting ? '#B0A8BC' : '#fff', border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: starting ? 'none' : '0 4px 20px rgba(124,115,230,0.3)', marginBottom: 10, transition: 'all 0.2s' }}>
-          {starting ? 'Creating your board…' : 'Start my property search →'}
-        </button>
+        <div style={{ marginBottom: 10 }}>
+          <input value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name your board (optional, e.g. London 2025)"
+            style={{ width: '100%', padding: '11px 14px', border: '1px solid #e0dff0', borderRadius: 10, fontSize: 14, fontFamily: "'DM Sans', sans-serif", color: '#1C1427', marginBottom: 8, outline: 'none', background: '#fff' }} />
+          <button onClick={() => onStart(nameInput.trim())} disabled={starting} style={{ width: '100%', padding: '15px', background: starting ? '#f0eff9' : 'linear-gradient(135deg,#9b95eb,#7c73e6)', color: starting ? '#B0A8BC' : '#fff', border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: starting ? 'none' : '0 4px 20px rgba(124,115,230,0.3)', transition: 'all 0.2s' }}>
+            {starting ? 'Creating your board…' : 'Start my property search →'}
+          </button>
+        </div>
 
         {/* Join existing board */}
         {!showJoin ? (
@@ -1799,6 +1804,8 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
 export default function NestWell() {
   const [boardCode, setBoardCode] = useState(null);
+  const [boardName, setBoardName] = useState('');
+  const [editingBoardName, setEditingBoardName] = useState(false);
   const [migrationCode, setMigrationCode] = useState(null);
   const [starting, setStarting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -1824,20 +1831,35 @@ export default function NestWell() {
     }
   }, []);
 
-  async function handleCreateBoard() {
+  async function handleCreateBoard(name = '') {
     setStarting(true);
     try {
-      const res = await fetch('/api/boards', { method: 'POST' });
+      const res = await fetch('/api/boards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
       if (res.ok) {
         const data = await res.json();
-        if (data.ok) { window.history.pushState({}, '', `?board=${data.code}`); setBoardCode(data.code); setStarting(false); return; }
+        if (data.ok) { window.history.pushState({}, '', `?board=${data.code}`); setBoardCode(data.code); setBoardName(name); setStarting(false); return; }
       }
     } catch {}
     // Fallback: generate locally (dev / no db)
     const code = generateClientCode();
     window.history.pushState({}, '', `?board=${code}`);
     setBoardCode(code);
+    setBoardName(name);
     setStarting(false);
+  }
+
+  async function saveBoardName(name) {
+    setBoardName(name);
+    if (!boardCode) return;
+    fetch(`/api/boards/${boardCode}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }).catch(() => {});
+  }
+
+  function handleGoHome() {
+    window.history.pushState({}, '', '/');
+    setBoardCode(null);
+    setBoardName('');
+    setDataLoaded(false);
+    setProperties([]);
   }
 
   function handleJoinBoard(code) {
@@ -1851,7 +1873,7 @@ export default function NestWell() {
     fetch(`/api/boards/${boardCode}`)
       .then(r => r.json())
       .then(res => {
-        if (res.ok && Array.isArray(res.data)) setProperties(res.data);
+        if (res.ok && Array.isArray(res.data)) { setProperties(res.data); if (res.name) setBoardName(res.name); }
         else throw new Error('not found');
       })
       .catch(() => {
@@ -1972,9 +1994,21 @@ export default function NestWell() {
         background: "rgba(250,250,250,0.95)", backdropFilter: "blur(14px)"
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px", color: "#1C1427" }}>
+          <h1 onClick={handleGoHome} style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px", color: "#1C1427", cursor: "pointer" }} title="Back to home">
             Nest<span style={{ color: "#7c73e6" }}> Well</span>
           </h1>
+          {editingBoardName ? (
+            <input autoFocus value={boardName} onChange={e => setBoardName(e.target.value)}
+              onBlur={() => { setEditingBoardName(false); saveBoardName(boardName); }}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') { setEditingBoardName(false); saveBoardName(boardName); } }}
+              style={{ fontSize: 13, fontWeight: 600, color: "#1C1427", fontFamily: "'DM Sans', sans-serif", border: "none", borderBottom: "2px solid #7c73e6", background: "transparent", outline: "none", width: 180, padding: "1px 0" }} />
+          ) : (
+            <span onClick={() => setEditingBoardName(true)} title="Click to rename board"
+              style={{ fontSize: 13, color: boardName ? "#6D6077" : "#C4C1E0", fontWeight: 600, letterSpacing: 0.3, borderLeft: "1px solid #e0dff0", paddingLeft: 14, cursor: "text", display: "flex", alignItems: "center", gap: 5 }}>
+              {boardName || "Unnamed board"}
+              <Icon icon="solar:pen-2-linear" width={12} style={{ opacity: 0.5 }} />
+            </span>
+          )}
           <span style={{ fontSize: 11, color: "#A89DB0", fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", borderLeft: "1px solid #e0dff0", paddingLeft: 14 }}>
             {properties.filter(p => p.status !== "archived").length} {properties.filter(p => p.status !== "archived").length === 1 ? "property" : "properties"}
           </span>
