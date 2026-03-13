@@ -200,7 +200,7 @@ function scoreColor(pct) {
 
 const COLUMNS = [
   { id: "listing",  label: "Listing",        icon: "solar:bookmark-bold",  color: "#6B7280", accent: "#F3F4F6" },
-  { id: "enquired", label: "Enquired",        icon: "solar:letter-bold",    color: "#7c73e6", accent: "#ffe9e3" },
+  { id: "enquired", label: "Enquired",        icon: "solar:letter-bold",    color: "#6254d0", accent: "#ffe9e3" },
   { id: "booked",   label: "Viewing Booked",  icon: "solar:calendar-bold",  color: "#2563EB", accent: "#DBEAFE" },
   { id: "viewed",   label: "Viewed",          icon: "solar:eye-bold",       color: "#D97706", accent: "#FEF3C7" },
 ];
@@ -290,13 +290,13 @@ function ScoreDots({ value, onChange, anchors = {} }) {
               onMouseLeave={() => setHovered(null)}
               style={{
                 width: 46, height: 46, borderRadius: "50%",
-                border: selected ? "3px solid #7c73e6" : filled ? "2px solid #c4c1e0" : "2px solid #e0dff0",
+                border: selected ? "3px solid #6254d0" : filled ? "2px solid #c4c1e0" : "2px solid #e0dff0",
                 background: selected ? "#f0eff9" : filled ? "#f5f4fc" : "#FFFFFF",
-                color: selected ? "#7c73e6" : filled ? "#9b95eb" : "#C4C1E0",
+                color: selected ? "#6254d0" : filled ? "#9b95eb" : "#C4C1E0",
                 fontSize: 18, fontWeight: 800, cursor: "pointer",
                 transition: "all 0.15s ease",
                 transform: selected ? "scale(1.15)" : hovered === n ? "scale(1.08)" : "scale(1)",
-                boxShadow: selected ? "0 0 14px rgba(124,115,230,0.28)" : "none",
+                boxShadow: selected ? "0 0 14px rgba(98,84,208,0.28)" : "none",
                 fontFamily: "'Fraunces', serif",
                 flexShrink: 0,
               }}>
@@ -341,13 +341,13 @@ function ProgressBar({ sectionIdx, total, completedSections, onJump }) {
               style={{
                 width: active ? 10 : 8, height: active ? 10 : 8,
                 borderRadius: "50%", flexShrink: 0, padding: 0, cursor: "pointer", border: "none",
-                background: done ? "#7c73e6" : active ? "#9b95eb" : "#c4c1e0",
-                boxShadow: active ? "0 0 0 2px #fff, 0 0 0 3px #7c73e6" : "none",
+                background: done ? "#6254d0" : active ? "#9b95eb" : "#c4c1e0",
+                boxShadow: active ? "0 0 0 2px #fff, 0 0 0 3px #6254d0" : "none",
                 transition: "all 0.2s",
               }}
             />
             {i < total - 1 && (
-              <div style={{ flex: 1, height: 2, background: done ? "#7c73e6" : "#e0dff0", transition: "background 0.3s", marginLeft: 2, marginRight: 2 }} />
+              <div style={{ flex: 1, height: 2, background: done ? "#6254d0" : "#e0dff0", transition: "background 0.3s", marginLeft: 2, marginRight: 2 }} />
             )}
           </div>
         );
@@ -394,7 +394,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
     <div style={{
       position: "fixed", inset: 0, zIndex: 120,
       background: "#fafafa",
-      backgroundImage: "radial-gradient(ellipse at 20% 0%, rgba(124,115,230,0.07) 0%, transparent 60%)",
+      backgroundImage: "radial-gradient(ellipse at 20% 0%, rgba(98,84,208,0.07) 0%, transparent 60%)",
       overflowY: "auto",
       animation: "fadeUp 0.25s ease"
     }}>
@@ -409,7 +409,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
               </div>
             )}
             <button onClick={() => { setEditForm({ address: property.address || property.name || "", price: property.price || "", bedrooms: property.bedrooms || "", bathrooms: property.bathrooms || "", sqft: property.sqft || "", agent: property.agent || "", agentPhone: property.agentPhone || "", leaseLength: property.leaseLength || "", tenure: property.tenure || "", serviceCharge: property.serviceCharge ?? "", groundRent: property.groundRent ?? "", image: property.image || "", notes: property.notes || "" }); setEditing(true); }}
-              style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 8, color: "#7c73e6", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
+              style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 8, color: "#6254d0", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
               <Icon icon="solar:pen-bold" width={14} /> Edit
             </button>
 
@@ -422,7 +422,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
         </div>
 
         {/* Hero image */}
-        <div style={{ position: "relative", height: 260, borderRadius: 20, overflow: "hidden", marginBottom: 24, boxShadow: "0 12px 40px rgba(124,115,230,0.15)" }}>
+        <div style={{ position: "relative", height: 260, borderRadius: 20, overflow: "hidden", marginBottom: 24, boxShadow: "0 12px 40px rgba(98,84,208,0.15)" }}>
           {property.image ? (
             <img src={property.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           ) : (
@@ -542,9 +542,9 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
               })}
               {getBonusTotal(property.bonuses) > 0 && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Icon icon="solar:stars-bold" width={14} style={{ color: "#7c73e6", flexShrink: 0 }} />
+                  <Icon icon="solar:stars-bold" width={14} style={{ color: "#6254d0", flexShrink: 0 }} />
                   <span style={{ fontSize: 13, color: "#6D6077", width: 100, flexShrink: 0 }}>Deal-makers</span>
-                  <span style={{ fontSize: 12, color: "#7c73e6", fontWeight: 600 }}>{BONUSES.filter(b => property.bonuses?.[b.id]).map(b => b.label).join(', ')} (+{getBonusTotal(property.bonuses)} pts)</span>
+                  <span style={{ fontSize: 12, color: "#6254d0", fontWeight: 600 }}>{BONUSES.filter(b => property.bonuses?.[b.id]).map(b => b.label).join(', ')} (+{getBonusTotal(property.bonuses)} pts)</span>
                 </div>
               )}
             </div>
@@ -553,7 +553,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
         {/* Price block — Rightmove-style: big number, qualifier below */}
         {property.price && (
-          <div style={{ marginBottom: 20, padding: "20px 22px", background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, boxShadow: "0 2px 8px rgba(124,115,230,0.06)" }}>
+          <div style={{ marginBottom: 20, padding: "20px 22px", background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
             <div style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 800, color: "#1C1427", lineHeight: 1, marginBottom: 6, letterSpacing: "-0.5px" }}>
               {property.price}
             </div>
@@ -566,7 +566,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
         {/* Score CTA — only when viewed */}
         {property.status === "viewed" && (
           <div style={{ background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 18, padding: "20px 22px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ color: "#7c73e6", flexShrink: 0 }}><Icon icon="solar:pen-bold" width={28} /></div>
+            <div style={{ color: "#6254d0", flexShrink: 0 }}><Icon icon="solar:pen-bold" width={28} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 700, color: "#1C1427", marginBottom: 3 }}>
                 {hasScore ? "Update your scorecard" : "Ready to score this property?"}
@@ -577,11 +577,11 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
             </div>
             <button onClick={onStartScoring} style={{
               flexShrink: 0, padding: "10px 18px",
-              background: "linear-gradient(135deg,#9b95eb,#7c73e6)",
+              background: "linear-gradient(135deg,#9b95eb,#6254d0)",
               border: "none", borderRadius: 11, color: "#FFFFFF",
               fontSize: 13, fontWeight: 700, cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif",
-              boxShadow: "0 4px 16px rgba(124,115,230,0.3)",
+              boxShadow: "0 4px 16px rgba(98,84,208,0.3)",
               whiteSpace: "nowrap"
             }}>
               {hasScore ? "Edit →" : "Start →"}
@@ -596,8 +596,8 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
             { label: "Bathrooms", value: property.bathrooms ? `${property.bathrooms} bath` : "—", icon: "solar:bath-bold" },
             { label: "Size", value: property.sqft ? `${property.sqft} sq ft` : "—", icon: "solar:ruler-bold" },
           ].map(s => (
-            <div key={s.label} style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 12, padding: "14px 12px", textAlign: "center", boxShadow: "0 2px 8px rgba(124,115,230,0.06)" }}>
-              <div style={{ marginBottom: 6, color: "#7c73e6", display: "flex", justifyContent: "center" }}><Icon icon={s.icon} width={22} /></div>
+            <div key={s.label} style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 12, padding: "14px 12px", textAlign: "center", boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
+              <div style={{ marginBottom: 6, color: "#6254d0", display: "flex", justifyContent: "center" }}><Icon icon={s.icon} width={22} /></div>
               <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, fontWeight: 700, color: "#1C1427" }}>{s.value}</div>
               <div style={{ fontSize: 10, color: "#A89DB0", marginTop: 2, textTransform: "uppercase", letterSpacing: 1 }}>{s.label}</div>
             </div>
@@ -606,8 +606,8 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
         {/* Scoring summary */}
         {property.scoringSummary && (
-          <div style={{ background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 14, padding: "16px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(124,115,230,0.08)" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#7c73e6", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
+          <div style={{ background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 14, padding: "16px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(98,84,208,0.08)" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#6254d0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
               <Icon icon="solar:clipboard-list-bold" width={13} /> Scoring Notes
             </div>
             <p style={{ fontSize: 13, color: "#1C1427", lineHeight: 1.75, margin: 0, whiteSpace: "pre-line" }}>{property.scoringSummary}</p>
@@ -616,7 +616,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
         {/* Description */}
         {property.description && (
-          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, padding: "18px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(124,115,230,0.06)" }}>
+          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, padding: "18px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
               <Icon icon="solar:chat-round-dots-bold" width={13} /> About this property
             </div>
@@ -626,7 +626,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
         {/* Listing details */}
         {(property.url || property.agent || property.agentPhone || property.tenure || property.leaseLength || (property.serviceCharge != null && property.serviceCharge !== '') || property.groundRent === 0 || property.groundRent || property.dateListed) && (
-          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, padding: "16px 18px", marginBottom: 20, boxShadow: "0 2px 8px rgba(124,115,230,0.06)" }}>
+          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, padding: "16px 18px", marginBottom: 20, boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Listing Details</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {property.agent && <DetailRow icon="solar:buildings-bold" label="Agent" value={property.agent} />}
@@ -644,10 +644,10 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
               {property.dateListed && <DetailRow icon="solar:calendar-bold" label="Listed" value={property.dateListed} />}
               {property.url && (
                 <div style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: property.dateListed || property.groundRent !== undefined || property.serviceCharge !== null ? 4 : 0, borderTop: (property.agent || property.tenure || property.leaseLength || property.dateListed) ? "1px solid #f0eef8" : "none", marginTop: (property.agent || property.tenure || property.leaseLength || property.dateListed) ? 4 : 0 }}>
-                  <span style={{ display: "flex", alignItems: "center", color: "#7c73e6", flexShrink: 0 }}><Icon icon="solar:link-bold" width={14} /></span>
+                  <span style={{ display: "flex", alignItems: "center", color: "#6254d0", flexShrink: 0 }}><Icon icon="solar:link-bold" width={14} /></span>
                   <span style={{ fontSize: 12, color: "#A89DB0", width: 90, flexShrink: 0 }}>Original listing</span>
                   <a href={property.url} target="_blank" rel="noreferrer"
-                    style={{ fontSize: 13, color: "#7c73e6", fontWeight: 600, textDecoration: "none", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    style={{ fontSize: 13, color: "#6254d0", fontWeight: 600, textDecoration: "none", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     View on {(() => { try { return new URL(property.url).hostname.replace(/^www\./, '') } catch { return 'listing site' } })()} ↗
                   </a>
                 </div>
@@ -686,7 +686,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
         {/* Score breakdown by section — detailed, at bottom */}
         {hasScore && (
-          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 16, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 8px rgba(124,115,230,0.06)" }}>
+          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 16, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 5 }}>
               <Icon icon="solar:chart-2-bold" width={13} /> Score Breakdown
             </div>
@@ -727,11 +727,11 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
                       <Icon icon="solar:stars-bold" width={13} style={{ color: "#A89DB0" }} />
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#1C1427" }}>Deal-makers</span>
                     </div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#7c73e6", fontFamily: "'Fraunces', serif" }}>+{getBonusTotal(property.bonuses)} pts</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#6254d0", fontFamily: "'Fraunces', serif" }}>+{getBonusTotal(property.bonuses)} pts</span>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px" }}>
                     {BONUSES.filter(b => property.bonuses?.[b.id]).map(b => (
-                      <span key={b.id} style={{ fontSize: 11, color: "#7c73e6", fontWeight: 600 }}>
+                      <span key={b.id} style={{ fontSize: 11, color: "#6254d0", fontWeight: 600 }}>
                         <Icon icon={b.icon} width={11} style={{ verticalAlign: "middle", marginRight: 3 }} />{b.label} +{b.points}
                       </span>
                     ))}
@@ -750,7 +750,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
             <a
               href={`https://www.google.com/maps/search/${encodeURIComponent(property.name)}`}
               target="_blank" rel="noreferrer"
-              style={{ display: "block", textAlign: "center", marginTop: 8, fontSize: 12, color: "#7c73e6", textDecoration: "none" }}
+              style={{ display: "block", textAlign: "center", marginTop: 8, fontSize: 12, color: "#6254d0", textDecoration: "none" }}
             >
               Open in Google Maps ↗
             </a>
@@ -761,9 +761,9 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
       {/* Edit overlay */}
       {editing && editForm && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(124,115,230,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(98,84,208,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
           onClick={e => e.target === e.currentTarget && setEditing(false)}>
-          <div style={{ width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 20, padding: 28, boxShadow: "0 24px 60px rgba(124,115,230,0.2)" }}>
+          <div style={{ width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 20, padding: 28, boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
               <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 800, color: "#1C1427" }}>Edit Details</h2>
               <button onClick={() => setEditing(false)} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
@@ -791,7 +791,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
               <button onClick={() => setEditing(false)} style={{ flex: 1, padding: "12px", background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 11, color: "#6D6077", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Cancel</button>
-              <button onClick={() => { onEdit?.({ ...editForm, name: editForm.address || property.name }); setEditing(false); }} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#9b95eb,#7c73e6)", border: "none", borderRadius: 11, color: "#FFFFFF", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 16px rgba(124,115,230,0.3)" }}>
+              <button onClick={() => { onEdit?.({ ...editForm, name: editForm.address || property.name }); setEditing(false); }} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#9b95eb,#6254d0)", border: "none", borderRadius: 11, color: "#FFFFFF", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 16px rgba(98,84,208,0.3)" }}>
                 Save Changes ✓
               </button>
             </div>
@@ -868,7 +868,7 @@ function ScoringWizard({ property, onClose, onSave }) {
     <div ref={scrollRef} style={{
       position: "fixed", inset: 0, zIndex: 130,
       background: "#fafafa",
-      backgroundImage: "radial-gradient(ellipse at 80% 100%, rgba(124,115,230,0.06) 0%, transparent 55%)",
+      backgroundImage: "radial-gradient(ellipse at 80% 100%, rgba(98,84,208,0.06) 0%, transparent 55%)",
       overflowY: "auto",
       animation: "slideIn 0.28s ease"
     }}>
@@ -898,7 +898,7 @@ function ScoringWizard({ property, onClose, onSave }) {
           )}
           <div style={{ minWidth: 0 }}>
             <div style={{ fontFamily: "'Fraunces', serif", fontSize: 14, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#1C1427" }}>{property.name}</div>
-            {property.price && <div style={{ fontSize: 12, color: "#7c73e6", fontWeight: 600, marginTop: 1 }}>{property.price}</div>}
+            {property.price && <div style={{ fontSize: 12, color: "#6254d0", fontWeight: 600, marginTop: 1 }}>{property.price}</div>}
           </div>
           <div style={{ marginLeft: "auto", fontSize: 11, color: "#A89DB0", flexShrink: 0 }}>
             {sectionIdx + 1}/{SECTIONS.length}
@@ -908,7 +908,7 @@ function ScoringWizard({ property, onClose, onSave }) {
         {/* Section header */}
         <div style={{ marginBottom: 22, animation: "fadeUp 0.25s ease" }}>
           <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, lineHeight: 1.2, color: "#1C1427", display: "flex", alignItems: "center", gap: 10 }}>
-            <Icon icon={section.icon} width={28} style={{ color: "#7c73e6", flexShrink: 0 }} />
+            <Icon icon={section.icon} width={28} style={{ color: "#6254d0", flexShrink: 0 }} />
             {section.title}
           </h2>
           <p style={{ color: "#6D6077", fontSize: 14, marginTop: 5 }}>{section.subtitle}</p>
@@ -930,14 +930,14 @@ function ScoringWizard({ property, onClose, onSave }) {
                 padding: isFirst ? "24px 24px 28px" : "18px 18px 22px",
                 animation: `fadeUp 0.3s ease ${qi * 0.07}s both`,
                 transition: "border-color 0.2s, background 0.2s, opacity 0.25s",
-                boxShadow: answered ? "0 4px 16px rgba(124,115,230,0.08)" : "none",
+                boxShadow: answered ? "0 4px 16px rgba(98,84,208,0.08)" : "none",
                 opacity: locked ? 0.42 : 1,
                 pointerEvents: locked ? "none" : "auto",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                   <div style={{ fontWeight: 700, fontSize: isFirst ? 18 : 15, lineHeight: 1.3, flex: 1, color: "#1C1427" }}>{q.label}</div>
                   {answered && (
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#7c73e6", marginLeft: 12, whiteSpace: "nowrap", fontFamily: "'Fraunces', serif" }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#6254d0", marginLeft: 12, whiteSpace: "nowrap", fontFamily: "'Fraunces', serif" }}>
                       {val}/5
                     </div>
                   )}
@@ -966,18 +966,18 @@ function ScoringWizard({ property, onClose, onSave }) {
                       display: "flex", alignItems: "center", gap: 12,
                       width: "100%", padding: "13px 16px",
                       background: active ? "#f0eff9" : "#FFFFFF",
-                      border: `1px solid ${active ? "#7c73e6" : "#e0dff0"}`,
+                      border: `1px solid ${active ? "#6254d0" : "#e0dff0"}`,
                       borderRadius: 12, cursor: "pointer",
                       transition: "all 0.15s",
-                      boxShadow: active ? "0 2px 10px rgba(124,115,230,0.12)" : "none",
+                      boxShadow: active ? "0 2px 10px rgba(98,84,208,0.12)" : "none",
                       fontFamily: "'DM Sans', sans-serif", textAlign: "left",
                     }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: active ? "#7c73e6" : "#f5f3fc", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: active ? "#6254d0" : "#f5f3fc", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
                       <Icon icon={b.icon} width={16} style={{ color: active ? "#FFFFFF" : "#9b95eb" }} />
                     </div>
                     <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: active ? "#1C1427" : "#6D6077" }}>{b.label}</div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: active ? "#7c73e6" : "#C4C1E0", fontFamily: "'Fraunces', serif", flexShrink: 0 }}>+{b.points}</div>
-                    <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${active ? "#7c73e6" : "#e0dff0"}`, background: active ? "#7c73e6" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: active ? "#6254d0" : "#C4C1E0", fontFamily: "'Fraunces', serif", flexShrink: 0 }}>+{b.points}</div>
+                    <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${active ? "#6254d0" : "#e0dff0"}`, background: active ? "#6254d0" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
                       {active && <Icon icon="solar:check-bold" width={10} style={{ color: "#FFFFFF" }} />}
                     </div>
                   </button>
@@ -1011,12 +1011,12 @@ function ScoringWizard({ property, onClose, onSave }) {
             disabled={!sectionComplete}
             style={{
               width: "100%", padding: "16px",
-              background: sectionComplete ? "linear-gradient(135deg,#9b95eb,#7c73e6)" : "#f0eff9",
+              background: sectionComplete ? "linear-gradient(135deg,#9b95eb,#6254d0)" : "#f0eff9",
               color: sectionComplete ? "#FFFFFF" : "#B0A8BC",
               border: "none", borderRadius: 13, fontSize: 15, fontWeight: 700,
               cursor: sectionComplete ? "pointer" : "not-allowed",
               fontFamily: "'DM Sans', sans-serif",
-              boxShadow: sectionComplete ? "0 4px 20px rgba(124,115,230,0.3)" : "none",
+              boxShadow: sectionComplete ? "0 4px 20px rgba(98,84,208,0.3)" : "none",
               transition: "all 0.2s"
             }}
           >
@@ -1051,11 +1051,11 @@ function ScoringWizard({ property, onClose, onSave }) {
                 value={summaryText}
                 onChange={e => setSummaryText(e.target.value)}
                 rows={14}
-                style={{ width: "100%", fontSize: 14, color: "#1C1427", lineHeight: 1.75, border: "1px solid #c4c1e0", borderRadius: 14, padding: "16px", background: "#FFFFFF", resize: "vertical", outline: "none", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 2px 8px rgba(124,115,230,0.06)", boxSizing: "border-box" }}
+                style={{ width: "100%", fontSize: 14, color: "#1C1427", lineHeight: 1.75, border: "1px solid #c4c1e0", borderRadius: 14, padding: "16px", background: "#FFFFFF", resize: "vertical", outline: "none", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 2px 8px rgba(98,84,208,0.06)", boxSizing: "border-box" }}
               />
             </div>
 
-            <button onClick={save} style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#9b95eb,#7c73e6)", border: "none", borderRadius: 13, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 20px rgba(124,115,230,0.3)" }}>
+            <button onClick={save} style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#9b95eb,#6254d0)", border: "none", borderRadius: 13, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 20px rgba(98,84,208,0.3)" }}>
               Save Scorecard ✓
             </button>
           </div>
@@ -1097,10 +1097,10 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
         borderRadius: 14, overflow: "hidden",
         cursor: "pointer", transition: "transform 0.18s, box-shadow 0.18s",
         animation: "fadeUp 0.3s ease both",
-        boxShadow: "0 2px 8px rgba(124,115,230,0.06)"
+        boxShadow: "0 2px 8px rgba(98,84,208,0.06)"
       }}
-      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 12px 28px rgba(124,115,230,0.14)"; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 2px 8px rgba(124,115,230,0.06)"; }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 12px 28px rgba(98,84,208,0.14)"; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 2px 8px rgba(98,84,208,0.06)"; }}
     >
       {/* Image */}
       <div style={{ position: "relative", height: 140, background: "#ffe9e3", overflow: "hidden" }}>
@@ -1126,7 +1126,7 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                   {activeBonuses.map(b => (
                     <div key={b.id} style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Icon icon={b.icon} width={12} style={{ color: "#7c73e6" }} />
+                      <Icon icon={b.icon} width={12} style={{ color: "#6254d0" }} />
                     </div>
                   ))}
                 </div>
@@ -1149,7 +1149,7 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
         {property.status === "viewed" && !hasScore && (
           <div style={{
             position: "absolute", bottom: 0, left: 0, right: 0,
-            background: "rgba(124,115,230,0.88)", backdropFilter: "blur(4px)",
+            background: "rgba(98,84,208,0.88)", backdropFilter: "blur(4px)",
             padding: "6px 12px", fontSize: 11, fontWeight: 700, color: "#FFFFFF",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 5, letterSpacing: 0.5
           }}>
@@ -1171,7 +1171,7 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
           )}
         </div>
         {property.price && (
-          <div style={{ fontSize: 12, color: "#7c73e6", fontWeight: 600, marginBottom: 5 }}>{property.price}</div>
+          <div style={{ fontSize: 12, color: "#6254d0", fontWeight: 600, marginBottom: 5 }}>{property.price}</div>
         )}
         {(property.bedrooms || property.sqft) && (
           <div style={{ fontSize: 11, color: "#A89DB0" }}>
@@ -1207,7 +1207,7 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
                 <input type="time" value={timeVal} onChange={e => setTimeVal(e.target.value)}
                   style={{ width: 72, fontSize: 11, padding: "4px 7px", borderRadius: 6, border: "1px solid #c4c1e0", outline: "none", fontFamily: "'DM Sans', sans-serif" }} />
                 <button onClick={saveDate}
-                  style={{ background: "#7c73e6", border: "none", borderRadius: 6, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 8px", cursor: "pointer" }}>✓</button>
+                  style={{ background: "#6254d0", border: "none", borderRadius: 6, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 8px", cursor: "pointer" }}>✓</button>
                 <button onClick={e => { e.stopPropagation(); setEditingDate(false); }}
                   style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 6, color: "#A89DB0", fontSize: 11, padding: "4px 8px", cursor: "pointer" }}>✕</button>
               </div>
@@ -1478,9 +1478,9 @@ ${trimmed}`
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(124,115,230,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(98,84,208,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 20, padding: 28, boxShadow: "0 24px 60px rgba(124,115,230,0.2)" }}>
+      <div style={{ width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 20, padding: 28, boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, color: "#1C1427" }}>
@@ -1498,11 +1498,11 @@ ${trimmed}`
             {error && <div style={{ color: "#DC2626", fontSize: 13, marginTop: 8 }}>{error}</div>}
             <button onClick={extractUrl} disabled={loading || !url.trim()} style={{
               width: "100%", marginTop: 16, padding: "14px",
-              background: loading || !url.trim() ? "#f0eff9" : "linear-gradient(135deg,#9b95eb,#7c73e6)",
+              background: loading || !url.trim() ? "#f0eff9" : "linear-gradient(135deg,#9b95eb,#6254d0)",
               color: loading || !url.trim() ? "#B0A8BC" : "#FFFFFF",
               border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700,
               cursor: loading || !url.trim() ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif",
-              boxShadow: loading || !url.trim() ? "none" : "0 4px 16px rgba(124,115,230,0.3)"
+              boxShadow: loading || !url.trim() ? "none" : "0 4px 16px rgba(98,84,208,0.3)"
             }}>
               {loading ? "⏳ Extracting details..." : "Extract Details →"}
             </button>
@@ -1570,7 +1570,7 @@ ${trimmed}`
 
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setStep("url")} style={{ flex: 1, padding: "12px", background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 11, color: "#6D6077", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>← Back</button>
-              <button onClick={handleAdd} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#9b95eb,#7c73e6)", border: "none", borderRadius: 11, color: "#FFFFFF", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 16px rgba(124,115,230,0.3)" }}>
+              <button onClick={handleAdd} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#9b95eb,#6254d0)", border: "none", borderRadius: 11, color: "#FFFFFF", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 16px rgba(98,84,208,0.3)" }}>
                 Add to Board ✓
               </button>
             </div>
@@ -1588,12 +1588,12 @@ function Leaderboard({ properties, onClose, onRescore }) {
     .sort((a, b) => (getTotal(b.scores) + getBonusTotal(b.bonuses)) - (getTotal(a.scores) + getBonusTotal(a.bonuses)));
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(124,115,230,0.2)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(98,84,208,0.2)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 22, padding: "28px 24px", boxShadow: "0 24px 60px rgba(124,115,230,0.2)" }}>
+      <div style={{ width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 22, padding: "28px 24px", boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 800, color: "#1C1427", display: "flex", alignItems: "center", gap: 10 }}>
-            <Icon icon="solar:cup-star-bold" width={26} style={{ color: "#7c73e6" }} /> Leaderboard
+            <Icon icon="solar:cup-star-bold" width={26} style={{ color: "#6254d0" }} /> Leaderboard
           </h2>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
         </div>
@@ -1614,8 +1614,8 @@ function Leaderboard({ properties, onClose, onRescore }) {
               const worst = [...sectionAvgs].sort((a, b) => a.avg - b.avg)[0];
 
               return (
-                <div key={p.id} style={{ borderRadius: 16, overflow: "hidden", border: isFirst ? "1px solid #a8a5d8" : "1px solid #e0dff0", background: isFirst ? "#f5f3fc" : "#FFFFFF", boxShadow: isFirst ? "0 4px 20px rgba(124,115,230,0.1)" : "0 2px 8px rgba(124,115,230,0.05)" }}>
-                  {isFirst && <div style={{ height: 3, background: "linear-gradient(90deg,#7c73e6,#9b95eb,#7c73e6)" }} />}
+                <div key={p.id} style={{ borderRadius: 16, overflow: "hidden", border: isFirst ? "1px solid #a8a5d8" : "1px solid #e0dff0", background: isFirst ? "#f5f3fc" : "#FFFFFF", boxShadow: isFirst ? "0 4px 20px rgba(98,84,208,0.1)" : "0 2px 8px rgba(98,84,208,0.05)" }}>
+                  {isFirst && <div style={{ height: 3, background: "linear-gradient(90deg,#6254d0,#9b95eb,#6254d0)" }} />}
                   <div style={{ display: "flex" }}>
                     {p.image && (
                       <div style={{ width: 110, flexShrink: 0 }}>
@@ -1625,11 +1625,11 @@ function Leaderboard({ properties, onClose, onRescore }) {
                     <div style={{ flex: 1, padding: "16px 18px" }}>
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: isFirst ? "#7c73e6" : "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 3 }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: isFirst ? "#6254d0" : "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 3 }}>
                             {i === 0 ? "🥇 Top Pick" : i === 1 ? "🥈 Runner Up" : i === 2 ? "🥉 Third" : `#${i+1}`}
                           </div>
                           <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 700, lineHeight: 1.3, color: "#1C1427" }}>{p.name}</div>
-                          {p.price && <div style={{ fontSize: 12, color: "#7c73e6", marginTop: 2, fontWeight: 600 }}>{p.price}</div>}
+                          {p.price && <div style={{ fontSize: 12, color: "#6254d0", marginTop: 2, fontWeight: 600 }}>{p.price}</div>}
                         </div>
                         <div style={{ width: 50, height: 50, borderRadius: "50%", flexShrink: 0, background: `${col}12`, border: `2px solid ${col}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 800, color: col, fontFamily: "'Fraunces', serif" }}>{total}</div>
                       </div>
@@ -1644,7 +1644,7 @@ function Leaderboard({ properties, onClose, onRescore }) {
                         </div>
                       </div>
                       <div style={{ marginTop: 10 }}><Bar value={total} max={100} /></div>
-                      <button onClick={() => { onRescore(p); onClose(); }} style={{ marginTop: 10, width: "100%", padding: "8px", background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 8, color: "#7c73e6", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                      <button onClick={() => { onRescore(p); onClose(); }} style={{ marginTop: 10, width: "100%", padding: "8px", background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 8, color: "#6254d0", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
                         View / Edit Scores
                       </button>
                     </div>
@@ -1740,14 +1740,14 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAFAFE', backgroundImage: 'radial-gradient(ellipse at 10% 0%, rgba(124,115,230,0.1) 0%, transparent 50%), radial-gradient(ellipse at 90% 100%, rgba(124,115,230,0.06) 0%, transparent 50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#FAFAFE', backgroundImage: 'radial-gradient(ellipse at 10% 0%, rgba(98,84,208,0.1) 0%, transparent 50%), radial-gradient(ellipse at 90% 100%, rgba(98,84,208,0.06) 0%, transparent 50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,800&family=DM+Sans:wght@300;400;500;600;700&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
       <div style={{ width: '100%', maxWidth: 400, animation: 'fadeUp 0.3s ease' }}>
 
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 800, color: '#1C1427', letterSpacing: '-0.5px' }}>
-            Nest<span style={{ color: '#7c73e6' }}> Well</span>
+            Nest<span style={{ color: '#6254d0' }}> Well</span>
           </h1>
           <p style={{ fontSize: 14, color: '#6D6077', marginTop: 10, lineHeight: 1.6 }}>
             Track, score and compare properties.<br />Solo, or together with a team.
@@ -1757,11 +1757,11 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
         {/* Migration recovery — shown when existing data found */}
         {migrationCode && (
           <div style={{ background: '#f0eff9', border: '1px solid #a8a5d8', borderRadius: 14, padding: '16px 18px', marginBottom: 16, animation: 'fadeUp 0.3s ease' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#7c73e6', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6254d0', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon icon="solar:bookmark-bold" width={13} /> Your existing board was found
             </div>
             <p style={{ fontSize: 13, color: '#6D6077', lineHeight: 1.5, marginBottom: 12 }}>We found properties from before. Open your board to continue where you left off.</p>
-            <button onClick={() => onJoin(migrationCode)} style={{ width: '100%', padding: '11px', background: '#7c73e6', border: 'none', borderRadius: 10, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+            <button onClick={() => onJoin(migrationCode)} style={{ width: '100%', padding: '11px', background: '#6254d0', border: 'none', borderRadius: 10, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
               Open my board →
             </button>
           </div>
@@ -1771,7 +1771,7 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
         <div style={{ marginBottom: 10 }}>
           <input value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name your board (optional, e.g. London 2025)"
             style={{ width: '100%', padding: '11px 14px', border: '1px solid #e0dff0', borderRadius: 10, fontSize: 14, fontFamily: "'DM Sans', sans-serif", color: '#1C1427', marginBottom: 8, outline: 'none', background: '#fff' }} />
-          <button onClick={() => onStart(nameInput.trim())} disabled={starting} style={{ width: '100%', padding: '15px', background: starting ? '#f0eff9' : 'linear-gradient(135deg,#9b95eb,#7c73e6)', color: starting ? '#B0A8BC' : '#fff', border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: starting ? 'none' : '0 4px 20px rgba(124,115,230,0.3)', transition: 'all 0.2s' }}>
+          <button onClick={() => onStart(nameInput.trim())} disabled={starting} style={{ width: '100%', padding: '15px', background: starting ? '#f0eff9' : 'linear-gradient(135deg,#9b95eb,#6254d0)', color: starting ? '#B0A8BC' : '#fff', border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: starting ? 'none' : '0 4px 20px rgba(98,84,208,0.3)', transition: 'all 0.2s' }}>
             {starting ? 'Creating your board…' : 'Start my property search →'}
           </button>
         </div>
@@ -1787,7 +1787,7 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
             <div style={{ display: 'flex', gap: 8 }}>
               <input value={codeInput} onChange={e => { setCodeInput(e.target.value.toUpperCase()); setError('') }} onKeyDown={e => e.key === 'Enter' && handleJoin()} placeholder="e.g. NW4X7K" autoFocus
                 style={{ flex: 1, padding: '10px 12px', border: '1px solid #c4c1e0', borderRadius: 9, fontSize: 15, fontFamily: 'monospace', letterSpacing: 2, outline: 'none', color: '#1C1427', fontWeight: 700 }} />
-              <button onClick={handleJoin} style={{ padding: '10px 16px', background: '#7c73e6', border: 'none', borderRadius: 9, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Join</button>
+              <button onClick={handleJoin} style={{ padding: '10px 16px', background: '#6254d0', border: 'none', borderRadius: 9, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Join</button>
             </div>
             {error && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 6 }}>{error}</div>}
           </div>
@@ -1980,7 +1980,7 @@ export default function NestWell() {
     <div style={{
       minHeight: "100vh",
       background: "#fafafa",
-      backgroundImage: "radial-gradient(ellipse at 10% 0%, rgba(124,115,230,0.07) 0%, transparent 55%), radial-gradient(ellipse at 90% 100%, rgba(124,115,230,0.04) 0%, transparent 55%)",
+      backgroundImage: "radial-gradient(ellipse at 10% 0%, rgba(98,84,208,0.07) 0%, transparent 55%), radial-gradient(ellipse at 90% 100%, rgba(98,84,208,0.04) 0%, transparent 55%)",
       fontFamily: "'DM Sans', sans-serif",
       color: "#1C1427",
     }}>
@@ -1991,7 +1991,7 @@ export default function NestWell() {
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(124,115,230,0.18); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(98,84,208,0.18); border-radius: 3px; }
         button:focus, input:focus, select:focus { outline: none; }
         input[type="date"], input[type="time"] { color-scheme: light; }
       `}</style>
@@ -2005,7 +2005,7 @@ export default function NestWell() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <h1 onClick={handleGoHome} style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px", color: "#1C1427", cursor: "pointer" }} title="Back to home">
-            Nest<span style={{ color: "#7c73e6" }}> Well</span>
+            Nest<span style={{ color: "#6254d0" }}> Well</span>
           </h1>
           {/* Board name dropdown trigger */}
           <div ref={boardMenuRef} style={{ position: "relative", borderLeft: "1px solid #e0dff0", paddingLeft: 14 }}>
@@ -2022,7 +2022,7 @@ export default function NestWell() {
                   placeholder="e.g. London 2025"
                   style={{ width: "100%", padding: "8px 10px", border: "1px solid #e0dff0", borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', sans-serif", color: "#1C1427", marginBottom: 8, outline: "none" }} />
                 <button onClick={() => { saveBoardName(boardMenuName); setShowBoardMenu(false); }}
-                  style={{ width: "100%", padding: "8px", background: "#7c73e6", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: 10 }}>
+                  style={{ width: "100%", padding: "8px", background: "#6254d0", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: 10 }}>
                   Save name
                 </button>
                 <div style={{ borderTop: "1px solid #f0eff9", paddingTop: 10 }}>
@@ -2047,15 +2047,15 @@ export default function NestWell() {
             </button>
           )}
           {scoredCount > 0 && (
-            <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
+            <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
               <Icon icon="solar:cup-star-bold" width={14} /> Leaderboard ({scoredCount})
             </button>
           )}
           <button onClick={() => setShowAdd(true)} style={{
-            padding: "11px 22px", background: "linear-gradient(135deg,#9b95eb,#7c73e6)",
+            padding: "11px 22px", background: "linear-gradient(135deg,#9b95eb,#6254d0)",
             border: "none", borderRadius: 10, color: "#FFFFFF", fontSize: 15, fontWeight: 700,
             cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-            boxShadow: "0 3px 12px rgba(124,115,230,0.3)"
+            boxShadow: "0 3px 12px rgba(98,84,208,0.3)"
           }}>
             + Add Property
           </button>
