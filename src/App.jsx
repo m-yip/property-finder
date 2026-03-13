@@ -2048,7 +2048,7 @@ export default function NestWell() {
           )}
           {scoredCount > 0 && (
             <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
-              <Icon icon="solar:cup-star-bold" width={14} /> Leaderboard ({scoredCount})
+              <Icon icon="solar:cup-star-bold" width={14} style={{ color: "#6254d0" }} /> Leaderboard ({scoredCount})
             </button>
           )}
           <button onClick={() => setShowAdd(true)} style={{
