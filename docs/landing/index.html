@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nest Well — House hunting, kept calm</title>
+<meta name="description" content="Every listing, agent, viewing and gut feeling in one calm board. Score homes while they're fresh and decide together.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --plaster: #ebe3d8; --linen: #f6f1ea; --paper: #fbf8f3; --stone: #e3d8c9; --sand: #d6c8b6;
+  --umber: #2b2521; --clay: #5b4c3f; --dust: #8b7f72; --line: rgba(43,37,33,.10); --line-2: rgba(43,37,33,.18);
+  --terracotta: #a3462b; --terracotta-soft: #f1ddd2; --olive: #5f6b3a; --olive-soft: #e3e4d0; --ochre: #b0813a;
+  --serif: 'Cormorant Garamond', serif; --sans: 'Manrope', sans-serif;
+  --shadow: 0 30px 60px -34px rgba(91,76,63,.55); --shadow-sm: 0 12px 26px -18px rgba(91,76,63,.55);
+  --img: ../assets/demo-images;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); color: var(--umber); background: var(--plaster); -webkit-font-smoothing: antialiased; line-height: 1.5;
+  background-image: radial-gradient(ellipse at 85% -5%, #f7f0e6 0%, transparent 45%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.28 0 0 0 0 0.2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+img, video { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+.wrap { width: min(1200px, 100% - 64px); margin: 0 auto; }
+em { font-style: italic; color: var(--terracotta); }
+.serif { font-family: var(--serif); }
+.eyebrow { font: 600 11px/1 var(--sans); letter-spacing: .18em; text-transform: uppercase; color: var(--dust); display: inline-flex; align-items: center; gap: 10px; }
+.eyebrow::before { content: ''; width: 24px; height: 1px; background: currentColor; }
+.btn { display: inline-flex; align-items: center; gap: 8px; font: 600 14px/1 var(--sans); padding: 15px 24px; border-radius: 99px; transition: transform .2s, box-shadow .2s, background .2s; cursor: pointer; border: 0; }
+.btn:hover { transform: translateY(-2px); }
+.btn.pri { background: var(--terracotta); color: #fbf5ee; box-shadow: 0 14px 28px -14px rgba(163,70,43,.9); }
+.btn.pri:hover { background: #923c23; }
+.btn.ghost { border: 1px solid var(--line-2); background: rgba(251,248,243,.55); color: var(--umber); }
+.btn.ghost:hover { background: var(--paper); }
+h2.title { font: 400 clamp(38px, 4.6vw, 62px)/1.02 var(--serif); letter-spacing: -.015em; }
+.lead { font-size: 17px; line-height: 1.65; color: var(--clay); }
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1); }
+.reveal.in { opacity: 1; transform: none; }
+.d1 { transition-delay: .08s } .d2 { transition-delay: .16s } .d3 { transition-delay: .24s }
+
+/* ── Nav ─────────────────────────────────────────────── */
+nav { position: sticky; top: 0; z-index: 50; background: rgba(235,227,216,.78); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+nav .wrap { display: flex; align-items: center; gap: 36px; height: 74px; }
+.logo { font: italic 500 30px/1 var(--serif); letter-spacing: -.01em; }
+.logo i { color: var(--terracotta); }
+nav ul { display: flex; gap: 28px; list-style: none; margin-left: auto; }
+nav ul a { font: 600 13px var(--sans); color: var(--clay); transition: color .2s; }
+nav ul a:hover { color: var(--terracotta); }
+nav .btn { padding: 12px 20px; font-size: 13px; }
+
+/* ── Hero ─────────────────────────────────────────────── */
+.hero { padding: 72px 0 90px; }
+.hero .wrap { display: grid; grid-template-columns: 1.02fr 1fr; gap: 60px; align-items: center; }
+.hero h1 { font: 400 clamp(52px, 6.6vw, 92px)/.96 var(--serif); letter-spacing: -.025em; margin: 22px 0 24px; }
+.hero h1 em { display: block; }
+.hero .lead { max-width: 33em; }
+.hero .ctas { display: flex; gap: 12px; margin: 34px 0 26px; flex-wrap: wrap; }
+.works { font-size: 12.5px; color: var(--dust); }
+.works b { color: var(--clay); font-weight: 600; }
+
+.collage { position: relative; height: 620px; }
+.collage .main { position: absolute; right: 0; top: 0; width: 82%; height: 88%; border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); }
+.collage .main img { width: 100%; height: 100%; object-fit: cover; }
+.collage .round { position: absolute; left: 0; top: 46px; width: 150px; height: 150px; border-radius: 50%; overflow: hidden; border: 6px solid var(--plaster); box-shadow: var(--shadow-sm); }
+.collage .round img { width: 100%; height: 100%; object-fit: cover; }
+.float { position: absolute; background: var(--paper); border-radius: 18px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.f-score { left: 2%; bottom: 0; width: 330px; padding: 20px; display: grid; grid-template-columns: 92px 1fr; gap: 18px; align-items: center; animation: bob 7s ease-in-out infinite; }
+.f-score small, .f-view small { font: 600 9.5px/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--dust); }
+.f-score h4 { font: italic 500 25px/1.05 var(--serif); color: var(--terracotta); margin: 6px 0 10px; }
+.bars { display: grid; gap: 6px; }
+.bars div { display: grid; grid-template-columns: 62px 1fr 22px; gap: 8px; align-items: center; font: 500 10.5px var(--sans); color: var(--clay); }
+.bars i { height: 4px; border-radius: 4px; background: var(--stone); overflow: hidden; } .bars i b { display: block; height: 100%; background: var(--terracotta); border-radius: inherit; }
+.bars em { font: 600 13px var(--serif); font-style: normal; color: var(--umber); text-align: right; }
+.f-view { right: -18px; top: 38%; padding: 14px 16px 14px 14px; display: flex; gap: 12px; align-items: center; animation: bob 8s ease-in-out infinite reverse; }
+.f-view .th { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; } .f-view .th img { width: 100%; height: 100%; object-fit: cover; }
+.f-view b { display: block; font: 600 17px/1.15 var(--serif); margin-top: 5px; }
+.f-view span { font-size: 12px; color: var(--olive); font-weight: 600; }
+@keyframes bob { 50% { transform: translateY(-10px); } }
+
+/* Arch gauge */
+.gauge { position: relative; width: 92px; height: 110px; display: grid; place-items: center; }
+.gauge svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gauge .fill { transform: translateY(110px); transition: transform 1.6s cubic-bezier(.2,.7,.2,1) .4s; }
+.in .gauge .fill, .gauge.in .fill { transform: translateY(7.7px); }
+.gauge b { position: relative; font: italic 600 42px/1 var(--serif); color: #fbf5ee; margin-top: 30px; }
+
+/* ── Sources strip ───────────────────────────────────── */
+.sources { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 22px 0; }
+.sources .wrap { display: flex; align-items: center; gap: 40px; justify-content: space-between; flex-wrap: wrap; }
+.sources span { font: 600 10.5px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--dust); }
+.sources b { font: 500 22px var(--serif); color: var(--clay); opacity: .8; }
+
+/* ── Problem ─────────────────────────────────────────── */
+.problem { background: var(--umber); color: var(--linen); padding: 120px 0; position: relative; overflow: hidden; }
+.problem .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 70px; align-items: center; }
+.problem .eyebrow { color: #b8ab9c; }
+.problem h2.title { color: var(--linen); margin: 20px 0 26px; }
+.problem h2 em { color: #e3a184; }
+.problem p { font-size: 17px; line-height: 1.7; color: #d8cdbf; max-width: 32em; }
+.problem p + p { margin-top: 16px; }
+.noise { position: relative; height: 470px; }
+.note { position: absolute; background: #3a322c; border: 1px solid #ffffff14; color: #efe6da; border-radius: 16px; padding: 14px 18px; font-size: 14px; display: flex; gap: 12px; align-items: center; box-shadow: 0 24px 40px -24px #000c; width: max-content; max-width: 360px; }
+.note i { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--sans); font-style: normal; background: #4a4038; color: #e3a184; }
+.note small { display: block; font-size: 11px; color: #a89a8a; margin-bottom: 2px; }
+.note.strike { text-decoration: line-through; text-decoration-color: #e3a18499; color: #a89a8a; }
+.n1 { left: 4%; top: 0; transform: rotate(-3deg); } .n2 { right: 0; top: 70px; transform: rotate(2.5deg); }
+.n3 { left: 14%; top: 160px; transform: rotate(1.5deg); } .n4 { right: 6%; top: 250px; transform: rotate(-2deg); }
+.n5 { left: 0; top: 330px; transform: rotate(-1deg); } .n6 { right: 14%; top: 405px; transform: rotate(3deg); }
+.calm { position: absolute; left: 50%; bottom: -24px; transform: translateX(-50%); }
+
+/* ── Feature rows ────────────────────────────────────── */
+.features { padding: 130px 0 40px; }
+.features > .wrap > header { max-width: 760px; margin-bottom: 90px; }
+.features header h2 { margin: 18px 0 18px; }
+.row { display: grid; grid-template-columns: 1fr 1.15fr; gap: 80px; align-items: center; margin-bottom: 140px; }
+.row.flip { grid-template-columns: 1.15fr 1fr; }
+.row.flip .copy { order: 2; }
+.copy .num { font: italic 500 22px/1 var(--serif); color: var(--terracotta); }
+.copy h3 { font: 400 clamp(34px, 3.6vw, 48px)/1.04 var(--serif); letter-spacing: -.01em; margin: 14px 0 18px; }
+.copy ul { list-style: none; margin-top: 24px; display: grid; gap: 12px; }
+.copy li { display: flex; gap: 12px; font-size: 15px; color: var(--clay); line-height: 1.5; }
+.copy li::before { content: ''; flex: none; width: 18px; height: 18px; margin-top: 2px; border-radius: 50%; background: var(--olive-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.5l2.6 2.5L13 6.5' fill='none' stroke='%235f6b3a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }
+
+.shot { position: relative; border-radius: 14px; overflow: hidden; background: var(--paper); box-shadow: var(--shadow); border: 1px solid var(--line); }
+.shot .bar { height: 34px; display: flex; align-items: center; gap: 7px; padding: 0 14px; border-bottom: 1px solid var(--line); background: #fdfbf7; }
+.shot .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--stone); }
+.shot .bar span { margin-left: auto; margin-right: auto; font: 500 11px var(--sans); color: var(--dust); padding-right: 50px; }
+.shot img { width: 100%; }
+.crop { aspect-ratio: 16 / 10.4; overflow: hidden; } .crop img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+.badge-float { position: absolute; background: var(--paper); border-radius: 99px; padding: 10px 16px; font: 600 12.5px var(--sans); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); }
+.badge-float i { width: 8px; height: 8px; border-radius: 50%; background: var(--olive); }
+
+/* Follow-up cards */
+.follow { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 34px; background: var(--linen); border-radius: 22px; border: 1px solid var(--line); position: relative; }
+.fcard { background: var(--paper); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.fcard .ph { height: 140px; } .fcard .ph img { width: 100%; height: 100%; object-fit: cover; }
+.fcard .bd { padding: 14px 16px 16px; }
+.fcard h5 { font: 600 19px/1.15 var(--serif); }
+.fcard .pr { font: 600 13px var(--sans); color: var(--terracotta); margin-top: 3px; }
+.fcard .ag { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--clay); }
+.fcard .ag i { width: 7px; height: 7px; border-radius: 50%; background: var(--olive); }
+.fcard .ag .call { margin-left: auto; width: 30px; height: 30px; border-radius: 50%; background: var(--olive-soft); display: grid; place-items: center; color: var(--olive); font-size: 13px; }
+.status { display: inline-flex; gap: 6px; align-items: center; margin-top: 10px; font: 600 11px var(--sans); padding: 5px 10px; border-radius: 99px; background: var(--stone); color: var(--clay); }
+.status.warn { background: var(--terracotta-soft); color: var(--terracotta); }
+.follow .col-label { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.follow .col-label b { font: italic 500 28px/1 var(--serif); }
+.follow .col-label span { font-size: 12px; color: var(--dust); }
+
+/* Viewings list */
+.viewings { background: var(--paper); border-radius: 22px; border: 1px solid var(--line); box-shadow: var(--shadow); padding: 28px; }
+.viewings h4 { font: 400 34px/1.05 var(--serif); margin-bottom: 4px; }
+.viewings h4 em { font-style: italic; }
+.viewings > p { font-size: 13.5px; color: var(--dust); margin-bottom: 20px; }
+.vrow { display: grid; grid-template-columns: 70px 76px 1fr auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); }
+.vrow .date { text-align: center; border-right: 1px solid var(--line); padding-right: 14px; }
+.vrow .date b { display: block; font: 500 34px/1 var(--serif); }
+.vrow .date span { font: 600 10px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--dust); }
+.vrow .th { width: 76px; height: 58px; border-radius: 8px; overflow: hidden; } .vrow .th img { width: 100%; height: 100%; object-fit: cover; }
+.vrow h5 { font: 600 19px/1.1 var(--serif); }
+.vrow small { font-size: 12px; color: var(--dust); }
+.vrow .time { font: 600 12px var(--sans); color: #fbf5ee; background: var(--terracotta); padding: 7px 12px; border-radius: 99px; white-space: nowrap; }
+.vrow.soon .time { background: var(--olive); }
+
+/* Scoring */
+.score-visual { position: relative; display: grid; grid-template-columns: 1fr; }
+.score-visual video { width: 100%; border-radius: 22px; box-shadow: var(--shadow); background: #e2d7c8; aspect-ratio: 1080 / 1350; object-fit: cover; }
+.score-visual .gauge-card { position: absolute; right: -36px; bottom: 60px; padding: 18px 20px; display: flex; gap: 16px; align-items: center; }
+.score-visual .gauge-card h4 { font: italic 500 22px/1.05 var(--serif); color: var(--terracotta); }
+.score-visual .gauge-card small { font: 600 9.5px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--dust); }
+.score-visual .q { position: absolute; left: -40px; top: 70px; padding: 16px 18px; width: 250px; }
+.q h5 { font: 600 19px/1.15 var(--serif); margin-bottom: 10px; }
+.rates { display: flex; gap: 6px; }
+.rates span { flex: 1; height: 40px; border-radius: 99px 99px 8px 8px; border: 1px solid var(--line-2); display: grid; place-items: center; font: 500 17px var(--serif); color: var(--dust); background: var(--linen); }
+.rates span.on { background: var(--terracotta); border-color: var(--terracotta); color: #fbf5ee; transform: translateY(-3px); box-shadow: 0 8px 14px -8px rgba(163,70,43,.9); }
+.cats-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+.cats-strip span { font: 600 12px var(--sans); padding: 8px 13px; border-radius: 99px; border: 1px solid var(--line-2); color: var(--clay); background: rgba(251,248,243,.5); }
+
+/* Together */
+.together-visual { position: relative; }
+.together-visual .shot { transform: rotate(-1deg); }
+.people { position: absolute; left: -26px; bottom: -34px; display: flex; flex-direction: column; gap: 10px; }
+.chat { display: flex; align-items: center; gap: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 99px; padding: 6px 16px 6px 6px; box-shadow: var(--shadow-sm); font-size: 13px; color: var(--clay); width: max-content; }
+.chat i { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 600 11px var(--sans); font-style: normal; color: #fbf5ee; flex: none; }
+.chat b { color: var(--umber); font-weight: 600; }
+.codecard { position: absolute; right: -24px; top: -36px; padding: 16px 18px; }
+.codecard small { font: 600 9.5px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--dust); }
+.tiles { display: flex; gap: 5px; margin-top: 10px; }
+.tiles span { width: 34px; height: 40px; display: grid; place-items: center; font: 500 22px var(--serif); background: var(--linen); border: 1px solid var(--line); border-radius: 8px; }
+
+/* ── Tour video ──────────────────────────────────────── */
+.tour { padding: 40px 0 140px; }
+.tour .wrap { text-align: center; }
+.tour h2 { margin: 16px 0 14px; }
+.tour .lead { max-width: 36em; margin: 0 auto 44px; }
+.tour video { width: 100%; border-radius: 20px; box-shadow: var(--shadow); background: #e2d7c8; }
+
+/* ── Steps ───────────────────────────────────────────── */
+.steps { background: var(--linen); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 120px 0; }
+.steps header { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; margin-bottom: 60px; }
+.steps header .lead { max-width: 26em; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+.step { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; }
+.step .ph { height: 170px; overflow: hidden; } .step .ph img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s; }
+.step:hover .ph img { transform: scale(1.05); }
+.step .bd { padding: 22px 22px 26px; }
+.step .n { font: italic 500 40px/1 var(--serif); color: var(--terracotta); }
+.step h4 { font: 600 23px/1.1 var(--serif); margin: 10px 0 8px; }
+.step p { font-size: 14px; color: var(--clay); line-height: 1.6; }
+
+/* ── Value ───────────────────────────────────────────── */
+.value { padding: 120px 0; }
+.value .wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+.vcell { padding: 10px 40px; border-left: 1px solid var(--line-2); }
+.vcell:first-child { border-left: 0; padding-left: 0; }
+.vcell b { display: block; font: 400 64px/1 var(--serif); letter-spacing: -.02em; }
+.vcell b em { font-size: .55em; }
+.vcell h4 { font: 600 20px var(--serif); margin: 12px 0 6px; }
+.vcell p { font-size: 14.5px; color: var(--clay); line-height: 1.6; }
+
+/* ── Founder ─────────────────────────────────────────── */
+.founder { padding: 40px 0 130px; }
+.founder .wrap { display: grid; grid-template-columns: 380px 1fr; gap: 80px; align-items: center; }
+.arch-photo { height: 470px; border-radius: 999px 999px 18px 18px; overflow: hidden; box-shadow: var(--shadow); }
+.arch-photo img { width: 100%; height: 100%; object-fit: cover; }
+blockquote { font: 400 clamp(28px, 3.1vw, 40px)/1.22 var(--serif); letter-spacing: -.01em; margin: 20px 0 24px; }
+blockquote em { font-style: italic; }
+.sig { font-size: 14px; color: var(--dust); }
+.sig b { color: var(--umber); font-weight: 600; }
+
+/* ── What's next ─────────────────────────────────────── */
+.next { background: var(--umber); color: var(--linen); padding: 120px 0 130px; overflow: hidden; }
+.next .eyebrow { color: #b8ab9c; }
+.next h2 { color: var(--linen); margin: 18px 0 18px; max-width: 14em; }
+.next h2 em { color: #e3a184; }
+.next .lead { color: #d8cdbf; max-width: 38em; }
+.timeline { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 70px; position: relative; }
+.timeline::before { content: ''; position: absolute; left: 0; right: 0; top: 11px; height: 1px; background: #ffffff26; }
+.tstep { position: relative; padding-right: 14px; }
+.tstep i { display: block; width: 23px; height: 23px; border-radius: 50%; border: 1px solid #ffffff40; background: var(--umber); margin-bottom: 18px; position: relative; }
+.tstep.done i { background: var(--olive); border-color: var(--olive); }
+.tstep.now i { background: var(--terracotta); border-color: var(--terracotta); box-shadow: 0 0 0 6px #a3462b40; }
+.tstep h5 { font: 500 22px/1.1 var(--serif); }
+.tstep p { font-size: 12.5px; color: #b8ab9c; margin-top: 6px; line-height: 1.5; }
+.tstep span { display: inline-block; margin-top: 10px; font: 600 10px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: #e3a184; }
+
+/* ── CTA + footer ────────────────────────────────────── */
+.cta { padding: 140px 0 120px; text-align: center; position: relative; }
+.cta h2 { font: 400 clamp(48px, 6vw, 84px)/1 var(--serif); letter-spacing: -.02em; margin: 18px 0 20px; }
+.cta .lead { max-width: 30em; margin: 0 auto 36px; }
+.cta .thumbs { display: flex; justify-content: center; gap: 14px; margin-top: 70px; }
+.cta .thumbs div { width: 120px; height: 90px; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.cta .thumbs div:nth-child(2) { border-radius: 50%; width: 90px; }
+.cta .thumbs div:nth-child(4) { border-radius: 99px 99px 10px 10px; width: 80px; }
+.cta .thumbs img { width: 100%; height: 100%; object-fit: cover; }
+footer { border-top: 1px solid var(--line); padding: 34px 0 48px; }
+footer .wrap { display: flex; align-items: center; gap: 30px; font-size: 13px; color: var(--dust); }
+footer .logo { font-size: 24px; color: var(--umber); }
+footer .grow { flex: 1; }
+
+@media (max-width: 960px) {
+  nav ul { display: none; }
+  .hero .wrap, .problem .wrap, .row, .row.flip, .founder .wrap { grid-template-columns: 1fr; gap: 50px; }
+  .row.flip .copy { order: 0; }
+  .collage { height: 520px; }
+  .grid4, .value .wrap { grid-template-columns: 1fr 1fr; }
+  .vcell { border-left: 0; padding: 20px 0; }
+  .timeline { grid-template-columns: 1fr; gap: 26px; } .timeline::before { display: none; }
+  .score-visual .q, .score-visual .gauge-card, .codecard { position: static; margin-top: 16px; }
+  .steps header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="#" class="logo">Nest <i>Well</i></a>
+    <ul>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#scoring">Scoring</a></li>
+      <li><a href="#together">Together</a></li>
+      <li><a href="#next">What’s next</a></li>
+    </ul>
+    <a href="http://localhost:5173" class="btn pri">Start your search</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow reveal">For renters, first-time buyers &amp; everyone helping them</span>
+      <h1 class="reveal d1">Find your home,<em>without losing the thread.</em></h1>
+      <p class="lead reveal d2">Nest Well brings every listing, estate agent, viewing and gut feeling into one calm board. You always know who to call back, when you’re viewing next, and which home you loved most.</p>
+      <div class="ctas reveal d3">
+        <a href="http://localhost:5173" class="btn pri">Start your search →</a>
+        <a href="#tour" class="btn ghost">▶ Watch the 18-second tour</a>
+      </div>
+      <p class="works reveal d3">Paste a link from <b>Rightmove</b>, <b>Zoopla</b>, <b>OnTheMarket</b> or any agent’s site. No account needed.</p>
+    </div>
+
+    <div class="collage reveal d2">
+      <div class="main"><img src="../assets/demo-images/flat-6.jpg" alt="Bright top-floor flat with skylights and plants"></div>
+      <div class="round"><img src="../assets/demo-images/flat-8.jpg" alt=""></div>
+      <div class="float f-view">
+        <div class="th"><img src="../assets/demo-images/flat-7.jpg" alt=""></div>
+        <div><small>Next viewing</small><b>Greenwich High Road</b><span>Saturday · 2:00pm</span></div>
+      </div>
+      <div class="float f-score">
+        <div class="gauge" id="heroGauge"></div>
+        <div>
+          <small>Bermondsey Street · your score</small>
+          <h4>A home to love</h4>
+          <div class="bars">
+            <div>Light<i><b style="width:93%"></b></i><em>93</em></div>
+            <div>Location<i><b style="width:94%"></b></i><em>94</em></div>
+            <div>Gut feel<i><b style="width:100%"></b></i><em>100</em></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="sources">
+  <div class="wrap">
+    <span>Works with listings from</span>
+    <b>Rightmove</b><b>Zoopla</b><b>OnTheMarket</b><b>Foxtons</b><b>Savills</b><b>Knight Frank</b>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow reveal">The problem</span>
+      <h2 class="title reveal d1">Six agents. A dozen calls. <em>One notes app you stopped updating.</em></h2>
+      <p class="reveal d2">Searching for a home means a dozen agents from different agencies, all calling, emailing and texting. Viewings get booked in three different apps. Callbacks slip. And after five viewings in a weekend, nobody can remember which flat had the damp and which had the light.</p>
+      <p class="reveal d3">It’s the biggest decision most of us make, and it runs on memory and missed calls.</p>
+    </div>
+    <div class="noise reveal d2">
+      <div class="note n1"><i>HH</i><div><small>Missed call · 09:12</small>Harbour &amp; Hale, 020 7946 0321</div></div>
+      <div class="note n2"><i>PL</i><div><small>Text · Parkside Lettings</small>Hi, is Saturday 11 still ok? Or was it 2?</div></div>
+      <div class="note n3 strike"><i>✎</i><div><small>Notes</small>Brixton: nice? Small? Check light</div></div>
+      <div class="note n4"><i>BL</i><div><small>Email</small>Re: Re: Re: Viewing confirmation</div></div>
+      <div class="note n5"><i>?</i><div><small>Partner</small>Which one had the balcony again?</div></div>
+      <div class="note n6"><i>SW</i><div><small>Missed call · 17:40</small>Stanton Wolfe: still interested?</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="how">
+  <div class="wrap">
+    <header>
+      <span class="eyebrow reveal">How Nest Well helps</span>
+      <h2 class="title reveal d1">One calm place for the <em>whole search.</em></h2>
+      <p class="lead reveal d2">From the first listing you save to the flat you can’t stop thinking about, every step lives on one shared board.</p>
+    </header>
+
+    <!-- 1. One board -->
+    <div class="row">
+      <div class="copy reveal">
+        <span class="num">01 — Add a home</span>
+        <h3>Every agent, every listing, <em>one board.</em></h3>
+        <p class="lead">Paste a link from any portal or agency site and Nest Well fills in the price, size, photos and agent for you. No more tabs, screenshots or spreadsheets.</p>
+        <ul>
+          <li>Works with Rightmove, Zoopla, OnTheMarket and agent websites</li>
+          <li>Homes move from Saved → Enquired → Visiting → Seen</li>
+          <li>Archive the no’s without losing them</li>
+        </ul>
+      </div>
+      <div class="reveal d1" style="position:relative">
+        <div class="shot"><div class="bar"><i></i><i></i><i></i><span>Nest Well · London Rentals 2026</span></div><div class="crop"><img src="../assets/stills/01-board-overview-screen.png" alt="The Nest Well board with homes in Saved, Enquired, Visiting and Seen columns"></div></div>
+        <div class="badge-float" style="left:-22px; bottom:40px"><i></i>Details filled in from the listing link</div>
+      </div>
+    </div>
+
+    <!-- 2. Follow up -->
+    <div class="row flip">
+      <div class="copy reveal">
+        <span class="num">02 — Follow up</span>
+        <h3>Know exactly <em>who to call back.</em></h3>
+        <p class="lead">The estate agent sits on every card, so when your phone rings you know which flat it’s about. Enquired homes show who you’re waiting on, and calling back is one tap.</p>
+        <ul>
+          <li>Agent and number on every home, straight from the board</li>
+          <li>See at a glance who’s replied and who’s gone quiet</li>
+          <li>Notes stay with the home, not in your head</li>
+        </ul>
+      </div>
+      <div class="follow reveal d1">
+        <div class="col-label"><b>Enquired</b><span>Waiting on agents</span></div>
+        <div class="fcard">
+          <div class="ph"><img src="../assets/demo-images/flat-4.jpg" alt=""></div>
+          <div class="bd"><h5>Clapham Common North Side</h5><div class="pr">£2,850 pcm</div><span class="status">Called back · Tue</span>
+            <div class="ag"><i></i>Parkside Lettings<span class="call">✆</span></div></div>
+        </div>
+        <div class="fcard">
+          <div class="ph"><img src="../assets/demo-images/flat-5.jpg" alt=""></div>
+          <div class="bd"><h5>Kentish Town Road</h5><div class="pr">£2,200 pcm</div><span class="status warn">No reply · 3 days</span>
+            <div class="ag"><i></i>Carter Row Estates<span class="call">✆</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Viewings -->
+    <div class="row">
+      <div class="copy reveal">
+        <span class="num">03 — Viewings</span>
+        <h3>Always know <em>when you’re viewing next.</em></h3>
+        <p class="lead">Viewings line up in date order, and Nest Well greets you with what’s coming: no more “was it 11 or 2?” texts to the agent, or to each other.</p>
+        <ul>
+          <li>Set the date and time right on the card</li>
+          <li>Your board opens with this week’s viewings</li>
+          <li>Straight after, it nudges you to score while it’s fresh</li>
+        </ul>
+      </div>
+      <div class="viewings reveal d1">
+        <h4>Good morning. <em>Two viewings</em> booked.</h4>
+        <p>Greenwich on Saturday, Shad Thames on Sunday. Bermondsey Street is your favourite so far.</p>
+        <div class="vrow soon"><div class="date"><b>27</b><span>Sat</span></div><div class="th"><img src="../assets/demo-images/flat-7.jpg" alt=""></div><div><h5>Greenwich High Road</h5><small>Parkside Lettings · 2 bed</small></div><span class="time">2:00pm</span></div>
+        <div class="vrow"><div class="date"><b>28</b><span>Sun</span></div><div class="th"><img src="../assets/demo-images/flat-11.jpg" alt=""></div><div><h5>Shad Thames</h5><small>Harbour &amp; Hale · 1 bed</small></div><span class="time">11:00am</span></div>
+        <div class="vrow"><div class="date"><b>02</b><span>Thu</span></div><div class="th"><img src="../assets/demo-images/flat-3.jpg" alt=""></div><div><h5>Canonbury Road</h5><small>Stanton Wolfe · 2 bed</small></div><span class="time">6:30pm</span></div>
+      </div>
+    </div>
+
+    <!-- 4. Scoring -->
+    <div class="row flip" id="scoring">
+      <div class="copy reveal">
+        <span class="num">04 — Score it</span>
+        <h3>Score while it’s fresh, <em>compare with confidence.</em></h3>
+        <p class="lead">Walk out of a viewing, open your phone and rate it in about two minutes: 20 quick questions across six categories, weighted for what matters. Every home ends up with a score you can trust long after the details blur.</p>
+        <div class="cats-strip"><span>Financials</span><span>The property</span><span>Light &amp; views</span><span>Location</span><span>Liveability</span><span>Gut feeling</span></div>
+        <ul>
+          <li>Deal-makers like a balcony or great light add bonus points</li>
+          <li>A written summary saves what you thought, in your words</li>
+        </ul>
+      </div>
+      <div class="score-visual reveal d1">
+        <video src="../assets/videos/04-score-viewing-mobile.mp4" autoplay muted loop playsinline poster="../assets/stills/04-score-viewing-mobile.png"></video>
+        <div class="float q"><h5>Could you picture living here?</h5><div class="rates"><span>1</span><span>2</span><span>3</span><span>4</span><span class="on">5</span></div></div>
+        <div class="float gauge-card"><div class="gauge" id="scoreGauge"></div><div><small>Your score</small><h4>A home<br>to love</h4></div></div>
+      </div>
+    </div>
+
+    <!-- 5. Together -->
+    <div class="row" id="together">
+      <div class="copy reveal">
+        <span class="num">05 — Decide together</span>
+        <h3>Shortlist with <em>everyone who matters.</em></h3>
+        <p class="lead">Share your board with a six-letter code. Your partner, parents or the friend who knows the area all see the same homes, scores and notes, so everyone’s input lands in one place, not five group chats.</p>
+        <ul>
+          <li>One code, no accounts: they join in seconds on any device</li>
+          <li>Favourites ranks every home you’ve scored, with best and weakest points</li>
+          <li>Disagree on one? The scores show you why</li>
+        </ul>
+      </div>
+      <div class="together-visual reveal d1">
+        <div class="shot"><div class="bar"><i></i><i></i><i></i><span>Your favourites</span></div><div class="crop" style="aspect-ratio:16/11"><img src="../assets/stills/05-leaderboard-screen.png" alt="Leaderboard ranking homes by score" style="object-position:center 30%; transform:scale(1.5); transform-origin:center 40%"></div></div>
+        <div class="float codecard"><small>Board code</small><div class="tiles"><span>N</span><span>W</span><span>7</span><span>K</span><span>3</span><span>P</span></div></div>
+        <div class="people">
+          <div class="chat"><i style="background:#5f6b3a">JS</i><span><b>Jamie</b> gave Bermondsey a 5 for gut feeling</span></div>
+          <div class="chat"><i style="background:#b0813a">M</i><span><b>Mum</b>: that roof terrace though!</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOUR -->
+<section class="tour" id="tour">
+  <div class="wrap">
+    <span class="eyebrow reveal">The tour</span>
+    <h2 class="title reveal d1">See it in <em>eighteen seconds.</em></h2>
+    <p class="lead reveal d2">Add a home, move it through your board, score a viewing, see your favourites and share with your partner.</p>
+    <video class="reveal d2" src="../assets/videos/00-full-flow.mp4" poster="../assets/stills/00-full-flow.png" controls muted playsinline preload="metadata"></video>
+  </div>
+</section>
+
+<!-- STEPS -->
+<section class="steps">
+  <div class="wrap">
+    <header>
+      <div><span class="eyebrow reveal">Getting started</span><h2 class="title reveal d1">Four steps to <em>a calmer search.</em></h2></div>
+      <p class="lead reveal d2">No sign-up, no app store. Start a board, paste your first link and you’re away.</p>
+    </header>
+    <div class="grid4">
+      <div class="step reveal"><div class="ph"><img src="../assets/demo-images/flat-1.jpg" alt=""></div><div class="bd"><div class="n">1</div><h4>Paste a link</h4><p>Any listing from any portal or agent. The details fill themselves in.</p></div></div>
+      <div class="step reveal d1"><div class="ph"><img src="../assets/demo-images/flat-4.jpg" alt=""></div><div class="bd"><div class="n">2</div><h4>Track agents &amp; viewings</h4><p>See who you’re waiting on and when you’re viewing next.</p></div></div>
+      <div class="step reveal d2"><div class="ph"><img src="../assets/demo-images/flat-9.jpg" alt=""></div><div class="bd"><div class="n">3</div><h4>Score after each viewing</h4><p>Two minutes on the walk home, while it’s still fresh.</p></div></div>
+      <div class="step reveal d3"><div class="ph"><img src="../assets/demo-images/flat-8.jpg" alt=""></div><div class="bd"><div class="n">4</div><h4>Shortlist together</h4><p>Share one code and decide with the people who matter.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUE -->
+<section class="value">
+  <div class="wrap">
+    <div class="vcell reveal"><b>One <em>board</em></b><h4>For every agent and listing</h4><p>Stop juggling portals, inboxes and missed calls. Everything about every home, in one place.</p></div>
+    <div class="vcell reveal d1"><b>Two <em>minutes</em></b><h4>To score a viewing</h4><p>Capture what you really thought before the next viewing blurs it, then compare like for like.</p></div>
+    <div class="vcell reveal d2"><b>Every <em>voice</em></b><h4>In one shortlist</h4><p>Partners, family and friends weigh in on the same board, so decisions feel shared, not stressful.</p></div>
+  </div>
+</section>
+
+<!-- FOUNDER -->
+<section class="founder">
+  <div class="wrap">
+    <div class="arch-photo reveal"><img src="../assets/demo-images/flat-11.jpg" alt="Warm living room with timber beams"></div>
+    <div>
+      <span class="eyebrow reveal">Why we built it</span>
+      <blockquote class="reveal d1">“I built Nest Well while buying my first home: too many agents, too many viewings and no way to compare. It made the whole thing <em>calmer</em>, and it helped me <em>decide.</em>”</blockquote>
+      <p class="sig reveal d2"><b>The founder</b> · first-time buyer, London</p>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT'S NEXT -->
+<section class="next" id="next">
+  <div class="wrap">
+    <span class="eyebrow reveal">Coming next</span>
+    <h2 class="title reveal d1">From “we love it” <em>to keys in hand.</em></h2>
+    <p class="lead reveal d2">Buying has even more moving parts: brokers, solicitors, surveyors and chains, all out of sight. Next, Nest Well turns your accepted offer into a live, guided timeline: who owns each step, what they need from you, and what’s holding things up.</p>
+    <div class="timeline reveal d2">
+      <div class="tstep done"><i></i><h5>Offer</h5><p>Accepted and recorded</p></div>
+      <div class="tstep now"><i></i><h5>Mortgage</h5><p>Broker · valuation booked</p><span>You are here</span></div>
+      <div class="tstep"><i></i><h5>Solicitor</h5><p>Instruct and send ID</p></div>
+      <div class="tstep"><i></i><h5>Searches</h5><p>Local authority, drainage</p></div>
+      <div class="tstep"><i></i><h5>Survey</h5><p>Book and review findings</p></div>
+      <div class="tstep"><i></i><h5>Exchange</h5><p>Deposit and contracts</p></div>
+      <div class="tstep"><i></i><h5>Completion</h5><p>Keys, and movers booked</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="wrap">
+    <span class="eyebrow reveal">Start today</span>
+    <h2 class="reveal d1">House hunting, <em>kept calm.</em></h2>
+    <p class="lead reveal d2">Start a board in seconds, paste your first listing and invite whoever you’re searching with. No account needed.</p>
+    <a href="http://localhost:5173" class="btn pri reveal d3">Start your search →</a>
+    <div class="thumbs reveal d3">
+      <div><img src="../assets/demo-images/flat-2.jpg" alt=""></div>
+      <div><img src="../assets/demo-images/flat-9.jpg" alt=""></div>
+      <div><img src="../assets/demo-images/flat-6.jpg" alt=""></div>
+      <div><img src="../assets/demo-images/flat-4.jpg" alt=""></div>
+      <div><img src="../assets/demo-images/flat-1.jpg" alt=""></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span class="logo">Nest <i>Well</i></span>
+    <span class="grow">Every agent, viewing and gut feeling in one place.</span>
+    <span>Photos: Unsplash &amp; Pexels · Demo homes are fictional</span>
+  </div>
+</footer>
+
+<script>
+// Arch score gauge
+function gauge(el, score) {
+  const w = 92, h = 110, r = w / 2, d = `M0 ${h}V${r}a${r} ${r} 0 0 1 ${w} 0V${h}Z`, id = 'c' + Math.random().toString(36).slice(2, 7)
+  el.innerHTML = `<svg viewBox="0 0 ${w} ${h}"><defs><clipPath id="${id}"><path d="${d}"/></clipPath></defs><path d="${d}" fill="#e3d8c9"/><g clip-path="url(#${id})"><rect class="fill" width="${w}" height="${h}" fill="#a3462b" style="transform:translateY(${h}px)"/></g></svg><b>${score}</b>`
+  el.dataset.score = score
+}
+document.querySelectorAll('.gauge').forEach(g => gauge(g, 93))
+
+// Reveal on scroll; fill gauges when visible
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return
+  e.target.classList.add('in')
+  e.target.querySelectorAll('.gauge .fill').forEach(f => { f.style.transform = `translateY(${110 - 110 * 0.93}px)` })
+  io.unobserve(e.target)
+}), { threshold: 0.18 })
+document.querySelectorAll('.reveal, .collage, .score-visual').forEach(el => io.observe(el))
+// Safety net: never leave content hidden (fast scrolls, print, reduced motion)
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'))
+addEventListener('beforeprint', () => document.querySelectorAll('.reveal').forEach(el => el.classList.add('in')))
+</script>
+</body>
+</html>
