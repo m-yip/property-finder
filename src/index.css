@@ -4,8 +4,8 @@
 
 @layer base {
   body {
-    @apply bg-[#fafafa] text-[#1C1427] min-h-screen;
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    @apply bg-[#ebe3d8] text-[#2b2521] min-h-screen;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   }
 }
 

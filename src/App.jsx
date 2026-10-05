@@ -204,16 +204,52 @@ function getTotal(scores) {
 }
 
 function scoreColor(pct) {
-  if (pct >= 70) return "#059669";
-  if (pct >= 45) return "#D97706";
-  return "#DC2626";
+  if (pct >= 70) return "#a3462b";
+  if (pct >= 45) return "#b0813a";
+  return "#8b7f72";
+}
+
+function verdictFor(total) {
+  return total >= 75 ? "A home to love" : total >= 55 ? "Worth a second look" : total >= 40 ? "Mixed feelings" : "Not for us";
+}
+
+// ─── LIMEWASH SURFACES ─────────────────────────────────────────────────────
+const PLASTER_BG = {
+  background: "#ebe3d8",
+  backgroundImage: `radial-gradient(ellipse at 90% -10%, #f7f0e6 0%, transparent 50%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.28 0 0 0 0 0.2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+};
+const ARCH = "999px 999px 14px 14px";
+
+// ─── SCORE ARCH ─────────────────────────────────────────────────────────────
+// Signature score: an arch (doorway) that fills up to the score
+let archId = 0;
+function ScoreArch({ score, width = 44, height = 52, fontSize = 18 }) {
+  const [id] = useState(() => `arch-${++archId}`);
+  const [shown, setShown] = useState(false);
+  useEffect(() => { const t = requestAnimationFrame(() => setShown(true)); return () => cancelAnimationFrame(t); }, []);
+  const r = width / 2;
+  const d = `M0 ${height}V${r}a${r} ${r} 0 0 1 ${width} 0V${height}Z`;
+  const fill = height * Math.min(100, score) / 100;
+  return (
+    <div style={{ position: "relative", width, height, flexShrink: 0, display: "grid", placeItems: "center" }}>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+        <defs><clipPath id={id}><path d={d} /></clipPath></defs>
+        <path d={d} fill="#e3d8c9" />
+        <g clipPath={`url(#${id})`}>
+          <rect x="0" y="0" width={width} height={height} fill={scoreColor(score)}
+            style={{ transform: `translateY(${shown ? height - fill : height}px)`, transition: "transform 1.1s cubic-bezier(.2,.7,.2,1)" }} />
+        </g>
+      </svg>
+      <span style={{ position: "relative", marginTop: height * 0.28, fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontWeight: 600, fontSize, color: "#fbf5ee", lineHeight: 1 }}>{score}</span>
+    </div>
+  );
 }
 
 const COLUMNS = [
-  { id: "listing",  label: "Listing",        icon: "solar:bookmark-bold",  color: "#6B7280", accent: "#F3F4F6" },
-  { id: "enquired", label: "Enquired",        icon: "solar:letter-bold",    color: "#6254d0", accent: "#ffe9e3" },
-  { id: "booked",   label: "Viewing Booked",  icon: "solar:calendar-bold",  color: "#2563EB", accent: "#DBEAFE" },
-  { id: "viewed",   label: "Viewed",          icon: "solar:eye-bold",       color: "#D97706", accent: "#FEF3C7" },
+  { id: "listing",  label: "Saved",     sub: "Paste any listing link", icon: "solar:bookmark-bold",  color: "#8b7f72", accent: "#ece4d9" },
+  { id: "enquired", label: "Enquired",  sub: "Waiting on agents",      icon: "solar:letter-bold",    color: "#5b4c3f", accent: "#e3d8c9" },
+  { id: "booked",   label: "Visiting",  sub: "Viewings booked",        icon: "solar:calendar-bold",  color: "#5f6b3a", accent: "#e3e4d0" },
+  { id: "viewed",   label: "Seen",      sub: "Ranked by score",        icon: "solar:eye-bold",       color: "#a3462b", accent: "#f1ddd2" },
 ];
 
 // ─── BONUS PREFERENCES ────────────────────────────────────────────────────
@@ -300,21 +336,21 @@ function ScoreDots({ value, onChange, anchors = {} }) {
               onMouseEnter={() => setHovered(n)}
               onMouseLeave={() => setHovered(null)}
               style={{
-                width: 46, height: 46, borderRadius: "50%",
-                border: selected ? "3px solid #6254d0" : filled ? "2px solid #c4c1e0" : "2px solid #e0dff0",
-                background: selected ? "#f0eff9" : filled ? "#f5f4fc" : "#FFFFFF",
-                color: selected ? "#6254d0" : filled ? "#9b95eb" : "#C4C1E0",
-                fontSize: 18, fontWeight: 800, cursor: "pointer",
-                transition: "all 0.15s ease",
-                transform: selected ? "scale(1.15)" : hovered === n ? "scale(1.08)" : "scale(1)",
-                boxShadow: selected ? "0 0 14px rgba(98,84,208,0.28)" : "none",
-                fontFamily: "'Fraunces', serif",
+                width: 48, height: 56, borderRadius: "99px 99px 12px 12px",
+                border: selected ? "1px solid #a3462b" : filled ? "1px solid #d6c8b6" : "1px solid rgba(43,37,33,0.16)",
+                background: selected ? "#a3462b" : filled ? "#efe4d6" : "#f6f1ea",
+                color: selected ? "#fbf5ee" : filled ? "#a3462b" : "#8b7f72",
+                fontSize: 22, fontWeight: 500, cursor: "pointer",
+                transition: "all 0.18s ease",
+                transform: selected ? "translateY(-4px)" : hovered === n ? "translateY(-2px)" : "none",
+                boxShadow: selected ? "0 10px 18px -10px rgba(163,70,43,0.9)" : "none",
+                fontFamily: "'Cormorant Garamond', serif",
                 flexShrink: 0,
               }}>
               {n}
             </button>
             <div style={{
-              fontSize: 10, color: "#A89DB0", textAlign: "center",
+              fontSize: 10, color: "#8b7f72", textAlign: "center",
               marginTop: 7, lineHeight: 1.4,
               opacity: showLabel ? 1 : 0,
               transition: "opacity 0.15s",
@@ -332,7 +368,7 @@ function ScoreDots({ value, onChange, anchors = {} }) {
 function Bar({ value, max = 5 }) {
   const pct = (value / max) * 100;
   return (
-    <div style={{ height: 4, borderRadius: 2, background: "#e0dff0", overflow: "hidden" }}>
+    <div style={{ height: 4, borderRadius: 2, background: "#e3d9cc", overflow: "hidden" }}>
       <div style={{ width: `${pct}%`, height: "100%", background: scoreColor(pct), borderRadius: 2, transition: "width 0.4s" }} />
     </div>
   );
@@ -352,13 +388,13 @@ function ProgressBar({ sectionIdx, total, completedSections, onJump }) {
               style={{
                 width: active ? 10 : 8, height: active ? 10 : 8,
                 borderRadius: "50%", flexShrink: 0, padding: 0, cursor: "pointer", border: "none",
-                background: done ? "#6254d0" : active ? "#9b95eb" : "#c4c1e0",
-                boxShadow: active ? "0 0 0 2px #fff, 0 0 0 3px #6254d0" : "none",
+                background: done ? "#a3462b" : active ? "#c0603f" : "#d6c8b6",
+                boxShadow: active ? "0 0 0 2px #fff, 0 0 0 3px #a3462b" : "none",
                 transition: "all 0.2s",
               }}
             />
             {i < total - 1 && (
-              <div style={{ flex: 1, height: 2, background: done ? "#6254d0" : "#e0dff0", transition: "background 0.3s", marginLeft: 2, marginRight: 2 }} />
+              <div style={{ flex: 1, height: 2, background: done ? "#a3462b" : "#e3d9cc", transition: "background 0.3s", marginLeft: 2, marginRight: 2 }} />
             )}
           </div>
         );
@@ -372,7 +408,7 @@ function MapEmbed({ address }) {
   if (!address) return null;
   const encoded = encodeURIComponent(address);
   return (
-    <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #e0dff0", height: 200, position: "relative", background: "#f5f3fc" }}>
+    <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(43,37,33,0.10)", height: 200, position: "relative", background: "#f6f1ea" }}>
       <iframe
         title="Property location"
         width="100%"
@@ -401,77 +437,69 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
     setPickerOpen(true);
   }
 
+  const currentCol = COLUMNS.find(c => c.id === property.status);
+  const isRent = /pcm|pw|per month|per week/i.test(property.price || "");
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 120,
-      background: "#fafafa",
-      backgroundImage: "radial-gradient(ellipse at 20% 0%, rgba(98,84,208,0.07) 0%, transparent 60%)",
+      ...PLASTER_BG,
       overflowY: "auto",
       animation: "fadeUp 0.25s ease"
     }}>
-      <div style={{ maxWidth: 560, margin: "0 auto", padding: "0 20px 80px" }}>
+      <div style={{ maxWidth: 580, margin: "0 auto", padding: "0 20px 80px" }}>
         {/* Nav */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0 16px" }}>
-          <button onClick={onClose} style={ghostBtnSt}>← Back to Board</button>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {hasScore && (
-              <div style={{ fontSize: 14, fontWeight: 800, color: scoreColor(total), fontFamily: "'Fraunces', serif" }}>
-                Score: {total}/100
-              </div>
-            )}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0 18px" }}>
+          <button onClick={onClose} style={ghostBtnSt}>← Back to board</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <button onClick={() => { setEditForm({ address: property.address || property.name || "", price: property.price || "", bedrooms: property.bedrooms || "", bathrooms: property.bathrooms || "", sqft: property.sqft || "", agent: property.agent || "", agentPhone: property.agentPhone || "", leaseLength: property.leaseLength || "", tenure: property.tenure || "", serviceCharge: property.serviceCharge ?? "", groundRent: property.groundRent ?? "", image: property.image || "", notes: property.notes || "" }); setEditing(true); }}
-              style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 8, color: "#6254d0", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
+              style={{ ...ghostBtnSt, display: "flex", alignItems: "center", gap: 6 }}>
               <Icon icon="solar:pen-bold" width={14} /> Edit
             </button>
-
             {onDelete && (
               <button onClick={() => { if (window.confirm("Delete this property?")) onDelete(property.id); }}
-                style={{ background: "none", border: "1px solid #FECACA", borderRadius: 8, color: "#DC2626", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}
+                style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(251,248,243,0.6)", border: "1px solid #ecc9bf", color: "#9b3b2a", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                 title="Delete property"><Icon icon="solar:trash-bin-2-bold" width={16} /></button>
             )}
           </div>
         </div>
 
-        {/* Hero image */}
-        <div style={{ position: "relative", height: 260, borderRadius: 20, overflow: "hidden", marginBottom: 24, boxShadow: "0 12px 40px rgba(98,84,208,0.15)" }}>
+        {/* Arched hero */}
+        <div style={{ position: "relative", height: 300, borderRadius: "300px 300px 22px 22px", overflow: "hidden", boxShadow: "0 30px 60px -34px rgba(91,76,63,0.6)" }}>
           {property.image ? (
             <img src={property.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           ) : (
-            <div style={{ height: "100%", background: "linear-gradient(135deg,#ffe9e3,#c4c1e0)", display: "flex", alignItems: "center", justifyContent: "center", color: "#c4c1e0" }}><Icon icon="solar:home-2-bold" width={64} /></div>
+            <div style={{ height: "100%", background: "linear-gradient(135deg,#f1ddd2,#e3d8c9)", display: "flex", alignItems: "center", justifyContent: "center", color: "#c9b8a4" }}><Icon icon="solar:home-2-bold" width={64} /></div>
           )}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(28,20,39,0.9) 0%, rgba(28,20,39,0.2) 50%, transparent 100%)" }} />
-
-          <div style={{ position: "absolute", top: 16, left: 16 }}>
-            {(() => {
-              const currentCol = COLUMNS.find(c => c.id === property.status);
-              return (
-                <button onClick={openPicker} style={{ background: "rgba(20,15,30,0.65)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 700, color: "#ffffff", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
-                  <Icon icon={currentCol?.icon || "solar:bookmark-bold"} width={13} />
-                  {currentCol?.label}
-                  <Icon icon="solar:alt-arrow-down-bold" width={11} style={{ opacity: 0.7, marginLeft: 2 }} />
-                </button>
-              );
-            })()}
-          </div>
-
-          {hasScore && (
-            <div style={{ position: "absolute", top: 16, right: 16, width: 52, height: 52, borderRadius: "50%", background: "rgba(255,255,255,0.9)", border: `2px solid ${scoreColor(total)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: scoreColor(total), fontFamily: "'Fraunces', serif" }}>
-              {total}
-            </div>
-          )}
-
-          <div style={{ position: "absolute", bottom: 20, left: 20, right: 20 }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, lineHeight: 1.3, color: "#fff", textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-              {property.name}
-            </div>
+          <div style={{ position: "absolute", left: "50%", bottom: 16, transform: "translateX(-50%)" }}>
+            <button onClick={openPicker} style={{ background: "rgba(251,248,243,0.9)", border: "none", borderRadius: 99, padding: "8px 14px", fontSize: 12, fontWeight: 600, color: "#2b2521", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontFamily: "'Manrope', sans-serif", whiteSpace: "nowrap" }}>
+              <Icon icon={currentCol?.icon || "solar:bookmark-bold"} width={13} style={{ color: currentCol?.color }} />
+              {currentCol?.label || "Archived"}
+              <Icon icon="solar:alt-arrow-down-bold" width={11} style={{ opacity: 0.6, marginLeft: 2 }} />
+            </button>
           </div>
         </div>
+
+        {/* Title */}
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 36, fontWeight: 500, lineHeight: 1.05, letterSpacing: "-0.01em", color: "#2b2521", margin: "22px 0 6px" }}>
+          {property.name}
+        </h1>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 10px", fontSize: 13, color: "#8b7f72", marginBottom: 6 }}>
+          {property.price && <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: "#a3462b" }}>{property.price}</span>}
+          {property.price && <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" }}>{isRent ? "Monthly rent" : "Asking price"}</span>}
+        </div>
+        {property.agent && (
+          <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "#5b4c3f", marginBottom: 22 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#5f6b3a" }} /> {property.agent}
+            {property.agentPhone && <a href={`tel:${property.agentPhone.replace(/\s+/g, "")}`} style={{ color: "#8b7f72", textDecoration: "none" }}>· {property.agentPhone}</a>}
+          </div>
+        )}
+        {!property.agent && <div style={{ height: 16 }} />}
 
         {/* Column picker dropdown (fixed-position, rendered via portal-like pattern) */}
         {pickerOpen && (
           <>
             <div style={{ position: "fixed", inset: 0, zIndex: 998 }} onClick={() => setPickerOpen(false)} />
-            <div style={{ position: "fixed", top: pickerPos.top, left: pickerPos.left, zIndex: 999, background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.15)", overflow: "hidden", minWidth: 200 }}>
+            <div style={{ position: "fixed", top: pickerPos.top, left: pickerPos.left, zIndex: 999, background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.15)", overflow: "hidden", minWidth: 200 }}>
               {COLUMNS.map((col, i) => {
                 const active = property.status === col.id;
                 return (
@@ -480,11 +508,11 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
                     padding: "10px 14px",
                     background: active ? col.accent : "transparent",
                     border: "none",
-                    borderBottom: "1px solid #f5f5f5",
-                    color: active ? col.color : "#1C1427",
+                    borderBottom: "1px solid #f1ece4",
+                    color: active ? col.color : "#2b2521",
                     fontSize: 13, fontWeight: active ? 700 : 500,
                     cursor: active ? "default" : "pointer",
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Manrope', sans-serif",
                     textAlign: "left"
                   }}>
                     <Icon icon={col.icon} width={16} style={{ color: col.color, flexShrink: 0 }} />
@@ -496,105 +524,85 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
               <button onClick={() => { onMove?.(property.id, "archived"); setPickerOpen(false); }} style={{
                 display: "flex", alignItems: "center", gap: 10, width: "100%",
                 padding: "10px 14px",
-                background: property.status === "archived" ? "#f5f5f5" : "transparent",
+                background: property.status === "archived" ? "#f1ece4" : "transparent",
                 border: "none",
-                color: "#A89DB0",
+                color: "#8b7f72",
                 fontSize: 13, fontWeight: 500,
                 cursor: "pointer",
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Manrope', sans-serif",
                 textAlign: "left"
               }}>
-                <Icon icon="solar:archive-bold" width={16} style={{ color: "#C4BAC8", flexShrink: 0 }} />
+                <Icon icon="solar:archive-bold" width={16} style={{ color: "#b8ab9c", flexShrink: 0 }} />
                 Archive
               </button>
             </div>
           </>
         )}
 
-        {/* Written score summary — shown under image when scored */}
+        {/* Score — arch gauge, verdict and category bars */}
         {hasScore && (
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${scoreColor(total)}15`, border: `2px solid ${scoreColor(total)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: scoreColor(total), fontFamily: "'Fraunces', serif", flexShrink: 0 }}>{total}</div>
-                <span style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 700, color: "#1C1427" }}>
-                  {total >= 75 ? "Strong contender" : total >= 55 ? "Decent option" : total >= 40 ? "Mixed bag" : "Weak fit"}
-                </span>
+          <div style={{ marginBottom: 20, background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 24, padding: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 20, paddingBottom: 16, marginBottom: 16, borderBottom: "1px solid rgba(43,37,33,0.10)" }}>
+              <ScoreArch score={total} width={104} height={124} fontSize={46} />
+              <div style={{ minWidth: 0 }}>
+                <div style={labelSt}>Your score · out of 100</div>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 30, fontWeight: 500, color: scoreColor(total), lineHeight: 1.05, marginTop: -2 }}>
+                  {verdictFor(total)}
+                </div>
+                {getBonusTotal(property.bonuses) > 0 && (
+                  <div style={{ fontSize: 12.5, color: "#5b4c3f", marginTop: 8, lineHeight: 1.5 }}>
+                    Includes +{getBonusTotal(property.bonuses)} for {BONUSES.filter(b => property.bonuses?.[b.id]).map(b => b.label.toLowerCase()).join(", ")}.
+                  </div>
+                )}
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {SECTIONS.map(s => {
-                const answered = s.questions.filter(q => property.scores[q.id] !== undefined);
-                if (!answered.length) return null;
-                const weighted = answered.reduce((sum, q) => sum + property.scores[q.id] * q.weight, 0);
-                const maxW = answered.reduce((sum, q) => sum + 5 * q.weight, 0);
-                const pct = Math.round((weighted / maxW) * 100);
-                const col = scoreColor(pct);
-                const sorted = [...answered].sort((a, b) => property.scores[b.id] - property.scores[a.id]);
-                const highlight = sorted[0];
-                const lowlight = sorted[sorted.length - 1];
-                return (
-                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <Icon icon={s.icon} width={14} style={{ color: "#A89DB0", flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, color: "#6D6077", width: 100, flexShrink: 0 }}>{s.title}</span>
-                    <div style={{ flex: 1, height: 4, borderRadius: 2, background: "#f0eef8", overflow: "hidden" }}>
-                      <div style={{ width: `${pct}%`, height: "100%", background: col, borderRadius: 2 }} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+              {(() => {
+                const rows = SECTIONS.map(s => {
+                  const answered = s.questions.filter(q => property.scores[q.id] !== undefined);
+                  if (!answered.length) return null;
+                  const weighted = answered.reduce((sum, q) => sum + property.scores[q.id] * q.weight, 0);
+                  const maxW = answered.reduce((sum, q) => sum + 5 * q.weight, 0);
+                  const sorted = [...answered].sort((a, b) => property.scores[b.id] - property.scores[a.id]);
+                  return { s, pct: Math.round((weighted / maxW) * 100), highlight: sorted[0], lowlight: sorted[sorted.length - 1] };
+                }).filter(Boolean);
+                const best = Math.max(...rows.map(r => r.pct));
+                return rows.map(({ s, pct, highlight, lowlight }) => (
+                  <div key={s.id}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 5 }}>
+                      <Icon icon={s.icon} width={13} style={{ color: "#8b7f72", flexShrink: 0, alignSelf: "center" }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#2b2521" }}>{s.title}</span>
+                      <span style={{ fontSize: 11.5, color: "#8b7f72", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {property.scores[highlight.id] >= 4
+                          ? highlight.anchors[property.scores[highlight.id]]
+                          : property.scores[lowlight.id] <= 2
+                            ? lowlight.anchors[property.scores[lowlight.id]]
+                            : highlight.anchors[property.scores[highlight.id]]}
+                      </span>
+                      <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontWeight: 600, color: "#2b2521" }}>{pct}</span>
                     </div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: col, fontFamily: "'Fraunces', serif", width: 32, textAlign: "right" }}>{pct}%</span>
-                    <span style={{ fontSize: 11, color: "#A89DB0", width: 130, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {property.scores[highlight.id] >= 4
-                        ? highlight.anchors[property.scores[highlight.id]]
-                        : property.scores[lowlight.id] <= 2
-                          ? lowlight.anchors[property.scores[lowlight.id]]
-                          : highlight.anchors[property.scores[highlight.id]]}
-                    </span>
+                    <div style={{ height: 5, borderRadius: 5, background: "#e3d8c9", overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: pct === best ? "#5f6b3a" : scoreColor(pct), borderRadius: 5 }} />
+                    </div>
                   </div>
-                );
-              })}
-              {getBonusTotal(property.bonuses) > 0 && (
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Icon icon="solar:stars-bold" width={14} style={{ color: "#6254d0", flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, color: "#6D6077", width: 100, flexShrink: 0 }}>Deal-makers</span>
-                  <span style={{ fontSize: 12, color: "#6254d0", fontWeight: 600 }}>{BONUSES.filter(b => property.bonuses?.[b.id]).map(b => b.label).join(', ')} (+{getBonusTotal(property.bonuses)} pts)</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Price block — Rightmove-style: big number, qualifier below */}
-        {property.price && (
-          <div style={{ marginBottom: 20, padding: "20px 22px", background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 800, color: "#1C1427", lineHeight: 1, marginBottom: 6, letterSpacing: "-0.5px" }}>
-              {property.price}
-            </div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.4 }}>
-              {/pcm|pw|per month|per week/i.test(property.price) ? 'Monthly rent' : 'Asking price'}
+                ));
+              })()}
             </div>
           </div>
         )}
 
         {/* Score CTA — only when viewed */}
         {property.status === "viewed" && (
-          <div style={{ background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 18, padding: "20px 22px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ color: "#6254d0", flexShrink: 0 }}><Icon icon="solar:pen-bold" width={28} /></div>
+          <div style={{ background: hasScore ? "#fbf8f3" : "#f1ddd2", border: `1px solid ${hasScore ? "rgba(43,37,33,0.10)" : "transparent"}`, borderRadius: 22, padding: "18px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 700, color: "#1C1427", marginBottom: 3 }}>
-                {hasScore ? "Update your scorecard" : "Ready to score this property?"}
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 22, fontWeight: 500, color: "#2b2521", marginBottom: 2 }}>
+                {hasScore ? "Update your scorecard" : "How did the viewing go?"}
               </div>
-              <div style={{ fontSize: 13, color: "#6D6077", lineHeight: 1.4 }}>
-                {hasScore ? `Current score: ${total}` : "Rate 6 categories + bonus points to compare properties"}
+              <div style={{ fontSize: 13, color: "#5b4c3f", lineHeight: 1.4 }}>
+                {hasScore ? `Current score: ${total}` : "Score it while it’s fresh: six categories, about two minutes."}
               </div>
             </div>
-            <button onClick={onStartScoring} style={{
-              flexShrink: 0, padding: "10px 18px",
-              background: "linear-gradient(135deg,#9b95eb,#6254d0)",
-              border: "none", borderRadius: 11, color: "#FFFFFF",
-              fontSize: 13, fontWeight: 700, cursor: "pointer",
-              fontFamily: "'DM Sans', sans-serif",
-              boxShadow: "0 4px 16px rgba(98,84,208,0.3)",
-              whiteSpace: "nowrap"
-            }}>
+            <button onClick={onStartScoring} style={{ ...primaryBtnSt, flexShrink: 0, whiteSpace: "nowrap" }}>
               {hasScore ? "Edit →" : "Start →"}
             </button>
           </div>
@@ -607,38 +615,38 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
             { label: "Bathrooms", value: property.bathrooms ? `${property.bathrooms} bath` : "—", icon: "solar:bath-bold" },
             { label: "Size", value: property.sqft ? `${property.sqft} sq ft` : "—", icon: "solar:ruler-bold" },
           ].map(s => (
-            <div key={s.label} style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 12, padding: "14px 12px", textAlign: "center", boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
-              <div style={{ marginBottom: 6, color: "#6254d0", display: "flex", justifyContent: "center" }}><Icon icon={s.icon} width={22} /></div>
-              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, fontWeight: 700, color: "#1C1427" }}>{s.value}</div>
-              <div style={{ fontSize: 10, color: "#A89DB0", marginTop: 2, textTransform: "uppercase", letterSpacing: 1 }}>{s.label}</div>
+            <div key={s.label} style={{ background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 18, padding: "14px 12px", textAlign: "center", boxShadow: "0 10px 24px -20px rgba(91,76,63,0.5)" }}>
+              <div style={{ marginBottom: 6, color: "#a3462b", display: "flex", justifyContent: "center" }}><Icon icon={s.icon} width={22} /></div>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, fontWeight: 700, color: "#2b2521" }}>{s.value}</div>
+              <div style={{ fontSize: 10, color: "#8b7f72", marginTop: 2, textTransform: "uppercase", letterSpacing: 1 }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Scoring summary */}
         {property.scoringSummary && (
-          <div style={{ background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 14, padding: "16px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(98,84,208,0.08)" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#6254d0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
+          <div style={{ background: "#fbf8f3", border: "1px solid #d6c8b6", borderRadius: 20, padding: "16px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(91,76,63,0.08)" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#a3462b", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
               <Icon icon="solar:clipboard-list-bold" width={13} /> Scoring Notes
             </div>
-            <p style={{ fontSize: 13, color: "#1C1427", lineHeight: 1.75, margin: 0, whiteSpace: "pre-line" }}>{property.scoringSummary}</p>
+            <p style={{ fontSize: 13, color: "#2b2521", lineHeight: 1.75, margin: 0, whiteSpace: "pre-line" }}>{property.scoringSummary}</p>
           </div>
         )}
 
         {/* Description */}
         {property.description && (
-          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, padding: "18px 18px", marginBottom: 16, boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
+          <div style={{ background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 20, padding: "18px 18px", marginBottom: 16, boxShadow: "0 10px 24px -20px rgba(91,76,63,0.5)" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#8b7f72", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
               <Icon icon="solar:chat-round-dots-bold" width={13} /> About this property
             </div>
-            <p style={{ fontSize: 13, color: "#6D6077", lineHeight: 1.7, margin: 0, whiteSpace: "pre-line" }}>{property.description}</p>
+            <p style={{ fontSize: 13, color: "#5b4c3f", lineHeight: 1.7, margin: 0, whiteSpace: "pre-line" }}>{property.description}</p>
           </div>
         )}
 
         {/* Listing details */}
         {(property.url || property.agent || property.agentPhone || property.tenure || property.leaseLength || (property.serviceCharge != null && property.serviceCharge !== '') || property.groundRent === 0 || property.groundRent || property.dateListed) && (
-          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 14, padding: "16px 18px", marginBottom: 20, boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Listing Details</div>
+          <div style={{ background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 20, padding: "16px 18px", marginBottom: 20, boxShadow: "0 10px 24px -20px rgba(91,76,63,0.5)" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#8b7f72", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Listing Details</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {property.agent && <DetailRow icon="solar:buildings-bold" label="Agent" value={property.agent} />}
               {property.agentPhone && <DetailRow icon="solar:phone-bold" label="Phone" value={property.agentPhone} />}
@@ -654,11 +662,11 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
               )}
               {property.dateListed && <DetailRow icon="solar:calendar-bold" label="Listed" value={property.dateListed} />}
               {property.url && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: property.dateListed || property.groundRent !== undefined || property.serviceCharge !== null ? 4 : 0, borderTop: (property.agent || property.tenure || property.leaseLength || property.dateListed) ? "1px solid #f0eef8" : "none", marginTop: (property.agent || property.tenure || property.leaseLength || property.dateListed) ? 4 : 0 }}>
-                  <span style={{ display: "flex", alignItems: "center", color: "#6254d0", flexShrink: 0 }}><Icon icon="solar:link-bold" width={14} /></span>
-                  <span style={{ fontSize: 12, color: "#A89DB0", width: 90, flexShrink: 0 }}>Original listing</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: property.dateListed || property.groundRent !== undefined || property.serviceCharge !== null ? 4 : 0, borderTop: (property.agent || property.tenure || property.leaseLength || property.dateListed) ? "1px solid #ece4d9" : "none", marginTop: (property.agent || property.tenure || property.leaseLength || property.dateListed) ? 4 : 0 }}>
+                  <span style={{ display: "flex", alignItems: "center", color: "#a3462b", flexShrink: 0 }}><Icon icon="solar:link-bold" width={14} /></span>
+                  <span style={{ fontSize: 12, color: "#8b7f72", width: 90, flexShrink: 0 }}>Original listing</span>
                   <a href={property.url} target="_blank" rel="noreferrer"
-                    style={{ fontSize: 13, color: "#6254d0", fontWeight: 600, textDecoration: "none", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    style={{ fontSize: 13, color: "#a3462b", fontWeight: 600, textDecoration: "none", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     View on {(() => { try { return new URL(property.url).hostname.replace(/^www\./, '') } catch { return 'listing site' } })()} ↗
                   </a>
                 </div>
@@ -672,8 +680,8 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
           const [notesEditing, setNotesEditing] = useState(false);
           const [notesVal, setNotesVal] = useState(property.notes || "");
           return (
-            <div style={{ background: "#FFFDF5", border: "1px solid #F5E6B0", borderRadius: 14, padding: "14px 16px", marginBottom: 16, boxShadow: "0 2px 8px rgba(200,170,0,0.06)" }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#B8960A", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
+            <div style={{ background: "#fffaf0", border: "1px solid #ecdcb8", borderRadius: 20, padding: "14px 16px", marginBottom: 16, boxShadow: "0 2px 8px rgba(154,123,60,0.08)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#9a7b3c", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
                 <Icon icon="solar:notes-bold" width={13} /> My Notes
               </div>
               {notesEditing ? (
@@ -684,10 +692,10 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
                   onBlur={() => { onEdit?.({ notes: notesVal }); setNotesEditing(false); }}
                   rows={4}
                   placeholder="Add your notes here…"
-                  style={{ width: "100%", fontSize: 13, color: "#5C4D00", lineHeight: 1.7, border: "none", background: "transparent", resize: "vertical", outline: "none", fontFamily: "'DM Sans', sans-serif" }}
+                  style={{ width: "100%", fontSize: 13, color: "#5b4c3f", lineHeight: 1.7, border: "none", background: "transparent", resize: "vertical", outline: "none", fontFamily: "'Manrope', sans-serif" }}
                 />
               ) : (
-                <div onClick={() => setNotesEditing(true)} style={{ fontSize: 13, color: notesVal ? "#5C4D00" : "#C8A80A", lineHeight: 1.7, cursor: "text", minHeight: 24, whiteSpace: "pre-line" }}>
+                <div onClick={() => setNotesEditing(true)} style={{ fontSize: 13, color: notesVal ? "#5b4c3f" : "#b59a62", lineHeight: 1.7, cursor: "text", minHeight: 24, whiteSpace: "pre-line" }}>
                   {notesVal || "Click to add notes…"}
                 </div>
               )}
@@ -697,8 +705,8 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
         {/* Score breakdown by section — detailed, at bottom */}
         {hasScore && (
-          <div style={{ background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: 16, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 8px rgba(98,84,208,0.06)" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 5 }}>
+          <div style={{ background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 16, padding: "18px 20px", marginBottom: 20, boxShadow: "0 10px 24px -20px rgba(91,76,63,0.5)" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#8b7f72", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 5 }}>
               <Icon icon="solar:chart-2-bold" width={13} /> Score Breakdown
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -713,18 +721,18 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
                   <div key={s.id}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Icon icon={s.icon} width={13} style={{ color: "#A89DB0" }} />
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#1C1427" }}>{s.title}</span>
+                        <Icon icon={s.icon} width={13} style={{ color: "#8b7f72" }} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#2b2521" }}>{s.title}</span>
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: col, fontFamily: "'Fraunces', serif" }}>{pct}%</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: col, fontFamily: "'Cormorant Garamond', serif" }}>{pct}%</span>
                     </div>
-                    <div style={{ height: 5, borderRadius: 3, background: "#f0eef8", overflow: "hidden", marginBottom: 6 }}>
+                    <div style={{ height: 5, borderRadius: 3, background: "#ece4d9", overflow: "hidden", marginBottom: 6 }}>
                       <div style={{ width: `${pct}%`, height: "100%", background: col, borderRadius: 3 }} />
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px" }}>
                       {answered.map(q => (
-                        <span key={q.id} style={{ fontSize: 11, color: "#A89DB0" }}>
-                          {q.label}: <span style={{ fontWeight: 700, color: property.scores[q.id] >= 4 ? "#059669" : property.scores[q.id] <= 2 ? "#DC2626" : "#6D6077" }}>{property.scores[q.id]}/5</span>
+                        <span key={q.id} style={{ fontSize: 11, color: "#8b7f72" }}>
+                          {q.label}: <span style={{ fontWeight: 700, color: property.scores[q.id] >= 4 ? "#5f6b3a" : property.scores[q.id] <= 2 ? "#9b3b2a" : "#5b4c3f" }}>{property.scores[q.id]}/5</span>
                         </span>
                       ))}
                     </div>
@@ -733,16 +741,16 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
               })}
               {getBonusTotal(property.bonuses) > 0 && (
                 <>
-                  <div style={{ borderTop: "1px solid #f0eef8", paddingTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ borderTop: "1px solid #ece4d9", paddingTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <Icon icon="solar:stars-bold" width={13} style={{ color: "#A89DB0" }} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#1C1427" }}>Deal-makers</span>
+                      <Icon icon="solar:stars-bold" width={13} style={{ color: "#8b7f72" }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#2b2521" }}>Deal-makers</span>
                     </div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#6254d0", fontFamily: "'Fraunces', serif" }}>+{getBonusTotal(property.bonuses)} pts</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#a3462b", fontFamily: "'Cormorant Garamond', serif" }}>+{getBonusTotal(property.bonuses)} pts</span>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px" }}>
                     {BONUSES.filter(b => property.bonuses?.[b.id]).map(b => (
-                      <span key={b.id} style={{ fontSize: 11, color: "#6254d0", fontWeight: 600 }}>
+                      <span key={b.id} style={{ fontSize: 11, color: "#a3462b", fontWeight: 600 }}>
                         <Icon icon={b.icon} width={11} style={{ verticalAlign: "middle", marginRight: 3 }} />{b.label} +{b.points}
                       </span>
                     ))}
@@ -755,13 +763,13 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
         {/* Map */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}><Icon icon="solar:map-point-bold" width={13} /> Location</div>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#8b7f72", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}><Icon icon="solar:map-point-bold" width={13} /> Location</div>
           <MapEmbed address={property.name || property.address} />
           {property.name && (
             <a
               href={`https://www.google.com/maps/search/${encodeURIComponent(property.name)}`}
               target="_blank" rel="noreferrer"
-              style={{ display: "block", textAlign: "center", marginTop: 8, fontSize: 12, color: "#6254d0", textDecoration: "none" }}
+              style={{ display: "block", textAlign: "center", marginTop: 8, fontSize: 12, color: "#a3462b", textDecoration: "none" }}
             >
               Open in Google Maps ↗
             </a>
@@ -772,12 +780,12 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
       {/* Edit overlay */}
       {editing && editForm && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(98,84,208,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(91,76,63,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
           onClick={e => e.target === e.currentTarget && setEditing(false)}>
-          <div style={{ width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: 20, padding: 28, boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
+          <div style={{ width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto", background: "#f6f1ea", borderRadius: 30, padding: 30, boxShadow: "0 40px 80px -30px rgba(43,37,33,0.55)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 800, color: "#1C1427" }}>Edit Details</h2>
-              <button onClick={() => setEditing(false)} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
+              <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 32, fontWeight: 500, color: "#2b2521", lineHeight: 1 }}>Edit details</h2>
+              <button onClick={() => setEditing(false)} style={{ background: "none", border: "none", color: "#8b7f72", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div><label style={labelSt}>Address</label><input value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} style={inputSt} /></div>
@@ -801,8 +809,8 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
               <div><label style={labelSt}>Notes</label><textarea value={editForm.notes || ""} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} rows={4} placeholder="Add your notes here…" style={{ ...inputSt, resize: "vertical", height: "auto" }} /></div>
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
-              <button onClick={() => setEditing(false)} style={{ flex: 1, padding: "12px", background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 11, color: "#6D6077", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Cancel</button>
-              <button onClick={() => { onEdit?.({ ...editForm, name: editForm.address || property.name }); setEditing(false); }} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#9b95eb,#6254d0)", border: "none", borderRadius: 11, color: "#FFFFFF", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 16px rgba(98,84,208,0.3)" }}>
+              <button onClick={() => setEditing(false)} style={{ flex: 1, padding: "12px", background: "#f6f1ea", border: "1px solid #d6c8b6", borderRadius: 11, color: "#5b4c3f", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif" }}>Cancel</button>
+              <button onClick={() => { onEdit?.({ ...editForm, name: editForm.address || property.name }); setEditing(false); }} style={{ flex: 2, padding: "12px", background: "#a3462b", border: "none", borderRadius: 11, color: "#fbf8f3", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Manrope', sans-serif", boxShadow: "0 4px 16px rgba(91,76,63,0.3)" }}>
                 Save Changes ✓
               </button>
             </div>
@@ -816,11 +824,11 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 function DetailRow({ icon, label, value }) {
   return (
     <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-      <span style={{ flexShrink: 0, marginTop: 2, color: "#A89DB0", display: "flex" }}>
+      <span style={{ flexShrink: 0, marginTop: 2, color: "#8b7f72", display: "flex" }}>
         <Icon icon={icon} width={16} />
       </span>
-      <span style={{ fontSize: 12, color: "#A89DB0", width: 90, flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: 13, color: "#6D6077", flex: 1 }}>{value}</span>
+      <span style={{ fontSize: 12, color: "#8b7f72", width: 90, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 13, color: "#5b4c3f", flex: 1 }}>{value}</span>
     </div>
   );
 }
@@ -829,7 +837,7 @@ function DetailRow({ icon, label, value }) {
 function ContextPill({ hint }) {
   if (!hint) return null;
   return (
-    <p style={{ fontSize: 12, color: "#A89DB0", lineHeight: 1.55, margin: "0 0 14px", fontStyle: "normal" }}>{hint}</p>
+    <p style={{ fontSize: 12, color: "#8b7f72", lineHeight: 1.55, margin: "0 0 14px", fontStyle: "normal" }}>{hint}</p>
   );
 }
 
@@ -878,24 +886,23 @@ function ScoringWizard({ property, onClose, onSave }) {
   return (
     <div ref={scrollRef} style={{
       position: "fixed", inset: 0, zIndex: 130,
-      background: "#fafafa",
-      backgroundImage: "radial-gradient(ellipse at 80% 100%, rgba(98,84,208,0.06) 0%, transparent 55%)",
+      ...PLASTER_BG,
       overflowY: "auto",
       animation: "slideIn 0.28s ease"
     }}>
       <div style={{ maxWidth: 540, margin: "0 auto", padding: "0 20px 80px" }}>
         {/* Nav */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0 12px", position: "sticky", top: 0, background: "rgba(250,250,250,0.95)", backdropFilter: "blur(10px)", zIndex: 10, marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20, borderBottom: "1px solid #e0dff0" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0 12px", position: "sticky", top: 0, background: "rgba(243,236,226,0.92)", backdropFilter: "blur(10px)", zIndex: 10, marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20, borderBottom: "1px solid rgba(43,37,33,0.10)" }}>
           <button onClick={goBack} style={ghostBtnSt}>
             ← {sectionIdx === 0 ? "Overview" : "Back"}
           </button>
           <div style={{ flex: 1, padding: "0 16px" }}>
             <ProgressBar sectionIdx={sectionIdx} total={SECTIONS.length} completedSections={completedSections} onJump={setSectionIdx} />
           </div>
-          <div style={{ fontSize: 13, fontWeight: 800, color: Object.keys(scores).length > 0 ? scoreColor(runningTotal) : "#B0A8BC", fontFamily: "'Fraunces', serif", minWidth: 40, textAlign: "right" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: Object.keys(scores).length > 0 ? scoreColor(runningTotal) : "#a89a8a", fontFamily: "'Cormorant Garamond', serif", minWidth: 40, textAlign: "right" }}>
             {Object.keys(scores).length > 0 ? `${runningTotal}/100` : "—"}
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#C4C1E0", display: "flex", alignItems: "center", paddingLeft: 12 }} title="Exit scoring">
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#d6c8b6", display: "flex", alignItems: "center", paddingLeft: 12 }} title="Exit scoring">
             <Icon icon="solar:close-square-bold" width={20} />
           </button>
         </div>
@@ -903,26 +910,26 @@ function ScoringWizard({ property, onClose, onSave }) {
         {/* Property mini-header */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 0 20px" }}>
           {property.image && (
-            <div style={{ width: 48, height: 48, borderRadius: 10, overflow: "hidden", flexShrink: 0, border: "1px solid #e0dff0" }}>
+            <div style={{ width: 48, height: 48, borderRadius: 10, overflow: "hidden", flexShrink: 0, border: "1px solid rgba(43,37,33,0.10)" }}>
               <img src={property.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
           )}
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 14, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#1C1427" }}>{property.name}</div>
-            {property.price && <div style={{ fontSize: 12, color: "#6254d0", fontWeight: 600, marginTop: 1 }}>{property.price}</div>}
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#2b2521" }}>{property.name}</div>
+            {property.price && <div style={{ fontSize: 12, color: "#a3462b", fontWeight: 600, marginTop: 1 }}>{property.price}</div>}
           </div>
-          <div style={{ marginLeft: "auto", fontSize: 11, color: "#A89DB0", flexShrink: 0 }}>
+          <div style={{ marginLeft: "auto", fontSize: 11, color: "#8b7f72", flexShrink: 0 }}>
             {sectionIdx + 1}/{SECTIONS.length}
           </div>
         </div>
 
         {/* Section header */}
         <div style={{ marginBottom: 22, animation: "fadeUp 0.25s ease" }}>
-          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, lineHeight: 1.2, color: "#1C1427", display: "flex", alignItems: "center", gap: 10 }}>
-            <Icon icon={section.icon} width={28} style={{ color: "#6254d0", flexShrink: 0 }} />
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 38, fontWeight: 500, lineHeight: 1.05, color: "#2b2521", display: "flex", alignItems: "center", gap: 12 }}>
+            <Icon icon={section.icon} width={28} style={{ color: "#a3462b", flexShrink: 0 }} />
             {section.title}
           </h2>
-          <p style={{ color: "#6D6077", fontSize: 14, marginTop: 5 }}>{section.subtitle}</p>
+          <p style={{ color: "#5b4c3f", fontSize: 14, marginTop: 5 }}>{section.subtitle}</p>
         </div>
 
         {/* Questions */}
@@ -935,20 +942,20 @@ function ScoringWizard({ property, onClose, onSave }) {
             const locked = qi > 0 && scores[section.questions[qi - 1].id] === undefined;
             return (
               <div key={q.id} style={{
-                background: answered ? "#FFFFFF" : locked ? "#fafafa" : "#fcfcfe",
-                border: `1px solid ${answered ? "#c4c1e0" : "#e0dff0"}`,
-                borderRadius: 18,
+                background: answered ? "#fbf8f3" : locked ? "#f3ece2" : "#fbf8f3",
+                border: `1px solid ${answered ? "#d6c8b6" : "#e3d9cc"}`,
+                borderRadius: 22,
                 padding: isFirst ? "24px 24px 28px" : "18px 18px 22px",
                 animation: `fadeUp 0.3s ease ${qi * 0.07}s both`,
                 transition: "border-color 0.2s, background 0.2s, opacity 0.25s",
-                boxShadow: answered ? "0 4px 16px rgba(98,84,208,0.08)" : "none",
+                boxShadow: answered ? "0 4px 16px rgba(91,76,63,0.08)" : "none",
                 opacity: locked ? 0.42 : 1,
                 pointerEvents: locked ? "none" : "auto",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                  <div style={{ fontWeight: 700, fontSize: isFirst ? 18 : 15, lineHeight: 1.3, flex: 1, color: "#1C1427" }}>{q.label}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, fontSize: isFirst ? 25 : 21, lineHeight: 1.15, flex: 1, color: "#2b2521" }}>{q.label}</div>
                   {answered && (
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#6254d0", marginLeft: 12, whiteSpace: "nowrap", fontFamily: "'Fraunces', serif" }}>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: "#a3462b", marginLeft: 12, whiteSpace: "nowrap", fontFamily: "'Cormorant Garamond', serif" }}>
                       {val}/5
                     </div>
                   )}
@@ -964,9 +971,9 @@ function ScoringWizard({ property, onClose, onSave }) {
         {isLastSection && (
           <div style={{ marginTop: 28, animation: "fadeUp 0.3s ease" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <div style={{ flex: 1, height: 1, background: "#e0dff0" }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, whiteSpace: "nowrap" }}>Deal-makers</span>
-              <div style={{ flex: 1, height: 1, background: "#e0dff0" }} />
+              <div style={{ flex: 1, height: 1, background: "#e3d9cc" }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#8b7f72", textTransform: "uppercase", letterSpacing: 1.5, whiteSpace: "nowrap" }}>Deal-makers</span>
+              <div style={{ flex: 1, height: 1, background: "#e3d9cc" }} />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {BONUSES.map(b => {
@@ -976,29 +983,29 @@ function ScoringWizard({ property, onClose, onSave }) {
                     style={{
                       display: "flex", alignItems: "center", gap: 12,
                       width: "100%", padding: "13px 16px",
-                      background: active ? "#f0eff9" : "#FFFFFF",
-                      border: `1px solid ${active ? "#6254d0" : "#e0dff0"}`,
+                      background: active ? "#f1e9df" : "#fbf8f3",
+                      border: `1px solid ${active ? "#a3462b" : "#e3d9cc"}`,
                       borderRadius: 12, cursor: "pointer",
                       transition: "all 0.15s",
-                      boxShadow: active ? "0 2px 10px rgba(98,84,208,0.12)" : "none",
-                      fontFamily: "'DM Sans', sans-serif", textAlign: "left",
+                      boxShadow: active ? "0 2px 10px rgba(91,76,63,0.12)" : "none",
+                      fontFamily: "'Manrope', sans-serif", textAlign: "left",
                     }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: active ? "#6254d0" : "#f5f3fc", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
-                      <Icon icon={b.icon} width={16} style={{ color: active ? "#FFFFFF" : "#9b95eb" }} />
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: active ? "#a3462b" : "#f6f1ea", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+                      <Icon icon={b.icon} width={16} style={{ color: active ? "#fbf8f3" : "#c0603f" }} />
                     </div>
-                    <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: active ? "#1C1427" : "#6D6077" }}>{b.label}</div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: active ? "#6254d0" : "#C4C1E0", fontFamily: "'Fraunces', serif", flexShrink: 0 }}>+{b.points}</div>
-                    <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${active ? "#6254d0" : "#e0dff0"}`, background: active ? "#6254d0" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
-                      {active && <Icon icon="solar:check-bold" width={10} style={{ color: "#FFFFFF" }} />}
+                    <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: active ? "#2b2521" : "#5b4c3f" }}>{b.label}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: active ? "#a3462b" : "#d6c8b6", fontFamily: "'Cormorant Garamond', serif", flexShrink: 0 }}>+{b.points}</div>
+                    <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${active ? "#a3462b" : "#e3d9cc"}`, background: active ? "#a3462b" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+                      {active && <Icon icon="solar:check-bold" width={10} style={{ color: "#fbf8f3" }} />}
                     </div>
                   </button>
                 );
               })}
             </div>
             {bonusTotal > 0 && (
-              <div style={{ marginTop: 12, padding: "12px 16px", background: "#f0eff9", border: "1px solid #c4c1e0", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between", animation: "fadeUp 0.2s ease" }}>
-                <span style={{ fontSize: 13, color: "#6b62d5", fontWeight: 600 }}>Base {runningTotal} + {bonusTotal} bonus</span>
-                <span style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 800, color: scoreColor(combinedTotal) }}>{combinedTotal}</span>
+              <div style={{ marginTop: 12, padding: "12px 16px", background: "#f1e9df", border: "1px solid #d6c8b6", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between", animation: "fadeUp 0.2s ease" }}>
+                <span style={{ fontSize: 13, color: "#a3462b", fontWeight: 600 }}>Base {runningTotal} + {bonusTotal} bonus</span>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 800, color: scoreColor(combinedTotal) }}>{combinedTotal}</span>
               </div>
             )}
           </div>
@@ -1006,11 +1013,11 @@ function ScoringWizard({ property, onClose, onSave }) {
 
         {/* Section complete (non-last sections) */}
         {sectionComplete && !isLastSection && (
-          <div style={{ marginTop: 16, padding: "14px 16px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, display: "flex", alignItems: "center", gap: 10, animation: "fadeUp 0.2s ease" }}>
-            <Icon icon="solar:check-circle-bold" width={20} style={{ color: "#059669", flexShrink: 0 }} />
+          <div style={{ marginTop: 16, padding: "14px 16px", background: "#eef0e2", border: "1px solid #cfd3b4", borderRadius: 12, display: "flex", alignItems: "center", gap: 10, animation: "fadeUp 0.2s ease" }}>
+            <Icon icon="solar:check-circle-bold" width={20} style={{ color: "#5f6b3a", flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#059669" }}>Section complete</div>
-              <div style={{ fontSize: 12, color: "#6D6077" }}>Up next: {SECTIONS[sectionIdx + 1].title}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#5f6b3a" }}>Section complete</div>
+              <div style={{ fontSize: 12, color: "#5b4c3f" }}>Up next: {SECTIONS[sectionIdx + 1].title}</div>
             </div>
           </div>
         )}
@@ -1022,19 +1029,19 @@ function ScoringWizard({ property, onClose, onSave }) {
             disabled={!sectionComplete}
             style={{
               width: "100%", padding: "16px",
-              background: sectionComplete ? "linear-gradient(135deg,#9b95eb,#6254d0)" : "#f0eff9",
-              color: sectionComplete ? "#FFFFFF" : "#B0A8BC",
-              border: "none", borderRadius: 13, fontSize: 15, fontWeight: 700,
+              background: sectionComplete ? "#a3462b" : "#f1e9df",
+              color: sectionComplete ? "#fbf8f3" : "#a89a8a",
+              border: "none", borderRadius: 99, fontSize: 15, fontWeight: 600,
               cursor: sectionComplete ? "pointer" : "not-allowed",
-              fontFamily: "'DM Sans', sans-serif",
-              boxShadow: sectionComplete ? "0 4px 20px rgba(98,84,208,0.3)" : "none",
+              fontFamily: "'Manrope', sans-serif",
+              boxShadow: sectionComplete ? "0 12px 24px -12px rgba(163,70,43,0.9)" : "none",
               transition: "all 0.2s"
             }}
           >
             {isLastSection ? "Review & Save →" : `Next: ${SECTIONS[sectionIdx + 1].title} →`}
           </button>
           {!sectionComplete && (
-            <div style={{ textAlign: "center", fontSize: 12, color: "#A89DB0", marginTop: 8 }}>
+            <div style={{ textAlign: "center", fontSize: 12, color: "#8b7f72", marginTop: 8 }}>
               Answer all {section.questions.length} questions to continue
             </div>
           )}
@@ -1043,30 +1050,30 @@ function ScoringWizard({ property, onClose, onSave }) {
 
       {/* Summary screen */}
       {showSummary && (
-        <div style={{ position: "absolute", inset: 0, background: "#fafafa", overflowY: "auto", zIndex: 10, animation: "slideIn 0.25s ease" }}>
+        <div style={{ position: "absolute", inset: 0, ...PLASTER_BG, overflowY: "auto", zIndex: 10, animation: "slideIn 0.25s ease" }}>
           <div style={{ maxWidth: 540, margin: "0 auto", padding: "0 20px 80px" }}>
             {/* Nav */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0 12px", position: "sticky", top: 0, background: "rgba(250,250,250,0.95)", backdropFilter: "blur(10px)", zIndex: 10, marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20, borderBottom: "1px solid #e0dff0" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0 12px", position: "sticky", top: 0, background: "rgba(243,236,226,0.92)", backdropFilter: "blur(10px)", zIndex: 10, marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20, borderBottom: "1px solid rgba(43,37,33,0.10)" }}>
               <button onClick={() => setShowSummary(false)} style={ghostBtnSt}>← Back</button>
-              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 700, color: scoreColor(combinedTotal) }}>{combinedTotal}/100</div>
-              <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#C4C1E0", display: "flex", alignItems: "center" }}>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, fontWeight: 700, color: scoreColor(combinedTotal) }}>{combinedTotal}/100</div>
+              <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#d6c8b6", display: "flex", alignItems: "center" }}>
                 <Icon icon="solar:close-square-bold" width={20} />
               </button>
             </div>
 
             <div style={{ padding: "24px 0 20px" }}>
-              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 800, color: "#1C1427", marginBottom: 6 }}>Scoring Summary</h2>
-              <p style={{ fontSize: 13, color: "#A89DB0", marginBottom: 20 }}>Edit this summary to add your own notes before saving.</p>
+              <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 38, fontWeight: 500, color: "#2b2521", marginBottom: 6 }}>Scoring summary</h2>
+              <p style={{ fontSize: 13, color: "#8b7f72", marginBottom: 20 }}>Edit this summary to add your own notes before saving.</p>
 
               <textarea
                 value={summaryText}
                 onChange={e => setSummaryText(e.target.value)}
                 rows={14}
-                style={{ width: "100%", fontSize: 14, color: "#1C1427", lineHeight: 1.75, border: "1px solid #c4c1e0", borderRadius: 14, padding: "16px", background: "#FFFFFF", resize: "vertical", outline: "none", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 2px 8px rgba(98,84,208,0.06)", boxSizing: "border-box" }}
+                style={{ width: "100%", fontSize: 14, color: "#2b2521", lineHeight: 1.75, border: "1px solid #d6c8b6", borderRadius: 20, padding: "16px", background: "#fbf8f3", resize: "vertical", outline: "none", fontFamily: "'Manrope', sans-serif", boxShadow: "0 10px 24px -20px rgba(91,76,63,0.5)", boxSizing: "border-box" }}
               />
             </div>
 
-            <button onClick={save} style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#9b95eb,#6254d0)", border: "none", borderRadius: 13, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 20px rgba(98,84,208,0.3)" }}>
+            <button onClick={save} style={{ width: "100%", padding: "16px", background: "#a3462b", border: "none", borderRadius: 99, color: "#fbf8f3", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'Manrope', sans-serif", boxShadow: "0 4px 20px rgba(91,76,63,0.3)" }}>
               Save Scorecard ✓
             </button>
           </div>
@@ -1099,139 +1106,132 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
     setEditingDate(false);
   }
 
+  const viewingLabel = property.viewingDate
+    ? (() => { const d = new Date(property.viewingDate), h = d.getHours(), m = d.getMinutes(); return `${d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric" })} · ${h % 12 || 12}:${String(m).padStart(2, "0")}${h < 12 ? "am" : "pm"}`; })()
+    : null;
+  const activeBonuses = BONUSES.filter(b => property.bonuses?.[b.id]).sort((a, b) => b.points - a.points).slice(0, 3);
+  const pillSt = { position: "absolute", left: "50%", bottom: 10, transform: "translateX(-50%)", fontSize: 11, fontWeight: 600, padding: "6px 11px", borderRadius: 99, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 5 };
+  const chipBtn = { fontSize: 10.5, padding: "4px 9px", borderRadius: 99, background: "transparent", border: "1px solid rgba(43,37,33,0.14)", color: "#8b7f72", fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif" };
+
   return (
     <div
       onClick={() => onOpen(property)}
       style={{
-        background: "#FFFFFF",
-        border: "1px solid #e0dff0",
-        borderRadius: 14, overflow: "hidden",
-        cursor: "pointer", transition: "transform 0.18s, box-shadow 0.18s",
-        animation: "fadeUp 0.3s ease both",
-        boxShadow: "0 2px 8px rgba(98,84,208,0.06)"
+        background: "#fbf8f3",
+        border: "1px solid rgba(43,37,33,0.10)",
+        borderRadius: 20, padding: "8px 8px 12px", position: "relative",
+        cursor: "pointer", transition: "transform 0.25s cubic-bezier(.2,.7,.2,1), box-shadow 0.25s",
+        animation: "fadeUp 0.4s ease both",
+        boxShadow: "0 10px 24px -20px rgba(91,76,63,0.5)"
       }}
-      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 12px 28px rgba(98,84,208,0.14)"; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 2px 8px rgba(98,84,208,0.06)"; }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 30px 60px -34px rgba(91,76,63,0.55)"; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 10px 24px -20px rgba(91,76,63,0.5)"; }}
     >
-      {/* Image */}
-      <div style={{ position: "relative", height: 140, background: "#ffe9e3", overflow: "hidden" }}>
+      {/* Arched photo */}
+      <div style={{ position: "relative", height: 150, background: "#f1ddd2", overflow: "hidden", borderRadius: ARCH }}>
         {property.image ? (
           <img src={property.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
-          <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#a8a5d8" }}><Icon icon="solar:home-2-bold" width={44} /></div>
-        )}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(28,20,39,0.75) 0%, transparent 55%)" }} />
-
-        {hasScore && (
-          <div style={{ position: "absolute", top: 10, right: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: "50%",
-              background: "rgba(255,255,255,0.92)", border: `2px solid ${scoreColor(total)}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 14, fontWeight: 800, color: scoreColor(total),
-              fontFamily: "'Fraunces', serif"
-            }}>{total}</div>
-            {(() => {
-              const activeBonuses = BONUSES.filter(b => property.bonuses?.[b.id]).sort((a, b) => b.points - a.points).slice(0, 3);
-              return activeBonuses.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  {activeBonuses.map(b => (
-                    <div key={b.id} style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,0.88)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Icon icon={b.icon} width={12} style={{ color: "#6254d0" }} />
-                    </div>
-                  ))}
-                </div>
-              ) : null;
-            })()}
-          </div>
+          <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#d6c8b6" }}><Icon icon="solar:home-2-bold" width={44} /></div>
         )}
 
-        {property.status === "booked" && property.viewingDate && (
-          <div style={{
-            position: "absolute", top: 10, left: 10,
-            background: "rgba(219,234,254,0.92)", border: "1px solid rgba(37,99,235,0.4)",
-            borderRadius: 7, padding: "3px 8px", fontSize: 10, fontWeight: 700, color: "#2563EB",
-            display: "flex", alignItems: "center", gap: 4
-          }}>
-            <Icon icon="solar:calendar-bold" width={12} /> {new Date(property.viewingDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+        {property.status === "booked" && viewingLabel && (
+          <div style={{ ...pillSt, background: "#a3462b", color: "#fbf5ee" }}>
+            <Icon icon="solar:calendar-bold" width={12} /> {viewingLabel}
           </div>
         )}
 
         {property.status === "viewed" && !hasScore && (
           <div style={{
             position: "absolute", bottom: 0, left: 0, right: 0,
-            background: "rgba(98,84,208,0.88)", backdropFilter: "blur(4px)",
-            padding: "6px 12px", fontSize: 11, fontWeight: 700, color: "#FFFFFF",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 5, letterSpacing: 0.5
+            background: "linear-gradient(transparent, rgba(163,70,43,0.92))",
+            padding: "18px 12px 9px", fontSize: 11, fontWeight: 700, color: "#fbf5ee",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 5, letterSpacing: 0.6
           }}>
             <Icon icon="solar:pen-bold" width={13} /> Tap to score
           </div>
         )}
       </div>
 
+      {onDelete && (
+        <button onClick={e => { e.stopPropagation(); if (window.confirm("Delete this property?")) onDelete(property.id); }}
+          style={{ position: "absolute", top: 16, right: 16, width: 28, height: 28, borderRadius: "50%", background: "rgba(251,248,243,0.88)", backdropFilter: "blur(6px)", border: "none", color: "#8b7f72", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+          title="Delete"><Icon icon="solar:trash-bin-2-bold" width={14} /></button>
+      )}
+
       {/* Content */}
-      <div style={{ padding: "11px 13px 13px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6, marginBottom: 3 }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 13, fontWeight: 700, lineHeight: 1.3, color: "#1C1427", minWidth: 0 }}>
-            {property.name}
-          </div>
-          {onDelete && (
-            <button onClick={e => { e.stopPropagation(); if (window.confirm("Delete this property?")) onDelete(property.id); }}
-              style={{ background: "none", border: "none", color: "#C4BCCC", cursor: "pointer", padding: "0 2px", flexShrink: 0, display: "flex", alignItems: "center" }}
-              title="Delete"><Icon icon="solar:trash-bin-2-bold" width={15} /></button>
-          )}
+      <div style={{ padding: "12px 6px 0", position: "relative" }}>
+        {hasScore && (
+          <div style={{ position: "absolute", top: 12, right: 6 }}><ScoreArch score={total} width={40} height={48} fontSize={17} /></div>
+        )}
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, fontWeight: 600, lineHeight: 1.15, color: "#2b2521", paddingRight: hasScore ? 48 : 0 }}>
+          {property.name}
         </div>
         {property.price && (
-          <div style={{ fontSize: 12, color: "#6254d0", fontWeight: 600, marginBottom: 5 }}>{property.price}</div>
+          <div style={{ fontSize: 13, color: "#a3462b", fontWeight: 600, marginTop: 4 }}>{property.price}</div>
         )}
         {(property.bedrooms || property.sqft) && (
-          <div style={{ fontSize: 11, color: "#A89DB0" }}>
+          <div style={{ fontSize: 12, color: "#8b7f72", marginTop: 3 }}>
             {property.bedrooms && `${property.bedrooms} bed`}
             {property.bathrooms && ` · ${property.bathrooms} bath`}
-            {property.sqft && ` · ${property.sqft} sqft`}
+            {property.sqft && ` · ${property.sqft} sq ft`}
           </div>
         )}
+
+        {/* Estate agent — visible straight from the board */}
+        <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(43,37,33,0.10)", fontSize: 11.5, color: "#8b7f72", minHeight: 20 }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: property.agent ? "#5f6b3a" : "#d6c8b6", flexShrink: 0 }} />
+          <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {property.agent || "Agent not added yet"}
+          </span>
+          {property.agentPhone && (
+            <a href={`tel:${property.agentPhone.replace(/\s+/g, "")}`} onClick={e => e.stopPropagation()} title={`Call ${property.agentPhone}`}
+              style={{ color: "#5b4c3f", display: "flex", alignItems: "center" }}><Icon icon="solar:phone-bold" width={13} /></a>
+          )}
+          {activeBonuses.map(b => (
+            <Icon key={b.id} icon={b.icon} width={13} style={{ color: "#a3462b" }} title={b.label} />
+          ))}
+        </div>
+
         {/* Move to column */}
-        <div style={{ display: "flex", gap: 4, marginTop: 9, flexWrap: "wrap" }} onClick={e => e.stopPropagation()}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: col?.color, background: col?.accent, border: `1px solid ${col?.color}44`, borderRadius: 5, padding: "2px 7px", letterSpacing: 0.8, textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 4 }}>
+        <div style={{ display: "flex", gap: 5, marginTop: 10, flexWrap: "wrap" }} onClick={e => e.stopPropagation()}>
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: col?.color, background: col?.accent, borderRadius: 99, padding: "4px 9px", display: "inline-flex", alignItems: "center", gap: 4 }}>
             <Icon icon={col?.icon || "solar:bookmark-bold"} width={11} /> {col?.label}
           </span>
           {COLUMNS.filter(c => c.id !== property.status).map(c => (
-            <button key={c.id} onClick={e => { e.stopPropagation(); onMove?.(property.id, c.id); }}
-              style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: "none", border: `1px solid #e0dff0`, color: "#A89DB0", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+            <button key={c.id} onClick={e => { e.stopPropagation(); onMove?.(property.id, c.id); }} style={chipBtn}>
               → {c.label}
             </button>
           ))}
-          <button onClick={e => { e.stopPropagation(); onMove?.(property.id, "archived"); }}
-            style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: "none", border: `1px solid #e0dff0`, color: "#C4BAC8", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+          <button onClick={e => { e.stopPropagation(); onMove?.(property.id, "archived"); }} style={{ ...chipBtn, color: "#b8ab9c" }}>
             Archive
           </button>
         </div>
 
-        {/* Viewing date entry — booked column only */}
+        {/* Viewing date entry — Visiting column only */}
         {property.status === "booked" && (
-          <div style={{ borderTop: "1px solid #f0eef8", padding: "8px 13px" }} onClick={e => e.stopPropagation()}>
+          <div style={{ borderTop: "1px solid rgba(43,37,33,0.10)", marginTop: 10, paddingTop: 9 }} onClick={e => e.stopPropagation()}>
             {editingDate ? (
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input type="date" value={dateVal} onChange={e => setDateVal(e.target.value)}
-                  style={{ flex: 1, fontSize: 11, padding: "4px 7px", borderRadius: 6, border: "1px solid #c4c1e0", outline: "none", fontFamily: "'DM Sans', sans-serif" }} />
+                  style={{ flex: 1, minWidth: 0, fontSize: 11, padding: "5px 8px", borderRadius: 8, border: "1px solid #d6c8b6", background: "#f6f1ea", outline: "none", fontFamily: "'Manrope', sans-serif" }} />
                 <input type="time" value={timeVal} onChange={e => setTimeVal(e.target.value)}
-                  style={{ width: 72, fontSize: 11, padding: "4px 7px", borderRadius: 6, border: "1px solid #c4c1e0", outline: "none", fontFamily: "'DM Sans', sans-serif" }} />
+                  style={{ width: 76, fontSize: 11, padding: "5px 8px", borderRadius: 8, border: "1px solid #d6c8b6", background: "#f6f1ea", outline: "none", fontFamily: "'Manrope', sans-serif" }} />
                 <button onClick={saveDate}
-                  style={{ background: "#6254d0", border: "none", borderRadius: 6, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 8px", cursor: "pointer" }}>✓</button>
+                  style={{ background: "#a3462b", border: "none", borderRadius: 99, color: "#fbf5ee", fontSize: 11, fontWeight: 700, padding: "5px 10px", cursor: "pointer" }}>✓</button>
                 <button onClick={e => { e.stopPropagation(); setEditingDate(false); }}
-                  style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 6, color: "#A89DB0", fontSize: 11, padding: "4px 8px", cursor: "pointer" }}>✕</button>
+                  style={{ background: "none", border: "1px solid #d6c8b6", borderRadius: 99, color: "#8b7f72", fontSize: 11, padding: "5px 9px", cursor: "pointer" }}>✕</button>
               </div>
             ) : (
               <button onClick={startEditDate} style={{
                 background: "none", border: "none", padding: 0, cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 5,
-                fontSize: 11, fontWeight: 600,
-                color: property.viewingDate ? "#2563EB" : "#A89DB0",
+                display: "flex", alignItems: "center", gap: 6,
+                fontSize: 11.5, fontWeight: 600, fontFamily: "'Manrope', sans-serif",
+                color: property.viewingDate ? "#5f6b3a" : "#8b7f72",
               }}>
                 <Icon icon="solar:calendar-bold" width={13} />
                 {property.viewingDate
-                  ? new Date(property.viewingDate).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                  ? new Date(property.viewingDate).toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
                   : "Set viewing date"}
               </button>
             )}
@@ -1490,36 +1490,37 @@ ${trimmed}`
 
   const narrow = useNarrow();
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(98,84,208,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(43,37,33,0.25)", backdropFilter: "blur(8px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 480, maxHeight: "92vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: narrow ? "20px 20px 0 0" : 20, padding: 28, boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
-        {narrow && <div style={{ width: 36, height: 4, background: "#e0dff0", borderRadius: 2, margin: "-8px auto 20px" }} />}
+      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 500, maxHeight: "92vh", overflowY: "auto", background: "#f6f1ea", borderRadius: narrow ? "28px 28px 0 0" : 30, padding: 30, boxShadow: "0 40px 80px -30px rgba(43,37,33,0.55)" }}>
+        {narrow && <div style={{ width: 36, height: 4, background: "#e3d9cc", borderRadius: 2, margin: "-8px auto 20px" }} />}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, color: "#1C1427" }}>
-            {step === "url" ? "Add a Property" : "Confirm Details"}
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 34, fontWeight: 500, color: "#2b2521", lineHeight: 1 }}>
+            {step === "url" ? "Add a home" : "Does this look right?"}
           </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#8b7f72", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
         </div>
 
         {step === "url" && (
           <>
-            <label style={labelSt}>Listing URL</label>
+            <p style={{ fontSize: 13.5, color: "#5b4c3f", lineHeight: 1.5, marginBottom: 16, marginTop: -10 }}>Paste a link from Rightmove, Zoopla, OnTheMarket or an agent’s site. We’ll fill in the price, size, photos and agent for you.</p>
+            <label style={labelSt}>Listing link</label>
             <input value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === "Enter" && extractUrl()}
               placeholder="https://www.rightmove.co.uk/properties/..."
               style={inputSt} disabled={loading} autoFocus />
-            {error && <div style={{ color: "#DC2626", fontSize: 13, marginTop: 8 }}>{error}</div>}
+            {error && <div style={{ color: "#9b3b2a", fontSize: 13, marginTop: 8 }}>{error}</div>}
             <button onClick={extractUrl} disabled={loading || !url.trim()} style={{
               width: "100%", marginTop: 16, padding: "14px",
-              background: loading || !url.trim() ? "#f0eff9" : "linear-gradient(135deg,#9b95eb,#6254d0)",
-              color: loading || !url.trim() ? "#B0A8BC" : "#FFFFFF",
-              border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700,
-              cursor: loading || !url.trim() ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif",
-              boxShadow: loading || !url.trim() ? "none" : "0 4px 16px rgba(98,84,208,0.3)"
+              background: loading || !url.trim() ? "#f1e9df" : "#a3462b",
+              color: loading || !url.trim() ? "#a89a8a" : "#fbf8f3",
+              border: "none", borderRadius: 99, fontSize: 15, fontWeight: 600,
+              cursor: loading || !url.trim() ? "not-allowed" : "pointer", fontFamily: "'Manrope', sans-serif",
+              boxShadow: loading || !url.trim() ? "none" : "0 4px 16px rgba(91,76,63,0.3)"
             }}>
-              {loading ? "⏳ Extracting details..." : "Extract Details →"}
+              {loading ? "Fetching the details…" : "Extract Details →"}
             </button>
             <button onClick={() => { setExtracted({ address: "", name: "", price: "", bedrooms: "", bathrooms: "", sqft: "", image: "", agent: "", agentPhone: "", serviceCharge: null, groundRent: null, leaseLength: "", tenure: "", description: "", epcRating: "", dateListed: "" }); setStep("confirm"); }}
-              style={{ width: "100%", marginTop: 10, padding: "11px", background: "none", border: "1px solid #e0dff0", borderRadius: 12, color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+              style={{ width: "100%", marginTop: 10, padding: "11px", background: "none", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 99, color: "#8b7f72", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif" }}>
               Enter details manually →
             </button>
           </>
@@ -1528,9 +1529,9 @@ ${trimmed}`
         {step === "confirm" && extracted && (
           <>
             {extracted.image && (
-              <div style={{ position: "relative", height: 140, borderRadius: 12, overflow: "hidden", marginBottom: 16 }}>
+              <div style={{ position: "relative", height: 170, borderRadius: "999px 999px 16px 16px", overflow: "hidden", marginBottom: 18 }}>
                 <img src={extracted.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(28,20,39,0.7) 0%, transparent 55%)" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(43,37,33,0.7) 0%, transparent 55%)" }} />
               </div>
             )}
 
@@ -1560,15 +1561,15 @@ ${trimmed}`
               {COLUMNS.map(col => (
                 <label key={col.id} style={{
                   display: "flex", alignItems: "center", gap: 12,
-                  padding: "12px 14px", borderRadius: 11, cursor: "pointer",
-                  background: status === col.id ? col.accent : "#fafafa",
-                  border: `1px solid ${status === col.id ? col.color + "55" : "#e0dff0"}`,
+                  padding: "12px 16px", borderRadius: 16, cursor: "pointer",
+                  background: status === col.id ? col.accent : "#f3ece2",
+                  border: `1px solid ${status === col.id ? col.color + "55" : "#e3d9cc"}`,
                   transition: "all 0.15s"
                 }}>
                   <input type="radio" name="status" value={col.id} checked={status === col.id} onChange={() => setStatus(col.id)}
                     style={{ accentColor: col.color, width: 16, height: 16 }} />
-                  <Icon icon={col.icon} width={18} style={{ color: status === col.id ? col.color : "#A89DB0" }} />
-                  <span style={{ fontWeight: 600, fontSize: 14, color: status === col.id ? col.color : "#6D6077" }}>{col.label}</span>
+                  <Icon icon={col.icon} width={18} style={{ color: status === col.id ? col.color : "#8b7f72" }} />
+                  <span style={{ fontWeight: 600, fontSize: 14, color: status === col.id ? col.color : "#5b4c3f" }}>{col.label}</span>
                 </label>
               ))}
             </div>
@@ -1581,9 +1582,9 @@ ${trimmed}`
             )}
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setStep("url")} style={{ flex: 1, padding: "12px", background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 11, color: "#6D6077", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>← Back</button>
-              <button onClick={handleAdd} style={{ flex: 2, padding: "12px", background: "linear-gradient(135deg,#9b95eb,#6254d0)", border: "none", borderRadius: 11, color: "#FFFFFF", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 16px rgba(98,84,208,0.3)" }}>
-                Add to Board ✓
+              <button onClick={() => setStep("url")} style={{ flex: 1, padding: "12px", background: "#f6f1ea", border: "1px solid #d6c8b6", borderRadius: 99, color: "#5b4c3f", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif" }}>← Back</button>
+              <button onClick={handleAdd} style={{ flex: 2, padding: "12px", background: "#a3462b", border: "none", borderRadius: 99, color: "#fbf8f3", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif", boxShadow: "0 4px 16px rgba(91,76,63,0.3)" }}>
+                Add to board ✓
               </button>
             </div>
           </>
@@ -1601,68 +1602,56 @@ function Leaderboard({ properties, onClose, onRescore }) {
     .sort((a, b) => (getTotal(b.scores) + getBonusTotal(b.bonuses)) - (getTotal(a.scores) + getBonusTotal(a.bonuses)));
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(98,84,208,0.2)", backdropFilter: "blur(10px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(43,37,33,0.25)", backdropFilter: "blur(10px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 620, maxHeight: "92vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #c4c1e0", borderRadius: narrow ? "20px 20px 0 0" : 22, padding: "28px 24px", boxShadow: "0 24px 60px rgba(98,84,208,0.2)" }}>
-        {narrow && <div style={{ width: 36, height: 4, background: "#e0dff0", borderRadius: 2, margin: "-8px auto 20px" }} />}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 800, color: "#1C1427", display: "flex", alignItems: "center", gap: 10 }}>
-            <Icon icon="solar:cup-star-bold" width={26} style={{ color: "#6254d0" }} /> Leaderboard
-          </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
+      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 780, maxHeight: "92vh", overflowY: "auto", background: "#f6f1ea", borderRadius: narrow ? "28px 28px 0 0" : 30, padding: narrow ? "24px 18px 30px" : "34px 34px 30px", boxShadow: "0 40px 80px -30px rgba(43,37,33,0.55)" }}>
+        {narrow && <div style={{ width: 36, height: 4, background: "#d6c8b6", borderRadius: 2, margin: "-8px auto 20px" }} />}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, gap: 12 }}>
+          <div>
+            <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: narrow ? 36 : 46, fontWeight: 500, color: "#2b2521", lineHeight: 1 }}>Your favourites</h2>
+            <p style={{ fontSize: 13, color: "#8b7f72", marginTop: 6 }}>Every home you’ve scored, ranked. Tap one to see why.</p>
+          </div>
+          <button onClick={onClose} style={ghostBtnSt}>Close</button>
         </div>
 
         {scored.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 60, color: "#A89DB0" }}>
-            <div style={{ marginBottom: 16, color: "#c4c1e0", display: "flex", justifyContent: "center" }}><Icon icon="solar:chart-2-bold" width={48} /></div>
-            <p>No scored properties yet — move a property to Viewed and score it.</p>
+          <div style={{ textAlign: "center", padding: 60, color: "#8b7f72" }}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 24, color: "#2b2521", marginBottom: 6 }}>Nothing scored yet</div>
+            <p style={{ fontSize: 13 }}>Move a home to Seen after your viewing and score it.</p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {scored.map((p, i) => {
               const total = getTotal(p.scores) + getBonusTotal(p.bonuses);
-              const col = scoreColor(total);
               const isFirst = i === 0;
               const sectionAvgs = SECTIONS.map(s => ({ title: s.title, avg: s.questions.reduce((sum, q) => sum + (p.scores[q.id] ?? 0), 0) / s.questions.length }));
               const best = [...sectionAvgs].sort((a, b) => b.avg - a.avg)[0];
               const worst = [...sectionAvgs].sort((a, b) => a.avg - b.avg)[0];
-
               return (
-                <div key={p.id} style={{ borderRadius: 16, overflow: "hidden", border: isFirst ? "1px solid #a8a5d8" : "1px solid #e0dff0", background: isFirst ? "#f5f3fc" : "#FFFFFF", boxShadow: isFirst ? "0 4px 20px rgba(98,84,208,0.1)" : "0 2px 8px rgba(98,84,208,0.05)" }}>
-                  {isFirst && <div style={{ height: 3, background: "linear-gradient(90deg,#6254d0,#9b95eb,#6254d0)" }} />}
-                  <div style={{ display: "flex" }}>
-                    {p.image && (
-                      <div style={{ width: 110, flexShrink: 0 }}>
-                        <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      </div>
-                    )}
-                    <div style={{ flex: 1, padding: "16px 18px" }}>
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: isFirst ? "#6254d0" : "#A89DB0", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 3 }}>
-                            {i === 0 ? "🥇 Top Pick" : i === 1 ? "🥈 Runner Up" : i === 2 ? "🥉 Third" : `#${i+1}`}
-                          </div>
-                          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 700, lineHeight: 1.3, color: "#1C1427" }}>{p.name}</div>
-                          {p.price && <div style={{ fontSize: 12, color: "#6254d0", marginTop: 2, fontWeight: 600 }}>{p.price}</div>}
-                        </div>
-                        <div style={{ width: 50, height: 50, borderRadius: "50%", flexShrink: 0, background: `${col}12`, border: `2px solid ${col}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 800, color: col, fontFamily: "'Fraunces', serif" }}>{total}</div>
-                      </div>
-                      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                        <div style={{ flex: 1, background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 8, padding: "6px 10px" }}>
-                          <div style={{ fontSize: 10, color: "#059669", fontWeight: 700, marginBottom: 2 }}>BEST</div>
-                          <div style={{ fontSize: 12, color: "#1C1427" }}>{best.title} · {best.avg.toFixed(1)}/5</div>
-                        </div>
-                        <div style={{ flex: 1, background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 8, padding: "6px 10px" }}>
-                          <div style={{ fontSize: 10, color: "#DC2626", fontWeight: 700, marginBottom: 2 }}>WEAK</div>
-                          <div style={{ fontSize: 12, color: "#1C1427" }}>{worst.title} · {worst.avg.toFixed(1)}/5</div>
-                        </div>
-                      </div>
-                      <div style={{ marginTop: 10 }}><Bar value={total} max={100} /></div>
-                      <button onClick={() => { onRescore(p); onClose(); }} style={{ marginTop: 10, width: "100%", padding: "8px", background: "#f5f3fc", border: "1px solid #c4c1e0", borderRadius: 8, color: "#6254d0", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
-                        View / Edit Scores
-                      </button>
-                    </div>
+                <div key={p.id} onClick={() => { onRescore(p); onClose(); }}
+                  style={{ display: "grid", gridTemplateColumns: narrow ? "auto 72px 1fr auto" : "34px 100px 1fr auto auto", gap: narrow ? 12 : 18, alignItems: "center", padding: narrow ? 10 : 14, borderRadius: 22, cursor: "pointer", background: isFirst ? "#fbf8f3" : "transparent", boxShadow: isFirst ? "0 10px 24px -16px rgba(91,76,63,0.55)" : "none", transition: "background 0.2s" }}
+                  onMouseEnter={e => { if (!isFirst) e.currentTarget.style.background = "rgba(251,248,243,0.6)"; }}
+                  onMouseLeave={e => { if (!isFirst) e.currentTarget.style.background = "transparent"; }}>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 32, fontWeight: 500, color: isFirst ? "#a3462b" : "#c9b8a4", lineHeight: 1 }}>{i + 1}</div>
+                  <div style={{ height: narrow ? 72 : 84, borderRadius: "99px 99px 10px 10px", overflow: "hidden", background: "#f1ddd2" }}>
+                    {p.image && <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
                   </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: narrow ? 18 : 22, fontWeight: 600, lineHeight: 1.1, color: "#2b2521" }}>
+                      {p.name}
+                      {isFirst && <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9.5, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#5f6b3a", background: "#e3e4d0", padding: "4px 8px", borderRadius: 99, marginLeft: 8, verticalAlign: "middle" }}>Top pick</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#8b7f72", marginTop: 4 }}>{p.price}{p.price && " · "}<em style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: scoreColor(total) }}>{verdictFor(total)}</em></div>
+                    {narrow && <div style={{ fontSize: 11, color: "#8b7f72", marginTop: 4 }}>Best: {best.title} · Weakest: {worst.title}</div>}
+                  </div>
+                  {!narrow && (
+                    <div style={{ fontSize: 11.5, color: "#5b4c3f", lineHeight: 1.7, minWidth: 170 }}>
+                      <div><span style={{ color: "#5f6b3a", fontWeight: 700 }}>Best</span> · {best.title} {best.avg.toFixed(1)}/5</div>
+                      <div><span style={{ color: "#a3462b", fontWeight: 700 }}>Weakest</span> · {worst.title} {worst.avg.toFixed(1)}/5</div>
+                      <div style={{ color: "#a3462b", fontWeight: 600 }}>View / edit scores →</div>
+                    </div>
+                  )}
+                  <ScoreArch score={total} width={narrow ? 52 : 70} height={narrow ? 62 : 84} fontSize={narrow ? 22 : 30} />
                 </div>
               );
             })}
@@ -1679,20 +1668,20 @@ function Archive({ properties, onClose, onUnarchive, onOpen }) {
   const archived = properties.filter(p => p.status === "archived");
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(28,20,39,0.25)", backdropFilter: "blur(10px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(43,37,33,0.25)", backdropFilter: "blur(10px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 620, maxHeight: "92vh", overflowY: "auto", background: "#FFFFFF", border: "1px solid #e0dff0", borderRadius: narrow ? "20px 20px 0 0" : 22, padding: "28px 24px", boxShadow: "0 24px 60px rgba(28,20,39,0.12)" }}>
-        {narrow && <div style={{ width: 36, height: 4, background: "#e0dff0", borderRadius: 2, margin: "-8px auto 20px" }} />}
+      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 620, maxHeight: "92vh", overflowY: "auto", background: "#f6f1ea", borderRadius: narrow ? "28px 28px 0 0" : 30, padding: "30px 28px", boxShadow: "0 40px 80px -30px rgba(43,37,33,0.55)" }}>
+        {narrow && <div style={{ width: 36, height: 4, background: "#e3d9cc", borderRadius: 2, margin: "-8px auto 20px" }} />}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 800, color: "#1C1427", display: "flex", alignItems: "center", gap: 10 }}>
-            <Icon icon="solar:archive-bold" width={26} style={{ color: "#A89DB0" }} /> Archived
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 40, fontWeight: 500, color: "#2b2521", display: "flex", alignItems: "center", gap: 10, lineHeight: 1 }}>
+            Archived
           </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#8b7f72", cursor: "pointer", display: "flex" }}><Icon icon="solar:close-circle-bold" width={24} /></button>
         </div>
 
         {archived.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 60, color: "#A89DB0" }}>
-            <div style={{ marginBottom: 16, color: "#e0dff0", display: "flex", justifyContent: "center" }}><Icon icon="solar:archive-bold" width={48} /></div>
+          <div style={{ textAlign: "center", padding: 60, color: "#8b7f72" }}>
+            <div style={{ marginBottom: 16, color: "#e3d9cc", display: "flex", justifyContent: "center" }}><Icon icon="solar:archive-bold" width={48} /></div>
             <p>No archived properties yet.</p>
           </div>
         ) : (
@@ -1700,9 +1689,9 @@ function Archive({ properties, onClose, onUnarchive, onOpen }) {
             {archived.map(p => {
               const hasScore = p.scores && Object.keys(p.scores).length > 0;
               const total = hasScore ? getTotal(p.scores) + getBonusTotal(p.bonuses) : null;
-              const col = total !== null ? scoreColor(total) : "#A89DB0";
+              const col = total !== null ? scoreColor(total) : "#8b7f72";
               return (
-                <div key={p.id} style={{ borderRadius: 14, border: "1px solid #e0dff0", background: "#FAFAFA", overflow: "hidden", display: "flex", gap: 0 }}>
+                <div key={p.id} style={{ borderRadius: 14, border: "1px solid rgba(43,37,33,0.10)", background: "#f3ece2", overflow: "hidden", display: "flex", gap: 0 }}>
                   {p.image && (
                     <div style={{ width: 80, flexShrink: 0 }}>
                       <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.75 }} />
@@ -1710,17 +1699,17 @@ function Archive({ properties, onClose, onUnarchive, onOpen }) {
                   )}
                   <div style={{ flex: 1, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 14, fontWeight: 700, color: "#6B6B7A", lineHeight: 1.3 }}>{p.name}</div>
-                      {p.price && <div style={{ fontSize: 12, color: "#A89DB0", marginTop: 2 }}>{p.price}</div>}
-                      <div style={{ fontSize: 11, color: "#C4BAC8", marginTop: 4 }}>
+                      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, fontWeight: 700, color: "#5b4c3f", lineHeight: 1.3 }}>{p.name}</div>
+                      {p.price && <div style={{ fontSize: 12, color: "#8b7f72", marginTop: 2 }}>{p.price}</div>}
+                      <div style={{ fontSize: 11, color: "#b8ab9c", marginTop: 4 }}>
                         {[p.bedrooms && `${p.bedrooms} bed`, p.bathrooms && `${p.bathrooms} bath`].filter(Boolean).join(" · ")}
                       </div>
                     </div>
                     {total !== null && (
-                      <div style={{ width: 40, height: 40, borderRadius: "50%", flexShrink: 0, background: `${col}12`, border: `2px solid ${col}66`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: `${col}99`, fontFamily: "'Fraunces', serif" }}>{total}</div>
+                      <div style={{ width: 40, height: 40, borderRadius: "50%", flexShrink: 0, background: `${col}12`, border: `2px solid ${col}66`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: `${col}99`, fontFamily: "'Cormorant Garamond', serif" }}>{total}</div>
                     )}
                     <button onClick={() => { onUnarchive(p.id); }} title="Restore to Listing"
-                      style={{ background: "none", border: "1px solid #e0dff0", borderRadius: 8, padding: "5px 10px", color: "#A89DB0", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>
+                      style={{ background: "none", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 8, padding: "5px 10px", color: "#8b7f72", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif", flexShrink: 0 }}>
                       Restore
                     </button>
                   </div>
@@ -1755,62 +1744,66 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
     onJoin(code)
   }
 
+  const field = { width: '100%', padding: '13px 18px', border: '1px solid rgba(43,37,33,0.14)', borderRadius: 99, fontSize: 14, fontFamily: "'Manrope', sans-serif", color: '#2b2521', outline: 'none', background: '#fbf8f3' }
   return (
-    <div style={{ minHeight: '100vh', background: '#FAFAFE', backgroundImage: 'radial-gradient(ellipse at 10% 0%, rgba(98,84,208,0.1) 0%, transparent 50%), radial-gradient(ellipse at 90% 100%, rgba(98,84,208,0.06) 0%, transparent 50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'DM Sans', sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,800&family=DM+Sans:wght@300;400;500;600;700&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-      <div style={{ width: '100%', maxWidth: 400, animation: 'fadeUp 0.3s ease' }}>
+    <div style={{ minHeight: '100vh', ...PLASTER_BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'Manrope', sans-serif", color: '#2b2521', position: 'relative', overflow: 'hidden' }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } input::placeholder { color: #a89a8a; }`}</style>
+      {/* Soft limewashed arch behind the content */}
+      <div style={{ position: 'absolute', top: '8vh', left: '50%', transform: 'translateX(-50%)', width: 'min(560px, 92vw)', height: '120vh', borderRadius: '999px 999px 0 0', background: 'linear-gradient(#f6efe5, rgba(246,239,229,0))', pointerEvents: 'none' }} />
+      <div style={{ width: '100%', maxWidth: 400, animation: 'fadeUp 0.4s ease', position: 'relative' }}>
 
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 800, color: '#1C1427', letterSpacing: '-0.5px' }}>
-            Nest<span style={{ color: '#6254d0' }}> Well</span>
+        <div style={{ textAlign: 'center', marginBottom: 38 }}>
+          <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 64, fontWeight: 500, color: '#2b2521', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            Nest <span style={{ color: '#a3462b' }}>Well</span>
           </h1>
-          <p style={{ fontSize: 14, color: '#6D6077', marginTop: 10, lineHeight: 1.6 }}>
-            Track, score and compare properties.<br />Solo, or together with a team.
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: '#5b4c3f', marginTop: 14, lineHeight: 1.25 }}>
+            House hunting, kept calm.
+          </p>
+          <p style={{ fontSize: 13.5, color: '#8b7f72', marginTop: 10, lineHeight: 1.6 }}>
+            Every agent, viewing and gut feeling in one place.<br />Score each home and decide together.
           </p>
         </div>
 
         {/* Migration recovery — shown when existing data found */}
         {migrationCode && (
-          <div style={{ background: '#f0eff9', border: '1px solid #a8a5d8', borderRadius: 14, padding: '16px 18px', marginBottom: 16, animation: 'fadeUp 0.3s ease' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6254d0', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Icon icon="solar:bookmark-bold" width={13} /> Your existing board was found
-            </div>
-            <p style={{ fontSize: 13, color: '#6D6077', lineHeight: 1.5, marginBottom: 12 }}>We found properties from before. Open your board to continue where you left off.</p>
-            <button onClick={() => onJoin(migrationCode)} style={{ width: '100%', padding: '11px', background: '#6254d0', border: 'none', borderRadius: 10, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          <div style={{ background: '#fbf8f3', border: '1px solid rgba(43,37,33,0.10)', borderRadius: 22, padding: '18px 20px', marginBottom: 16, animation: 'fadeUp 0.3s ease' }}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 22, fontWeight: 500, marginBottom: 4 }}>Welcome back</div>
+            <p style={{ fontSize: 13, color: '#5b4c3f', lineHeight: 1.5, marginBottom: 12 }}>We found your homes from before. Open your board to carry on where you left off.</p>
+            <button onClick={() => onJoin(migrationCode)} style={{ ...primaryBtnSt, width: '100%', padding: '12px' }}>
               Open my board →
             </button>
           </div>
         )}
 
         {/* Start new board */}
-        <div style={{ marginBottom: 10 }}>
-          <input value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name your board (optional, e.g. London 2025)"
-            style={{ width: '100%', padding: '11px 14px', border: '1px solid #e0dff0', borderRadius: 10, fontSize: 14, fontFamily: "'DM Sans', sans-serif", color: '#1C1427', marginBottom: 8, outline: 'none', background: '#fff' }} />
-          <button onClick={() => onStart(nameInput.trim())} disabled={starting} style={{ width: '100%', padding: '15px', background: starting ? '#f0eff9' : 'linear-gradient(135deg,#9b95eb,#6254d0)', color: starting ? '#B0A8BC' : '#fff', border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: starting ? 'none' : '0 4px 20px rgba(98,84,208,0.3)', transition: 'all 0.2s' }}>
-            {starting ? 'Creating your board…' : 'Start my property search →'}
+        <div style={{ marginBottom: 12 }}>
+          <input value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name your board (optional, e.g. London 2026)"
+            style={{ ...field, marginBottom: 10 }} />
+          <button onClick={() => onStart(nameInput.trim())} disabled={starting} style={{ ...primaryBtnSt, width: '100%', padding: '16px', fontSize: 15, background: starting ? '#e3d8c9' : '#a3462b', color: starting ? '#8b7f72' : '#fbf5ee', boxShadow: starting ? 'none' : primaryBtnSt.boxShadow, cursor: starting ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
+            {starting ? 'Creating your board…' : 'Start my home search →'}
           </button>
         </div>
 
         {/* Join existing board */}
         {!showJoin ? (
-          <button onClick={() => setShowJoin(true)} style={{ width: '100%', padding: '12px', background: 'none', border: '1px solid #e0dff0', borderRadius: 13, color: '#6D6077', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          <button onClick={() => setShowJoin(true)} style={{ ...ghostBtnSt, width: '100%', padding: '13px', fontSize: 14 }}>
             I have a board code
           </button>
         ) : (
-          <div style={{ border: '1px solid #e0dff0', borderRadius: 13, padding: 16, background: '#FFFFFF' }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: '#A89DB0', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 8 }}>Enter board code</label>
+          <div style={{ border: '1px solid rgba(43,37,33,0.10)', borderRadius: 22, padding: 18, background: '#fbf8f3' }}>
+            <label style={labelSt}>Enter board code</label>
             <div style={{ display: 'flex', gap: 8 }}>
               <input value={codeInput} onChange={e => { setCodeInput(e.target.value.toUpperCase()); setError('') }} onKeyDown={e => e.key === 'Enter' && handleJoin()} placeholder="e.g. NW4X7K" autoFocus
-                style={{ flex: 1, padding: '10px 12px', border: '1px solid #c4c1e0', borderRadius: 9, fontSize: 15, fontFamily: 'monospace', letterSpacing: 2, outline: 'none', color: '#1C1427', fontWeight: 700 }} />
-              <button onClick={handleJoin} style={{ padding: '10px 16px', background: '#6254d0', border: 'none', borderRadius: 9, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Join</button>
+                style={{ ...field, flex: 1, minWidth: 0, background: '#f6f1ea', fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 600, letterSpacing: '0.18em', padding: '8px 18px' }} />
+              <button onClick={handleJoin} style={{ ...primaryBtnSt, padding: '10px 20px' }}>Join</button>
             </div>
-            {error && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 6 }}>{error}</div>}
+            {error && <div style={{ fontSize: 12, color: '#9b3b2a', marginTop: 8 }}>{error}</div>}
           </div>
         )}
 
-        <p style={{ textAlign: 'center', fontSize: 12, color: '#C4C1E0', marginTop: 20, lineHeight: 1.6 }}>
-          Each board is private — bookmark your link to return anytime.<br />Share the link with others to search together.
+        <p style={{ textAlign: 'center', fontSize: 12, color: '#8b7f72', marginTop: 22, lineHeight: 1.6 }}>
+          Each board is private. Bookmark your link to come back anytime,<br />or share it with whoever you’re searching with.
         </p>
       </div>
     </div>
@@ -1994,66 +1987,104 @@ export default function NestWell() {
     return <LandingPage onStart={handleCreateBoard} onJoin={handleJoinBoard} migrationCode={migrationCode} starting={starting} />;
   }
 
+  // Greeting strip — a calm summary of where the search is
+  const active = properties.filter(p => p.status !== "archived");
+  const booked = active.filter(p => p.status === "booked" && p.viewingDate).sort((a, b) => new Date(a.viewingDate) - new Date(b.viewingDate));
+  const seenCount = active.filter(p => p.status === "viewed").length;
+  const favourite = [...active].filter(p => p.scores && Object.keys(p.scores).length > 0)
+    .sort((a, b) => (getTotal(b.scores) + getBonusTotal(b.bonuses)) - (getTotal(a.scores) + getBonusTotal(a.bonuses)))[0];
+  const favTotal = favourite ? getTotal(favourite.scores) + getBonusTotal(favourite.bonuses) : null;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
+  const WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
+  const word = n => WORDS[n] || String(n);
+  const shortName = p => (p.name || p.address || "").split(",")[0];
+  const when = iso => {
+    const d = new Date(iso), h = d.getHours(), m = d.getMinutes();
+    const time = `${h % 12 || 12}${m ? ":" + String(m).padStart(2, "0") : ""}${h < 12 ? "am" : "pm"}`;
+    return `${d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" })} at ${time}`;
+  };
+  const headline = booked.length
+    ? <>{greeting} <em style={{ color: "#a3462b" }}>{word(booked.length)} viewing{booked.length > 1 ? "s" : ""}</em> booked.</>
+    : active.length
+      ? <>{greeting} <em style={{ color: "#a3462b" }}>{word(active.length)} home{active.length > 1 ? "s" : ""}</em> on your board.</>
+      : <>{greeting} <em style={{ color: "#a3462b" }}>Let’s find your home.</em></>;
+  const subline = [
+    booked.length ? booked.slice(0, 2).map(p => `${shortName(p)} on ${when(p.viewingDate)}`).join(", ") + "." : null,
+    favourite ? `${shortName(favourite)} is your favourite so far.` : null,
+    !active.length ? "Paste a link from Rightmove, Zoopla or any agent to add your first home." : null,
+  ].filter(Boolean).join(" ");
+
+  const navBtn = { background: "none", border: "none", color: "#8b7f72", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif", padding: "9px 14px", borderRadius: 99, display: "flex", alignItems: "center", gap: 6 };
+  const badge = (n, bg) => <span style={{ position: "absolute", top: 2, right: 2, background: bg, color: "#fbf5ee", fontSize: 9, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", lineHeight: 1 }}>{n}</span>;
+
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#fafafa",
-      backgroundImage: "radial-gradient(ellipse at 10% 0%, rgba(98,84,208,0.07) 0%, transparent 55%), radial-gradient(ellipse at 90% 100%, rgba(98,84,208,0.04) 0%, transparent 55%)",
-      fontFamily: "'DM Sans', sans-serif",
-      color: "#1C1427",
+      ...PLASTER_BG,
+      fontFamily: "'Manrope', sans-serif",
+      color: "#2b2521",
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,800&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(98,84,208,0.18); border-radius: 3px; }
-        button:focus, input:focus, select:focus { outline: none; }
+        ::-webkit-scrollbar-thumb { background: rgba(43,37,33,0.14); border-radius: 6px; }
+        button:focus, input:focus, select:focus, textarea:focus { outline: none; }
         input[type="date"], input[type="time"] { color-scheme: light; }
+        ::selection { background: #f1ddd2; }
       `}</style>
 
       {/* HEADER */}
       <div style={{
-        borderBottom: "1px solid #e0dff0", padding: "0 24px",
+        borderBottom: "1px solid rgba(43,37,33,0.10)", padding: narrow ? "0 16px" : "0 32px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        height: 62, position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(250,250,250,0.95)", backdropFilter: "blur(14px)"
+        height: narrow ? 62 : 72, position: "sticky", top: 0, zIndex: 50,
+        background: "rgba(243,236,226,0.85)", backdropFilter: "blur(14px)"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <h1 onClick={handleGoHome} style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px", color: "#1C1427", cursor: "pointer", whiteSpace: "nowrap" }} title="Back to home">
-            Nest<span style={{ color: "#6254d0" }}> Well</span>
+        <div style={{ display: "flex", alignItems: "center", gap: narrow ? 10 : 18, minWidth: 0 }}>
+          <h1 onClick={handleGoHome} style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: narrow ? 25 : 30, fontWeight: 500, letterSpacing: "-0.01em", color: "#2b2521", cursor: "pointer", whiteSpace: "nowrap", lineHeight: 1 }} title="Back to home">
+            Nest <span style={{ color: "#a3462b" }}>Well</span>
           </h1>
           {/* Board name dropdown trigger */}
-          <div ref={boardMenuRef} style={{ position: "relative", borderLeft: "1px solid #e0dff0", paddingLeft: narrow ? 8 : 14 }}>
+          <div ref={boardMenuRef} style={{ position: "relative", borderLeft: "1px solid rgba(43,37,33,0.12)", paddingLeft: narrow ? 10 : 18 }}>
             <button onClick={() => { if (!showBoardMenu) setBoardMenuName(boardName); setShowBoardMenu(v => !v); }}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 4 }}>
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "'Manrope', sans-serif", display: "flex", alignItems: "center", gap: 8 }}>
               {narrow ? (
-                <Icon icon="solar:settings-bold" width={16} style={{ color: showBoardMenu ? "#6254d0" : "#A89DB0" }} />
+                <Icon icon="solar:settings-bold" width={17} style={{ color: showBoardMenu ? "#a3462b" : "#8b7f72" }} />
               ) : (
                 <>
-                  <span style={{ fontSize: 13, color: boardName ? "#6D6077" : "#C4C1E0", fontWeight: 600, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{boardName ? (boardName.length > 25 ? boardName.slice(0, 25) + "…" : boardName) : "Unnamed board"}</span>
-                  <Icon icon="solar:alt-arrow-down-bold" width={12} style={{ color: "#C4C1E0", transition: "transform 0.15s", transform: showBoardMenu ? "rotate(180deg)" : "rotate(0deg)" }} />
+                  <span style={{ fontSize: 13, color: boardName ? "#5b4c3f" : "#b8ab9c", fontWeight: 600, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{boardName ? (boardName.length > 25 ? boardName.slice(0, 25) + "…" : boardName) : "Unnamed board"}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "#8b7f72", padding: "4px 8px", border: "1px solid rgba(43,37,33,0.2)", borderRadius: 99 }}>{boardCode}</span>
+                  <Icon icon="solar:alt-arrow-down-bold" width={12} style={{ color: "#b8ab9c", transition: "transform 0.15s", transform: showBoardMenu ? "rotate(180deg)" : "rotate(0deg)" }} />
                 </>
               )}
             </button>
             {showBoardMenu && (
-              <div style={{ position: "absolute", top: "calc(100% + 10px)", left: 0, background: "#fff", border: "1px solid #e0dff0", borderRadius: 12, boxShadow: "0 8px 24px rgba(28,20,39,0.10)", padding: 16, width: 260, zIndex: 200, animation: "fadeUp 0.15s ease" }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>Board name</label>
+              <div style={{ position: "absolute", top: "calc(100% + 14px)", left: 0, background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 22, boxShadow: "0 30px 60px -30px rgba(91,76,63,0.55)", padding: 20, width: 300, zIndex: 200, animation: "fadeUp 0.15s ease" }}>
+                <label style={labelSt}>Board name</label>
                 <input autoFocus value={boardMenuName} onChange={e => setBoardMenuName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') { saveBoardName(boardMenuName); setShowBoardMenu(false); } if (e.key === 'Escape') setShowBoardMenu(false); }}
-                  placeholder="e.g. London 2025"
-                  style={{ width: "100%", padding: "8px 10px", border: "1px solid #e0dff0", borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', sans-serif", color: "#1C1427", marginBottom: 8, outline: "none" }} />
+                  placeholder="e.g. London 2026"
+                  style={{ ...inputSt, padding: "10px 14px", marginBottom: 10 }} />
                 <button onClick={() => { saveBoardName(boardMenuName); setShowBoardMenu(false); }}
-                  style={{ width: "100%", padding: "8px", background: "#6254d0", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: 10 }}>
+                  style={{ ...primaryBtnSt, width: "100%", padding: "10px", marginBottom: 16 }}>
                   Save name
                 </button>
-                <div style={{ borderTop: "1px solid #f0eff9", paddingTop: 10 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: "#A89DB0", textTransform: "uppercase", letterSpacing: 1, display: "block", marginBottom: 6 }}>Share this board</label>
+                <div style={{ borderTop: "1px solid rgba(43,37,33,0.10)", paddingTop: 16 }}>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 22, fontWeight: 500, marginBottom: 4 }}>Search together</div>
+                  <p style={{ fontSize: 12.5, color: "#8b7f72", lineHeight: 1.5, marginBottom: 12 }}>Anyone with this code sees the same board, with viewings, scores and notes.</p>
+                  <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
+                    {boardCode.split("").map((ch, i) => (
+                      <span key={i} style={{ flex: 1, height: 42, display: "grid", placeItems: "center", fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 500, background: "#f6f1ea", border: "1px solid rgba(43,37,33,0.10)", borderRadius: "12px 12px 6px 6px" }}>{ch}</span>
+                    ))}
+                  </div>
                   <button onClick={() => { navigator.clipboard.writeText(window.location.href); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                    style={{ width: "100%", padding: "8px 10px", background: copied ? "#f0fdf4" : "#f8f8fc", border: `1px solid ${copied ? "#86efac" : "#e0dff0"}`, borderRadius: 8, color: copied ? "#059669" : "#6D6077", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}>
+                    style={{ width: "100%", padding: "10px", background: copied ? "#eef0e2" : "#f6f1ea", border: `1px solid ${copied ? "#cfd3b4" : "rgba(43,37,33,0.14)"}`, borderRadius: 99, color: copied ? "#5f6b3a" : "#5b4c3f", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}>
                     <Icon icon={copied ? "solar:check-bold" : "solar:copy-bold"} width={13} />
                     {copied ? "Link copied!" : "Copy share link"}
                   </button>
@@ -2061,70 +2092,70 @@ export default function NestWell() {
               </div>
             )}
           </div>
-          {!narrow && (
-            <span style={{ fontSize: 11, color: "#A89DB0", fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", borderLeft: "1px solid #e0dff0", paddingLeft: 14 }}>
-              {properties.filter(p => p.status !== "archived").length} {properties.filter(p => p.status !== "archived").length === 1 ? "property" : "properties"}
-            </span>
-          )}
         </div>
-        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: narrow ? 4 : 8, alignItems: "center" }}>
           {archivedCount > 0 && (
-            narrow ? (
+            narrow || medium ? (
               <div style={{ position: "relative" }}>
-                <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", padding: "8px", display: "flex", alignItems: "center" }} title="Archive">
+                <button onClick={() => setShowArchive(true)} style={{ ...navBtn, padding: 8 }} title={`Archive (${archivedCount})`}>
                   <Icon icon="solar:archive-bold" width={18} />
                 </button>
-                <span style={{ position: "absolute", top: 2, right: 2, background: "#A89DB0", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", lineHeight: 1 }}>{archivedCount}</span>
+                {narrow && badge(archivedCount, "#8b7f72")}
               </div>
-            ) : medium ? (
-              <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", cursor: "pointer", padding: "6px", display: "flex", alignItems: "center" }} title={`Archive (${archivedCount})`}>
-                <Icon icon="solar:archive-bold" width={18} />
-              </button>
             ) : (
-              <button onClick={() => setShowArchive(true)} style={{ background: "none", border: "none", color: "#A89DB0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
+              <button onClick={() => setShowArchive(true)} style={navBtn}>
                 <Icon icon="solar:archive-bold" width={14} /> Archive ({archivedCount})
               </button>
             )
           )}
           {scoredCount > 0 && (
-            narrow ? (
+            narrow || medium ? (
               <div style={{ position: "relative" }}>
-                <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", cursor: "pointer", padding: "8px", display: "flex", alignItems: "center" }} title="Leaderboard">
-                  <Icon icon="solar:cup-star-bold" width={18} style={{ color: "#6254d0" }} />
+                <button onClick={() => setShowLeaderboard(true)} style={{ ...navBtn, color: "#a3462b", padding: 8 }} title={`Favourites (${scoredCount})`}>
+                  <Icon icon="solar:cup-star-bold" width={18} />
                 </button>
-                <span style={{ position: "absolute", top: 2, right: 2, background: "#6254d0", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", lineHeight: 1 }}>{scoredCount}</span>
+                {narrow && badge(scoredCount, "#a3462b")}
               </div>
-            ) : medium ? (
-              <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", cursor: "pointer", padding: "6px", display: "flex", alignItems: "center" }} title={`Leaderboard (${scoredCount})`}>
-                <Icon icon="solar:cup-star-bold" width={18} style={{ color: "#6254d0" }} />
-              </button>
             ) : (
-              <button onClick={() => setShowLeaderboard(true)} style={{ background: "none", border: "none", color: "#6254d0", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "4px 8px", display: "flex", alignItems: "center", gap: 5 }}>
-                <Icon icon="solar:cup-star-bold" width={14} style={{ color: "#6254d0" }} /> Leaderboard ({scoredCount})
+              <button onClick={() => setShowLeaderboard(true)} style={{ ...navBtn, color: "#2b2521", background: "#fbf8f3", boxShadow: "0 10px 24px -16px rgba(91,76,63,0.55)" }}>
+                <Icon icon="solar:cup-star-bold" width={14} style={{ color: "#a3462b" }} /> Favourites ({scoredCount})
               </button>
             )
           )}
           {!narrow && (
-            <button onClick={() => setShowAdd(true)} style={{
-              padding: "11px 22px", background: "linear-gradient(135deg,#9b95eb,#6254d0)",
-              border: "none", borderRadius: 10, color: "#FFFFFF", fontSize: 15, fontWeight: 700,
-              cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-              boxShadow: "0 3px 12px rgba(98,84,208,0.3)"
-            }}>
-              + Add Property
+            <button onClick={() => setShowAdd(true)} style={{ ...primaryBtnSt, padding: "12px 22px", marginLeft: 8 }}>
+              ＋ Add a home
             </button>
           )}
         </div>
       </div>
 
+      {/* GREETING */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 32, padding: narrow ? "22px 16px 6px" : "28px 32px 14px", animation: "fadeUp 0.4s ease" }}>
+        <div style={{ minWidth: 0 }}>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 400, fontSize: narrow ? 30 : 44, lineHeight: 1.02, letterSpacing: "-0.015em" }}>{headline}</h2>
+          {subline && <p style={{ fontSize: narrow ? 13 : 14, color: "#8b7f72", marginTop: 8, lineHeight: 1.5 }}>{subline}</p>}
+        </div>
+        {!narrow && active.length > 0 && (
+          <div style={{ display: "flex", gap: 26, marginLeft: "auto", paddingBottom: 4 }}>
+            {[[active.length, "Homes"], [seenCount, "Seen"], ...(favTotal != null ? [[favTotal, "Top score"]] : [])].map(([n, l]) => (
+              <div key={l} style={{ borderLeft: "1px solid rgba(43,37,33,0.2)", paddingLeft: 16 }}>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 34, fontWeight: 500, lineHeight: 1 }}>{n}</div>
+                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8b7f72", marginTop: 4 }}>{l}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* KANBAN */}
       <div style={narrow ? {
-        display: "flex", flexDirection: "column", paddingBottom: 96,
+        display: "flex", flexDirection: "column", gap: 8, padding: "8px 16px 110px",
       } : {
-        display: "grid", gridTemplateColumns: "repeat(4, minmax(250px, 1fr))",
-        minHeight: "calc(100vh - 62px)", overflowX: "auto",
+        display: "grid", gridTemplateColumns: "repeat(4, minmax(240px, 1fr))", gap: 20,
+        padding: "8px 32px 40px", overflowX: "auto", alignItems: "start",
       }}>
-        {COLUMNS.map((col, ci) => {
+        {COLUMNS.map(col => {
           const colProps = properties.filter(p => p.status === col.id && p.status !== "archived");
           if (col.id === "booked") {
             colProps.sort((a, b) => {
@@ -2140,31 +2171,29 @@ export default function NestWell() {
             );
           }
           return (
-            <div key={col.id} style={narrow ? {
-              borderBottom: "1px solid #e0dff0", padding: "18px 16px",
-              background: "#fafafa",
-            } : {
-              borderRight: ci < 3 ? "1px solid #e0dff0" : "none",
-              padding: "22px 16px", minHeight: "calc(100vh - 62px)",
-              background: ci % 2 === 0 ? "#fafafa" : "#fffaf8",
-            }}>
-              <div style={{ marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                  <Icon icon={col.icon} width={15} style={{ color: col.color }} />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: col.color, letterSpacing: 0.3 }}>{col.label}</span>
+            <div key={col.id} style={{ minWidth: 0, paddingTop: narrow ? 14 : 0 }}>
+              <div style={{ marginBottom: 14, display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "0 4px 8px", borderBottom: "1px solid rgba(43,37,33,0.10)" }}>
+                <div>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 25, fontWeight: 500, lineHeight: 1, color: "#2b2521" }}>{col.label}</div>
+                  <div style={{ fontSize: 11, color: "#8b7f72", marginTop: 4 }}>{col.sub}</div>
                 </div>
-                <span style={{ background: col.accent, border: `1px solid ${col.color}44`, borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700, color: col.color }}>
+                <span style={{ background: "#e3d8c9", borderRadius: 99, padding: "4px 9px", fontSize: 11, fontWeight: 600, color: "#5b4c3f" }}>
                   {colProps.length}
                 </span>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {colProps.map(p => (
                   <PropertyCard key={p.id} property={p} onOpen={handleCardOpen} onDelete={deleteProperty} onMove={moveProperty} onUpdate={updateProperty} />
                 ))}
-                {colProps.length === 0 && (
-                  <div style={{ height: narrow ? 48 : 90, borderRadius: 12, border: `1px dashed ${col.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#C4BCCC" }}>
-                    Empty
+                {col.id === "listing" ? (
+                  <button onClick={() => setShowAdd(true)} style={{ border: "1.5px dashed #d6c8b6", borderRadius: 20, padding: "18px 14px", background: "transparent", color: "#8b7f72", fontSize: 12.5, cursor: "pointer", fontFamily: "'Manrope', sans-serif", textAlign: "center" }}>
+                    <span style={{ display: "block", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 20, fontWeight: 500, color: "#2b2521", marginBottom: 3 }}>{colProps.length ? "Found another?" : "Add your first home"}</span>
+                    Paste a Rightmove, Zoopla or agent link
+                  </button>
+                ) : colProps.length === 0 && (
+                  <div style={{ height: narrow ? 52 : 96, borderRadius: 20, border: "1.5px dashed rgba(43,37,33,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 17, color: "#b8ab9c" }}>
+                    Nothing here yet
                   </div>
                 )}
               </div>
@@ -2178,11 +2207,11 @@ export default function NestWell() {
         <button onClick={() => setShowAdd(true)} style={{
           position: "fixed", bottom: 24, right: 20, zIndex: 90,
           width: 56, height: 56, borderRadius: "50%",
-          background: "linear-gradient(135deg,#9b95eb,#6254d0)",
+          background: "#a3462b",
           border: "none", color: "#fff", cursor: "pointer",
-          boxShadow: "0 4px 20px rgba(98,84,208,0.45)",
+          boxShadow: "0 12px 26px -10px rgba(163,70,43,0.8)",
           display: "flex", alignItems: "center", justifyContent: "center",
-        }} title="Add property">
+        }} title="Add a home">
           <Icon icon="solar:add-circle-bold" width={28} />
         </button>
       )}
@@ -2240,20 +2269,27 @@ function PropertyOverviewWithMove({ property, onClose, onStartScoring, onMove })
 }
 
 const labelSt = {
-  display: "block", fontSize: 11, fontWeight: 700, color: "#6D6077",
-  textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8
+  display: "block", fontSize: 10, fontWeight: 600, color: "#8b7f72",
+  textTransform: "uppercase", letterSpacing: "0.16em", marginBottom: 8
 };
 
 const inputSt = {
-  width: "100%", padding: "12px 14px",
-  background: "#f5f3fc", border: "1px solid #c4c1e0",
-  borderRadius: 11, color: "#1C1427", fontSize: 14,
-  fontFamily: "'DM Sans', sans-serif"
+  width: "100%", padding: "12px 16px",
+  background: "#f6f1ea", border: "1px solid rgba(43,37,33,0.14)",
+  borderRadius: 14, color: "#2b2521", fontSize: 14,
+  fontFamily: "'Manrope', sans-serif"
 };
 
 const ghostBtnSt = {
-  padding: "8px 16px", background: "#f5f3fc",
-  border: "1px solid #c4c1e0", borderRadius: 9,
-  color: "#6D6077", fontSize: 13, fontWeight: 600,
-  cursor: "pointer", fontFamily: "'DM Sans', sans-serif"
+  padding: "9px 16px", background: "rgba(251,248,243,0.6)",
+  border: "1px solid rgba(43,37,33,0.18)", borderRadius: 99,
+  color: "#5b4c3f", fontSize: 13, fontWeight: 600,
+  cursor: "pointer", fontFamily: "'Manrope', sans-serif"
+};
+
+const primaryBtnSt = {
+  padding: "12px 20px", background: "#a3462b",
+  border: "none", borderRadius: 99, color: "#fbf5ee", fontSize: 13, fontWeight: 600,
+  cursor: "pointer", fontFamily: "'Manrope', sans-serif",
+  boxShadow: "0 10px 22px -12px rgba(163,70,43,0.9)"
 };
