@@ -283,7 +283,7 @@ footer .grow { flex: 1; }
       <li><a href="#together">Together</a></li>
       <li><a href="#next">What’s next</a></li>
     </ul>
-    <a href="http://localhost:5173" class="btn pri">Start your search</a>
+    <a href="#" data-cta="nav" class="btn pri">Start your search</a>
   </div>
 </nav>
 
@@ -295,7 +295,7 @@ footer .grow { flex: 1; }
       <h1 class="reveal d1">Find your home,<em>without losing the thread.</em></h1>
       <p class="lead reveal d2">Nest Well brings every listing, estate agent, viewing and gut feeling into one calm board. You always know who to call back, when you’re viewing next, and which home you loved most.</p>
       <div class="ctas reveal d3">
-        <a href="http://localhost:5173" class="btn pri">Start your search →</a>
+        <a href="#" data-cta="hero" class="btn pri">Start your search →</a>
         <a href="#tour" class="btn ghost">▶ Watch the 18-second tour</a>
       </div>
       <p class="works reveal d3">Paste a link from <b>Rightmove</b>, <b>Zoopla</b>, <b>OnTheMarket</b> or any agent’s site. No account needed.</p>
@@ -540,7 +540,7 @@ footer .grow { flex: 1; }
     <span class="eyebrow reveal">Start today</span>
     <h2 class="reveal d1">House hunting, <em>kept calm.</em></h2>
     <p class="lead reveal d2">Start a board in seconds, paste your first listing and invite whoever you’re searching with. No account needed.</p>
-    <a href="http://localhost:5173" class="btn pri reveal d3">Start your search →</a>
+    <a href="#" data-cta="footer" class="btn pri reveal d3">Start your search →</a>
     <div class="thumbs reveal d3">
       <div><img src="../assets/demo-images/flat-2.jpg" alt=""></div>
       <div><img src="../assets/demo-images/flat-9.jpg" alt=""></div>
@@ -560,6 +560,23 @@ footer .grow { flex: 1; }
 </footer>
 
 <script>
+// ── Funnel tracking: landing → board ─────────────────────────────────────────
+// Set APP_URL to the live app before publishing. Events go to the app's /api/events.
+const APP_URL = 'http://localhost:5173'
+const anonId = localStorage.getItem('nestwell-anon') || (crypto.randomUUID?.() || String(Date.now()) + Math.random().toString(36).slice(2))
+localStorage.setItem('nestwell-anon', anonId)
+const utm = Object.fromEntries([...new URLSearchParams(location.search)].filter(([k]) => k.startsWith('utm_')))
+function send(event, props) {
+  fetch(`${APP_URL}/api/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+    body: JSON.stringify({ event, anonId, props: { ...utm, ...props, referrer: document.referrer || undefined } }) }).catch(() => {})
+}
+send('landing_view', { path: location.pathname })
+document.querySelectorAll('[data-cta]').forEach(a => {
+  const qs = new URLSearchParams({ ref: 'landing', cta: a.dataset.cta, aid: anonId, ...utm })
+  a.href = `${APP_URL}/?${qs}`
+  a.addEventListener('click', () => send('landing_cta', { cta: a.dataset.cta }))
+})
+
 // Arch score gauge
 function gauge(el, score) {
   const w = 92, h = 110, r = w / 2, d = `M0 ${h}V${r}a${r} ${r} 0 0 1 ${w} 0V${h}Z`, id = 'c' + Math.random().toString(36).slice(2, 7)

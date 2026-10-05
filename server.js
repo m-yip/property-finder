@@ -3,6 +3,7 @@ import fs   from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { fetchPropertyData } from './scraper.js'
+import { handleBillingApi } from './billing.js'
 import pg from 'pg'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -87,6 +88,9 @@ const MIME = {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
+
+  // ── Accounts, funnel events, plans & checkout ──────────────────────────────
+  if (await handleBillingApi(req, res)) return
 
   // ── Board endpoints ───────────────────────────────────────────────────────
 

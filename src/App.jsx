@@ -1731,9 +1731,187 @@ function generateClientCode() {
   return code
 }
 
+// ─── ACCOUNT, TRACKING & PLANS ───────────────────────────────────────────────
+const USER_KEY = "nestwell-user", ANON_KEY = "nestwell-anon", ATTR_KEY = "nestwell-attribution";
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const PLAN_INFO = {
+  free:      { name: "Free" },
+  ten:       { name: "Search", price: "£8", homes: 10 },
+  unlimited: { name: "Unlimited", price: "£15" },
+};
+const FREE_ENTITLEMENT = { plan: "free", homes: 10, freeScoreAfter: 3, demo: true };
+
+function getUser() { try { return JSON.parse(localStorage.getItem(USER_KEY)) || null; } catch { return null; } }
+function saveUser(u) { localStorage.setItem(USER_KEY, JSON.stringify(u)); }
+function getAnonId() {
+  let id = localStorage.getItem(ANON_KEY);
+  if (!id) { id = (crypto.randomUUID?.() || String(Date.now()) + Math.random().toString(36).slice(2)); localStorage.setItem(ANON_KEY, id); }
+  return id;
+}
+function getAttribution() { try { return JSON.parse(localStorage.getItem(ATTR_KEY)) || null; } catch { return null; } }
+
+// First-touch attribution from the landing page (?ref=landing&cta=hero&aid=…&utm_*)
+function captureAttribution() {
+  const params = new URLSearchParams(window.location.search);
+  const aid = params.get("aid");
+  if (aid && /^[\w-]{8,64}$/.test(aid) && !localStorage.getItem(ANON_KEY)) localStorage.setItem(ANON_KEY, aid);
+  const keys = ["ref", "cta", "utm_source", "utm_medium", "utm_campaign", "utm_content"];
+  const found = Object.fromEntries(keys.map(k => [k, params.get(k)]).filter(([, v]) => v));
+  if (Object.keys(found).length && !getAttribution()) {
+    localStorage.setItem(ATTR_KEY, JSON.stringify({ ...found, referrer: document.referrer || undefined, firstSeen: new Date().toISOString() }));
+  }
+  // Keep the address bar clean once captured
+  if (aid || Object.keys(found).length) {
+    keys.concat("aid").forEach(k => params.delete(k));
+    const qs = params.toString();
+    window.history.replaceState({}, "", window.location.pathname + (qs ? `?${qs}` : ""));
+  }
+}
+
+function track(event, props = {}, board) {
+  const body = JSON.stringify({ event, anonId: getAnonId(), email: getUser()?.email, board, props: { ...props, ref: getAttribution()?.ref } });
+  fetch("/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
+}
+
+// ─── EMAIL CAPTURE (onboarding) ─────────────────────────────────────────────
+function EmailCapture({ title, subtitle, cta, context, onDone, onBack }) {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [marketing, setMarketing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => { track("onboarding_view", { context }); }, [context]);
+
+  async function submit(e) {
+    e?.preventDefault();
+    const value = email.trim().toLowerCase();
+    if (!EMAIL_RE.test(value)) { setError("Please enter a valid email address"); return; }
+    setBusy(true); setError("");
+    try {
+      const res = await fetch("/api/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: value, name: name.trim(), marketing, attribution: getAttribution() }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || "Something went wrong. Please try again.");
+      const user = { email: value, name: name.trim() };
+      saveUser(user);
+      track("email_submitted", { context, marketing });
+      onDone(user);
+    } catch (err) {
+      setError(err.message === "Failed to fetch" ? "We couldn’t reach Nest Well. Check your connection and try again." : err.message);
+    } finally { setBusy(false); }
+  }
+
+  const field = { width: "100%", padding: "13px 18px", border: "1px solid rgba(43,37,33,0.14)", borderRadius: 99, fontSize: 14, fontFamily: "'Manrope', sans-serif", color: "#2b2521", outline: "none", background: "#fbf8f3" };
+  return (
+    <form onSubmit={submit} style={{ background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 26, padding: 24, textAlign: "left", animation: "fadeUp 0.3s ease", boxShadow: "0 30px 60px -36px rgba(91,76,63,0.55)" }}>
+      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 28, fontWeight: 500, lineHeight: 1.1, color: "#2b2521" }}>{title}</div>
+      <p style={{ fontSize: 13.5, color: "#5b4c3f", lineHeight: 1.55, margin: "8px 0 18px" }}>{subtitle}</p>
+      <label style={labelSt}>Email</label>
+      <input type="email" autoFocus value={email} onChange={e => { setEmail(e.target.value); setError(""); }} placeholder="you@example.com" autoComplete="email" style={{ ...field, marginBottom: 12 }} />
+      <label style={labelSt}>First name <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>(optional)</span></label>
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="So your partner knows who’s who" autoComplete="given-name" style={{ ...field, marginBottom: 14 }} />
+      <label style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 12.5, color: "#5b4c3f", lineHeight: 1.45, cursor: "pointer", marginBottom: 16 }}>
+        <input type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} style={{ marginTop: 2, accentColor: "#a3462b", width: 15, height: 15, flexShrink: 0 }} />
+        Send me occasional house-hunting tips and product news. Unsubscribe anytime.
+      </label>
+      {error && <div style={{ fontSize: 12.5, color: "#9b3b2a", marginBottom: 12 }}>{error}</div>}
+      <button type="submit" disabled={busy} style={{ ...primaryBtnSt, width: "100%", padding: "15px", fontSize: 15, opacity: busy ? 0.7 : 1 }}>{busy ? "One moment…" : cta}</button>
+      <p style={{ fontSize: 11.5, color: "#8b7f72", lineHeight: 1.5, marginTop: 12, textAlign: "center" }}>
+        We use your email to keep your boards safe and send receipts. We never share it.
+      </p>
+      {onBack && <button type="button" onClick={onBack} style={{ display: "block", margin: "10px auto 0", background: "none", border: "none", color: "#8b7f72", fontSize: 12.5, cursor: "pointer", fontFamily: "'Manrope', sans-serif", textDecoration: "underline" }}>← Back</button>}
+    </form>
+  );
+}
+
+// ─── PAYWALL ────────────────────────────────────────────────────────────────
+function Paywall({ reason, homesCount, scoredCount, entitlement, boardCode, user, onClose, onUnlocked }) {
+  const narrow = useNarrow();
+  const [busy, setBusy] = useState(null);
+  const [error, setError] = useState("");
+  const upgradeOnly = entitlement.plan === "ten";
+  useEffect(() => { track("paywall_shown", { reason, homes: homesCount, scored: scoredCount, plan: entitlement.plan }, boardCode); }, []);
+
+  async function choose(plan) {
+    setBusy(plan); setError("");
+    track("plan_selected", { plan, reason }, boardCode);
+    try {
+      track("checkout_started", { plan }, boardCode);
+      const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ board: boardCode, email: user?.email, plan, returnUrl: window.location.origin + window.location.pathname }) });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "Checkout didn’t start. Please try again.");
+      if (data.url) { window.location.href = data.url; return; }
+      onUnlocked(data);
+    } catch (err) { setError(err.message); setBusy(null); }
+  }
+
+  const heading = reason === "homes" ? "Room for more homes" : reason === "upgrade" ? "Unlock your board" : "Keep scoring every viewing";
+  const sub = reason === "homes"
+    ? `You’ve reached ${homesCount} homes on this board. Unlock it to keep adding.`
+    : `You’ve added ${homesCount} home${homesCount === 1 ? "" : "s"} and scored ${scoredCount}. Unlock this board to score every viewing and compare them all.`;
+  const plans = [
+    !upgradeOnly && { id: "ten", name: "Search", price: "£8", tag: "For a short search", features: ["Up to 10 homes", "Unlimited scorecards", "One board", "Everyone on the board included"] },
+    { id: "unlimited", name: "Unlimited", price: "£15", tag: "Best value", features: ["Unlimited homes", "Unlimited boards", "Unlimited scorecards", "Everyone on your boards included"] },
+  ].filter(Boolean);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(43,37,33,0.32)", backdropFilter: "blur(10px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
+      onClick={e => { if (e.target === e.currentTarget) { track("paywall_dismissed", { reason }, boardCode); onClose(); } }}>
+      <div style={{ width: "100%", maxWidth: narrow ? "100%" : 720, maxHeight: "94vh", overflowY: "auto", background: "#f6f1ea", borderRadius: narrow ? "28px 28px 0 0" : 30, padding: narrow ? "26px 18px 24px" : "36px 36px 28px", boxShadow: "0 40px 80px -30px rgba(43,37,33,0.6)" }}>
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{ ...labelSt, marginBottom: 10 }}>{boardCode} · {homesCount} homes · {scoredCount} scored</div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: narrow ? 34 : 44, fontWeight: 500, lineHeight: 1, color: "#2b2521" }}>{heading}</h2>
+          <p style={{ fontSize: 14, color: "#5b4c3f", lineHeight: 1.55, marginTop: 10, maxWidth: 460, marginLeft: "auto", marginRight: "auto" }}>{sub}</p>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: !narrow && plans.length > 1 ? "1fr 1fr" : "1fr", gap: 14 }}>
+          {plans.map(pl => {
+            const best = pl.id === "unlimited";
+            return (
+              <div key={pl.id} style={{ position: "relative", background: best ? "#fbf8f3" : "rgba(251,248,243,0.55)", border: best ? "1.5px solid #a3462b" : "1px solid rgba(43,37,33,0.12)", borderRadius: 22, padding: "22px 22px 20px", boxShadow: best ? "0 24px 44px -30px rgba(163,70,43,0.7)" : "none", display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600 }}>{pl.name}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", padding: "5px 9px", borderRadius: 99, background: best ? "#a3462b" : "#e3d8c9", color: best ? "#fbf5ee" : "#5b4c3f" }}>{pl.tag}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "10px 0 4px" }}>
+                  <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 52, fontWeight: 500, lineHeight: 1, color: best ? "#a3462b" : "#2b2521" }}>{pl.price}</span>
+                  <span style={{ fontSize: 12.5, color: "#8b7f72" }}>one payment</span>
+                </div>
+                <div style={{ fontSize: 12.5, color: "#5b4c3f", marginBottom: 14 }}>{best ? "Unlimited homes, forever." : "Everything you need for one search."}</div>
+                <ul style={{ listStyle: "none", display: "grid", gap: 8, marginBottom: 18, flex: 1 }}>
+                  {pl.features.map(f => (
+                    <li key={f} style={{ display: "flex", gap: 9, fontSize: 13.5, color: "#2b2521", alignItems: "center" }}>
+                      <Icon icon="solar:check-circle-bold" width={16} style={{ color: best ? "#a3462b" : "#5f6b3a", flexShrink: 0 }} /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <button onClick={() => choose(pl.id)} disabled={!!busy}
+                  style={best ? { ...primaryBtnSt, width: "100%", padding: 14, fontSize: 14, opacity: busy && busy !== pl.id ? 0.6 : 1 } : { ...ghostBtnSt, width: "100%", padding: 13, fontSize: 14, opacity: busy && busy !== pl.id ? 0.6 : 1 }}>
+                  {busy === pl.id ? "Opening checkout…" : `Unlock with ${pl.name} · ${pl.price}`}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {error && <div style={{ fontSize: 13, color: "#9b3b2a", textAlign: "center", marginTop: 14 }}>{error}</div>}
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 18px", marginTop: 18, fontSize: 12, color: "#8b7f72" }}>
+          <span>✓ One payment covers everyone on this board</span>
+          <span>✓ No subscription</span>
+          {entitlement.demo && <span style={{ color: "#a3462b" }}>Demo mode: no card needed</span>}
+        </div>
+        <button onClick={() => { track("paywall_dismissed", { reason }, boardCode); onClose(); }}
+          style={{ display: "block", margin: "16px auto 0", background: "none", border: "none", color: "#8b7f72", fontSize: 13, cursor: "pointer", fontFamily: "'Manrope', sans-serif", textDecoration: "underline" }}>
+          Not now
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── LANDING PAGE ─────────────────────────────────────────────────────────────
-function LandingPage({ onStart, onJoin, migrationCode, starting }) {
+function LandingPage({ onStart, onJoin, migrationCode, starting, user, onUser }) {
   const [showJoin, setShowJoin] = useState(false)
+  const [pending, setPending] = useState(null) // { type: 'start', name } | { type: 'join', code } waiting on email
   const [codeInput, setCodeInput] = useState('')
   const [nameInput, setNameInput] = useState('')
   const [error, setError] = useState('')
@@ -1741,7 +1919,19 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
   function handleJoin() {
     const code = codeInput.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
     if (code.length < 4) { setError('Enter a valid board code'); return }
+    if (!user) { setPending({ type: 'join', code }); return }
     onJoin(code)
+  }
+
+  function handleStart() {
+    if (!user) { setPending({ type: 'start', name: nameInput.trim() }); return }
+    onStart(nameInput.trim())
+  }
+
+  function emailDone(u) {
+    onUser(u)
+    if (pending.type === 'start') onStart(pending.name)
+    else onJoin(pending.code)
   }
 
   const field = { width: '100%', padding: '13px 18px', border: '1px solid rgba(43,37,33,0.14)', borderRadius: 99, fontSize: 14, fontFamily: "'Manrope', sans-serif", color: '#2b2521', outline: 'none', background: '#fbf8f3' }
@@ -1776,11 +1966,21 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
           </div>
         )}
 
+        {pending ? (
+          <EmailCapture
+            context={pending.type === 'start' ? 'start' : 'join'}
+            title={pending.type === 'start' ? 'Where should we keep your board?' : 'Join the search'}
+            subtitle={pending.type === 'start' ? 'Add your email and we’ll keep your homes, scores and notes safe, so you can come back from any device.' : `You’re joining board ${pending.code}. Add your email so everyone knows who’s scoring what.`}
+            cta={pending.type === 'start' ? 'Start my home search →' : 'Join the board →'}
+            onDone={emailDone}
+            onBack={() => setPending(null)}
+          />
+        ) : (<>
         {/* Start new board */}
         <div style={{ marginBottom: 12 }}>
           <input value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name your board (optional, e.g. London 2026)"
             style={{ ...field, marginBottom: 10 }} />
-          <button onClick={() => onStart(nameInput.trim())} disabled={starting} style={{ ...primaryBtnSt, width: '100%', padding: '16px', fontSize: 15, background: starting ? '#e3d8c9' : '#a3462b', color: starting ? '#8b7f72' : '#fbf5ee', boxShadow: starting ? 'none' : primaryBtnSt.boxShadow, cursor: starting ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
+          <button onClick={handleStart} disabled={starting} style={{ ...primaryBtnSt, width: '100%', padding: '16px', fontSize: 15, background: starting ? '#e3d8c9' : '#a3462b', color: starting ? '#8b7f72' : '#fbf5ee', boxShadow: starting ? 'none' : primaryBtnSt.boxShadow, cursor: starting ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
             {starting ? 'Creating your board…' : 'Start my home search →'}
           </button>
         </div>
@@ -1801,6 +2001,8 @@ function LandingPage({ onStart, onJoin, migrationCode, starting }) {
             {error && <div style={{ fontSize: 12, color: '#9b3b2a', marginTop: 8 }}>{error}</div>}
           </div>
         )}
+
+        </>)}
 
         <p style={{ textAlign: 'center', fontSize: 12, color: '#8b7f72', marginTop: 22, lineHeight: 1.6 }}>
           Each board is private. Bookmark your link to come back anytime,<br />or share it with whoever you’re searching with.
@@ -1830,9 +2032,17 @@ export default function NestWell() {
   const narrow = useNarrow();       // < 768px — full mobile
   const medium = useNarrow(823);    // < 823px — icon-only header links
   const isRemoteUpdate = useRef(false);
+  const [user, setUser] = useState(() => getUser());
+  const [entitlement, setEntitlement] = useState(FREE_ENTITLEMENT);
+  const [paywall, setPaywall] = useState(null); // { reason: 'score' | 'homes' | 'upgrade' }
+  const [toastMsg, setToastMsg] = useState("");
+  const toastTimer = useRef(null);
+  function toast(msg) { setToastMsg(msg); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToastMsg(""), 3200); }
 
   // On mount: read board code from URL, or check for migration
   useEffect(() => {
+    captureAttribution();
+    track("app_open", { path: window.location.pathname });
     const params = new URLSearchParams(window.location.search);
     const code = params.get('board');
     if (code) {
@@ -1844,13 +2054,43 @@ export default function NestWell() {
     }
   }, []);
 
+  // Plan for this board (free / Search / Unlimited)
+  useEffect(() => {
+    if (!boardCode || !user) return;
+    fetch(`/api/entitlement?board=${boardCode}&email=${encodeURIComponent(user.email)}`).then(r => r.json())
+      .then(res => { if (res.ok) setEntitlement(res); }).catch(() => {});
+  }, [boardCode, user]);
+
+  // Returning from Stripe Checkout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("checkout");
+    if (!boardCode || !status) return;
+    const sessionId = params.get("session_id");
+    params.delete("checkout"); params.delete("session_id");
+    window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+    if (status === "success" && sessionId) {
+      fetch(`/api/checkout/verify?session_id=${encodeURIComponent(sessionId)}`).then(r => r.json())
+        .then(res => { if (res.ok) { setEntitlement(res); toast(`Board unlocked: ${PLAN_INFO[res.plan]?.name || "Paid"} plan`); } else toast("Payment is still processing, refresh in a moment."); })
+        .catch(() => {});
+    } else if (status === "cancelled") toast("Checkout cancelled. Your board is just as you left it.");
+  }, [boardCode]);
+
+  function claimBoard(code) {
+    const u = getUser();
+    track("board_created", {}, code);
+    if (!u) return;
+    fetch("/api/entitlement", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ board: code, email: u.email }) })
+      .then(r => r.json()).then(res => { if (res.ok) setEntitlement(res); }).catch(() => {});
+  }
+
   async function handleCreateBoard(name = '') {
     setStarting(true);
     try {
       const res = await fetch('/api/boards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
       if (res.ok) {
         const data = await res.json();
-        if (data.ok) { window.history.pushState({}, '', `?board=${data.code}`); setBoardCode(data.code); setBoardName(name); setStarting(false); return; }
+        if (data.ok) { window.history.pushState({}, '', `?board=${data.code}`); setBoardCode(data.code); setBoardName(name); setStarting(false); claimBoard(data.code); return; }
       }
     } catch {}
     // Fallback: generate locally (dev / no db)
@@ -1859,6 +2099,7 @@ export default function NestWell() {
     setBoardCode(code);
     setBoardName(name);
     setStarting(false);
+    claimBoard(code);
   }
 
   async function saveBoardName(name) {
@@ -1876,6 +2117,7 @@ export default function NestWell() {
   }
 
   function handleJoinBoard(code) {
+    track("board_joined", {}, code);
     window.history.pushState({}, '', `?board=${code}`);
     setBoardCode(code);
   }
@@ -1926,6 +2168,7 @@ export default function NestWell() {
   }, [dataLoaded, boardCode]);
 
   function addProperty(prop) {
+    track("listing_added", { method: prop.url ? "link" : "manual", status: prop.status, count: activeCount + 1 }, boardCode);
     setProperties(prev => [...prev, { ...prop, updatedAt: Date.now() }]);
     if (prop.status === "viewed") setOverviewProp(prop);
   }
@@ -1943,6 +2186,7 @@ export default function NestWell() {
 
   async function saveScores(updated) {
     const ts = Date.now();
+    track("scorecard_saved", { total: getTotal(updated.scores) + getBonusTotal(updated.bonuses) }, boardCode);
     // Optimistic local update
     setProperties(prev => prev.map(p => p.id === updated.id
       ? { ...p, scores: updated.scores, bonuses: updated.bonuses, status: "viewed", updatedAt: ts }
@@ -1980,11 +2224,50 @@ export default function NestWell() {
   }
 
   const scoredCount = properties.filter(p => p.scores && Object.keys(p.scores).length > 0 && p.status !== "archived").length;
+  const activeCount = properties.filter(p => p.status !== "archived").length;
+
+  // ── Free tier & paywall ──
+  // Free: score one home, then the paywall appears when starting a 2nd scorecard on a board with 3+ homes.
+  // Every plan except Unlimited caps the number of homes on the board.
+  function requestAdd() {
+    if (entitlement.homes != null && activeCount >= entitlement.homes) { setPaywall({ reason: "homes" }); return; }
+    setShowAdd(true);
+  }
+  function requestScoring(prop) {
+    const alreadyScored = prop.scores && Object.keys(prop.scores).length > 0;
+    if (entitlement.plan === "free" && !alreadyScored && activeCount >= (entitlement.freeScoreAfter ?? 3) && scoredCount >= 1) {
+      setPaywall({ reason: "score" });
+      return;
+    }
+    track("scorecard_started", { rescore: !!alreadyScored }, boardCode);
+    setScoringProp(prop);
+  }
+  function handleUnlocked(res) {
+    setEntitlement(res);
+    setPaywall(null);
+    toast(`Board unlocked: ${PLAN_INFO[res.plan]?.name} plan. Happy hunting!`);
+  }
   const archivedCount = properties.filter(p => p.status === "archived").length;
 
   // Show landing page until a board code is set
   if (!boardCode) {
-    return <LandingPage onStart={handleCreateBoard} onJoin={handleJoinBoard} migrationCode={migrationCode} starting={starting} />;
+    return <LandingPage onStart={handleCreateBoard} onJoin={handleJoinBoard} migrationCode={migrationCode} starting={starting} user={user} onUser={setUser} />;
+  }
+
+  // Opened a shared board link without an email yet
+  if (!user) {
+    return (
+      <div style={{ minHeight: "100vh", ...PLASTER_BG, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Manrope', sans-serif", color: "#2b2521" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } input::placeholder { color: #a89a8a; }`}</style>
+        <div style={{ width: "100%", maxWidth: 420 }}>
+          <div style={{ textAlign: "center", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 44, fontWeight: 500, marginBottom: 22 }}>Nest <span style={{ color: "#a3462b" }}>Well</span></div>
+          <EmailCapture context="shared-link" title={`You’ve been invited to ${boardName || `board ${boardCode}`}`}
+            subtitle="Add your email to see the homes, viewings and scores, and add your own thoughts."
+            cta="Open the board →"
+            onDone={u => { setUser(u); track("board_joined", { via: "link" }, boardCode); }} />
+        </div>
+      </div>
+    );
   }
 
   // Greeting strip — a calm summary of where the search is
@@ -2060,6 +2343,7 @@ export default function NestWell() {
                 <>
                   <span style={{ fontSize: 13, color: boardName ? "#5b4c3f" : "#b8ab9c", fontWeight: 600, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{boardName ? (boardName.length > 25 ? boardName.slice(0, 25) + "…" : boardName) : "Unnamed board"}</span>
                   <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "#8b7f72", padding: "4px 8px", border: "1px solid rgba(43,37,33,0.2)", borderRadius: 99 }}>{boardCode}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 8px", borderRadius: 99, background: entitlement.plan === "free" ? "#e3d8c9" : entitlement.plan === "unlimited" ? "#a3462b" : "#5f6b3a", color: entitlement.plan === "free" ? "#5b4c3f" : "#fbf5ee" }}>{PLAN_INFO[entitlement.plan]?.name}</span>
                   <Icon icon="solar:alt-arrow-down-bold" width={12} style={{ color: "#b8ab9c", transition: "transform 0.15s", transform: showBoardMenu ? "rotate(180deg)" : "rotate(0deg)" }} />
                 </>
               )}
@@ -2075,6 +2359,17 @@ export default function NestWell() {
                   style={{ ...primaryBtnSt, width: "100%", padding: "10px", marginBottom: 16 }}>
                   Save name
                 </button>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, borderTop: "1px solid rgba(43,37,33,0.10)", padding: "14px 0" }}>
+                  <div>
+                    <div style={labelSt}>Your plan</div>
+                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 600, marginTop: -4 }}>
+                      {PLAN_INFO[entitlement.plan]?.name}{entitlement.homes != null && <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 500, color: "#8b7f72" }}> · {activeCount}/{entitlement.homes} homes</span>}
+                    </div>
+                  </div>
+                  {entitlement.plan !== "unlimited" && (
+                    <button onClick={() => { setShowBoardMenu(false); setPaywall({ reason: "upgrade" }); }} style={{ ...primaryBtnSt, padding: "8px 14px", fontSize: 12 }}>Upgrade</button>
+                  )}
+                </div>
                 <div style={{ borderTop: "1px solid rgba(43,37,33,0.10)", paddingTop: 16 }}>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 22, fontWeight: 500, marginBottom: 4 }}>Search together</div>
                   <p style={{ fontSize: 12.5, color: "#8b7f72", lineHeight: 1.5, marginBottom: 12 }}>Anyone with this code sees the same board, with viewings, scores and notes.</p>
@@ -2123,7 +2418,7 @@ export default function NestWell() {
             )
           )}
           {!narrow && (
-            <button onClick={() => setShowAdd(true)} style={{ ...primaryBtnSt, padding: "12px 22px", marginLeft: 8 }}>
+            <button onClick={requestAdd} style={{ ...primaryBtnSt, padding: "12px 22px", marginLeft: 8 }}>
               ＋ Add a home
             </button>
           )}
@@ -2187,7 +2482,7 @@ export default function NestWell() {
                   <PropertyCard key={p.id} property={p} onOpen={handleCardOpen} onDelete={deleteProperty} onMove={moveProperty} onUpdate={updateProperty} />
                 ))}
                 {col.id === "listing" ? (
-                  <button onClick={() => setShowAdd(true)} style={{ border: "1.5px dashed #d6c8b6", borderRadius: 20, padding: "18px 14px", background: "transparent", color: "#8b7f72", fontSize: 12.5, cursor: "pointer", fontFamily: "'Manrope', sans-serif", textAlign: "center" }}>
+                  <button onClick={requestAdd} style={{ border: "1.5px dashed #d6c8b6", borderRadius: 20, padding: "18px 14px", background: "transparent", color: "#8b7f72", fontSize: 12.5, cursor: "pointer", fontFamily: "'Manrope', sans-serif", textAlign: "center" }}>
                     <span style={{ display: "block", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 20, fontWeight: 500, color: "#2b2521", marginBottom: 3 }}>{colProps.length ? "Found another?" : "Add your first home"}</span>
                     Paste a Rightmove, Zoopla or agent link
                   </button>
@@ -2204,7 +2499,7 @@ export default function NestWell() {
 
       {/* CIRCULAR FAB — mobile only */}
       {narrow && (
-        <button onClick={() => setShowAdd(true)} style={{
+        <button onClick={requestAdd} style={{
           position: "fixed", bottom: 24, right: 20, zIndex: 90,
           width: 56, height: 56, borderRadius: "50%",
           background: "#a3462b",
@@ -2224,7 +2519,7 @@ export default function NestWell() {
           property={(() => properties.find(p => p.id === overviewProp.id) || overviewProp)()}
           onClose={() => setOverviewProp(null)}
           onDelete={deleteProperty}
-          onStartScoring={() => setScoringProp(properties.find(p => p.id === overviewProp.id) || overviewProp)}
+          onStartScoring={() => requestScoring(properties.find(p => p.id === overviewProp.id) || overviewProp)}
           onEdit={fields => updateProperty(overviewProp.id, fields)}
           onMove={(id, newStatus) => {
             moveProperty(id, newStatus);
@@ -2251,6 +2546,17 @@ export default function NestWell() {
           onClose={() => setShowLeaderboard(false)}
           onRescore={prop => { setOverviewProp(prop); }}
         />
+      )}
+
+      {paywall && (
+        <Paywall reason={paywall.reason} homesCount={activeCount} scoredCount={scoredCount} entitlement={entitlement}
+          boardCode={boardCode} user={user} onClose={() => setPaywall(null)} onUnlocked={handleUnlocked} />
+      )}
+
+      {toastMsg && (
+        <div style={{ position: "fixed", left: "50%", bottom: narrow ? 96 : 28, transform: "translateX(-50%)", zIndex: 400, background: "#2b2521", color: "#f6f1ea", fontSize: 13, fontWeight: 500, padding: "12px 18px", borderRadius: 99, boxShadow: "0 20px 40px -20px rgba(43,37,33,0.8)", animation: "fadeUp 0.25s ease", whiteSpace: "nowrap" }}>
+          {toastMsg}
+        </div>
       )}
 
       {showArchive && (

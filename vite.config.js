@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fetchPropertyData } from './scraper.js'
+import { handleBillingApi } from './billing.js'
 
 export default defineConfig({
   plugins: [
@@ -8,6 +9,10 @@ export default defineConfig({
     {
       name: 'property-scraper',
       configureServer(server) {
+        // Accounts, funnel events, plans & checkout (JSON-file store in dev)
+        server.middlewares.use(async (req, res, next) => {
+          if (!(await handleBillingApi(req, res))) next()
+        })
         server.middlewares.use(async (req, res, next) => {
           if (!req.url?.startsWith('/api/scrape')) return next()
 
