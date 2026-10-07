@@ -1015,3 +1015,41 @@ function toNum(v) {
 function capitalise(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : ''
 }
+
+// ── Listing availability ──────────────────────────────────────────────────────
+// Conservative: only report "removed" on clear signals. Blocked or flaky responses are "unknown".
+const REMOVED_PATTERNS = [
+  /this property has been removed/i,
+  /(?:property|listing|advert|home) (?:is )?no longer (?:available|listed|on the market|being marketed|advertised)/i,
+  /this (?:property|listing|advert) (?:has been|was) (?:removed|withdrawn|taken down)/i,
+  /(?:listing|advert) (?:has )?expired/i,
+]
+const SEARCH_PATH = /\/(?:property-search|search|find|for-sale|to-rent|property-to-rent|property-for-sale|new-homes)(?:[/.?]|$)/i
+const PRIVATE_HOST = /^(?:localhost|0\.|10\.|127\.|169\.254\.|172\.(?:1[6-9]|2\d|3[01])\.|192\.168\.|\[?::1\]?|\[?f[cd])/i
+
+export async function checkListingStatus(rawUrl) {
+  let url
+  try { url = new URL(rawUrl) } catch { return { status: 'unknown', reason: 'bad-url' } }
+  if (!/^https?:$/.test(url.protocol) || PRIVATE_HOST.test(url.hostname)) return { status: 'unknown', reason: 'not-allowed' }
+  const id = (url.pathname.match(/\d{5,}/) || [])[0]
+  const get = (u, ms = 9000) => fetch(u, { headers: FETCH_HEADERS, redirect: 'manual', signal: AbortSignal.timeout(ms) })
+
+  try {
+    let resp = await get(url.href)
+    // Follow up to two redirects ourselves so we can see where the listing went
+    for (let hops = 0; resp.status >= 300 && resp.status < 400 && hops < 2; hops++) {
+      const next = new URL(resp.headers.get('location') || '/', url)
+      const lostId = id && !next.pathname.includes(id)
+      if (next.pathname === '/' || SEARCH_PATH.test(next.pathname) || lostId) return { status: 'removed', reason: 'redirected', to: next.pathname }
+      resp = await get(next.href)
+    }
+    if (resp.status === 404 || resp.status === 410) return { status: 'removed', reason: `http-${resp.status}` }
+    if (!resp.ok) return { status: 'unknown', reason: `http-${resp.status}` }
+    const html = (await resp.text()).slice(0, 1_500_000)
+    const text = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ')
+    if (REMOVED_PATTERNS.some(re => re.test(text))) return { status: 'removed', reason: 'page-says-removed' }
+    return { status: 'available' }
+  } catch (err) {
+    return { status: 'unknown', reason: err.name === 'TimeoutError' ? 'timeout' : 'network' }
+  }
+}

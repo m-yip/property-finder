@@ -252,6 +252,37 @@ const COLUMNS = [
   { id: "viewed",   label: "Seen",      sub: "Ranked by score",        icon: "solar:eye-bold",       color: "#a3462b", accent: "#f1ddd2" },
 ];
 
+// ─── LISTING AVAILABILITY ──────────────────────────────────────────────────
+// A listing is "removed" when the portal says so (checked server-side) and the user hasn't overridden it.
+function isRemoved(p) { return p?.listingStatus === "removed" && p?.listingOverride !== "available"; }
+function checkedLabel(p) {
+  return p?.listingCheckedAt ? new Date(p.listingCheckedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : null;
+}
+
+// Clean placeholder for missing or broken listing photos
+function PhotoPlaceholder({ label = "Photo no longer available", compact = false }) {
+  return (
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: compact ? 4 : 8,
+      background: "linear-gradient(160deg, #f1e9df 0%, #e3d8c9 100%)", color: "#a89a8a" }}>
+      <svg width={compact ? 30 : 46} height={compact ? 34 : 52} viewBox="0 0 46 52" fill="none" stroke="currentColor" strokeWidth="1.4">
+        <path d="M3 51V22a20 20 0 0 1 40 0v29Z" />
+        <path d="M23 7v44M3 30h40" opacity=".55" />
+      </svg>
+      {!compact && <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</span>}
+    </div>
+  );
+}
+
+// Dark pill used over photos for listing status
+function StatusPill({ children, style }) {
+  return (
+    <div style={{ position: "absolute", left: "50%", bottom: 10, transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+      fontSize: 11, fontWeight: 600, padding: "6px 12px", borderRadius: 99, background: "rgba(43,37,33,0.82)", color: "#f6f1ea", backdropFilter: "blur(6px)", ...style }}>
+      {children}
+    </div>
+  );
+}
+
 // ─── BONUS PREFERENCES ────────────────────────────────────────────────────
 const BONUSES = [
   { id: "low_charge",  label: "Low service charge",  icon: "solar:wallet-money-bold",  points: 3 },
@@ -439,6 +470,18 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
   const currentCol = COLUMNS.find(c => c.id === property.status);
   const isRent = /pcm|pw|per month|per week/i.test(property.price || "");
+  const removed = isRemoved(property);
+  const [heroFailed, setHeroFailed] = useState(false);
+  const [checking, setChecking] = useState(false);
+  async function checkAgain() {
+    if (!property.url) return;
+    setChecking(true);
+    try {
+      const res = await fetch(`/api/listing-status?url=${encodeURIComponent(property.url)}`).then(r => r.json());
+      if (res.ok && res.status !== "unknown") onEdit?.({ listingStatus: res.status, listingCheckedAt: Date.now(), listingOverride: res.status === "removed" ? null : property.listingOverride });
+    } catch {}
+    setChecking(false);
+  }
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 120,
@@ -465,10 +508,11 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
 
         {/* Arched hero */}
         <div style={{ position: "relative", height: 300, borderRadius: "300px 300px 22px 22px", overflow: "hidden", boxShadow: "0 30px 60px -34px rgba(91,76,63,0.6)" }}>
-          {property.image ? (
-            <img src={property.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          {property.image && !heroFailed ? (
+            <img src={property.image} alt="" onError={() => setHeroFailed(true)}
+              style={{ width: "100%", height: "100%", objectFit: "cover", filter: removed ? "grayscale(1) contrast(0.9)" : "none", opacity: removed ? 0.6 : 1 }} />
           ) : (
-            <div style={{ height: "100%", background: "linear-gradient(135deg,#f1ddd2,#e3d8c9)", display: "flex", alignItems: "center", justifyContent: "center", color: "#c9b8a4" }}><Icon icon="solar:home-2-bold" width={64} /></div>
+            <PhotoPlaceholder label={property.image ? "Photo no longer available" : "No photo yet"} />
           )}
           <div style={{ position: "absolute", left: "50%", bottom: 16, transform: "translateX(-50%)" }}>
             <button onClick={openPicker} style={{ background: "rgba(251,248,243,0.9)", border: "none", borderRadius: 99, padding: "8px 14px", fontSize: 12, fontWeight: 600, color: "#2b2521", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontFamily: "'Manrope', sans-serif", whiteSpace: "nowrap" }}>
@@ -484,7 +528,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
           {property.name}
         </h1>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 10px", fontSize: 13, color: "#8b7f72", marginBottom: 6 }}>
-          {property.price && <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: "#a3462b" }}>{property.price}</span>}
+          {property.price && <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: removed ? "#8b7f72" : "#a3462b" }}>{property.price}</span>}
           {property.price && <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" }}>{isRent ? "Monthly rent" : "Asking price"}</span>}
         </div>
         {property.agent && (
@@ -494,6 +538,27 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
           </div>
         )}
         {!property.agent && <div style={{ height: 16 }} />}
+
+        {/* Listing taken down */}
+        {removed && (
+          <div style={{ display: "flex", gap: 16, alignItems: "flex-start", background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 22, padding: "18px 20px", marginBottom: 20 }}>
+            <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#f1e9df", color: "#8b7f72", display: "grid", placeItems: "center", flexShrink: 0 }}>
+              <Icon icon="solar:link-broken-minimalistic-linear" width={20} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 24, fontWeight: 500, lineHeight: 1.1, color: "#2b2521" }}>This listing is no longer available</div>
+              <p style={{ fontSize: 13, color: "#5b4c3f", lineHeight: 1.55, margin: "6px 0 14px" }}>
+                It’s been let, sold or withdrawn by the agent{checkedLabel(property) ? ` (we last checked on ${checkedLabel(property)})` : ""}. Your notes and scores are kept here, so you can still compare it.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <button onClick={() => onMove?.(property.id, "archived")} style={{ ...primaryBtnSt, padding: "9px 16px", fontSize: 12.5 }}>Move to archive</button>
+                {property.agentPhone && <a href={`tel:${property.agentPhone.replace(/\s+/g, "")}`} style={{ ...ghostBtnSt, padding: "9px 16px", fontSize: 12.5, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}><Icon icon="solar:phone-bold" width={13} /> Ask the agent</a>}
+                <button onClick={() => onEdit?.({ listingOverride: "available" })} style={{ ...ghostBtnSt, padding: "9px 16px", fontSize: 12.5 }}>It’s still available</button>
+                {property.url && <button onClick={checkAgain} disabled={checking} style={{ background: "none", border: "none", color: "#8b7f72", fontSize: 12.5, textDecoration: "underline", cursor: "pointer", fontFamily: "'Manrope', sans-serif" }}>{checking ? "Checking…" : "Check again"}</button>}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Column picker dropdown (fixed-position, rendered via portal-like pattern) */}
         {pickerOpen && (
@@ -1089,6 +1154,8 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
   const hasScore = property.scores && Object.keys(property.scores).length > 0;
   const col = COLUMNS.find(c => c.id === property.status);
   const [editingDate, setEditingDate] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+  const removed = isRemoved(property);
   const [dateVal, setDateVal] = useState('');
   const [timeVal, setTimeVal] = useState('');
 
@@ -1129,19 +1196,24 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
     >
       {/* Arched photo */}
       <div style={{ position: "relative", height: 150, background: "#f1ddd2", overflow: "hidden", borderRadius: ARCH }}>
-        {property.image ? (
-          <img src={property.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        {property.image && !imgFailed ? (
+          <img src={property.image} alt="" onError={() => setImgFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", filter: removed ? "grayscale(1) contrast(0.9)" : "none", opacity: removed ? 0.55 : 1, transition: "filter 0.4s, opacity 0.4s" }} />
         ) : (
-          <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#d6c8b6" }}><Icon icon="solar:home-2-bold" width={44} /></div>
+          <PhotoPlaceholder label={property.image ? "Photo no longer available" : "No photo yet"} />
         )}
 
-        {property.status === "booked" && viewingLabel && (
+        {removed && (
+          <StatusPill><Icon icon="solar:link-broken-minimalistic-linear" width={13} /> No longer listed</StatusPill>
+        )}
+
+        {!removed && property.status === "booked" && viewingLabel && (
           <div style={{ ...pillSt, background: "#a3462b", color: "#fbf5ee" }}>
             <Icon icon="solar:calendar-bold" width={12} /> {viewingLabel}
           </div>
         )}
 
-        {property.status === "viewed" && !hasScore && (
+        {!removed && property.status === "viewed" && !hasScore && (
           <div style={{
             position: "absolute", bottom: 0, left: 0, right: 0,
             background: "linear-gradient(transparent, rgba(163,70,43,0.92))",
@@ -1168,13 +1240,22 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
           {property.name}
         </div>
         {property.price && (
-          <div style={{ fontSize: 13, color: "#a3462b", fontWeight: 600, marginTop: 4 }}>{property.price}</div>
+          <div style={{ fontSize: 13, color: removed ? "#8b7f72" : "#a3462b", fontWeight: 600, marginTop: 4 }}>{property.price}</div>
         )}
         {(property.bedrooms || property.sqft) && (
           <div style={{ fontSize: 12, color: "#8b7f72", marginTop: 3 }}>
             {property.bedrooms && `${property.bedrooms} bed`}
             {property.bathrooms && ` · ${property.bathrooms} bath`}
             {property.sqft && ` · ${property.sqft} sq ft`}
+          </div>
+        )}
+
+        {/* Taken down by the agent */}
+        {removed && (
+          <div onClick={e => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, padding: "9px 11px", borderRadius: 12, background: "#f1e9df", fontSize: 11.5, color: "#5b4c3f", lineHeight: 1.35 }}>
+            <span style={{ flex: 1 }}>The agent has taken this listing down{checkedLabel(property) ? ` · checked ${checkedLabel(property)}` : ""}.</span>
+            <button onClick={e => { e.stopPropagation(); onMove?.(property.id, "archived"); }}
+              style={{ background: "none", border: "none", padding: 0, color: "#a3462b", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "'Manrope', sans-serif", whiteSpace: "nowrap" }}>Archive</button>
           </div>
         )}
 
@@ -1639,7 +1720,8 @@ function Leaderboard({ properties, onClose, onRescore }) {
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: narrow ? 18 : 22, fontWeight: 600, lineHeight: 1.1, color: "#2b2521" }}>
                       {p.name}
-                      {isFirst && <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9.5, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#5f6b3a", background: "#e3e4d0", padding: "4px 8px", borderRadius: 99, marginLeft: 8, verticalAlign: "middle" }}>Top pick</span>}
+                      {isFirst && !isRemoved(p) && <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9.5, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#5f6b3a", background: "#e3e4d0", padding: "4px 8px", borderRadius: 99, marginLeft: 8, verticalAlign: "middle" }}>Top pick</span>}
+                      {isRemoved(p) && <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 9.5, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8b7f72", background: "#e3d8c9", padding: "4px 8px", borderRadius: 99, marginLeft: 8, verticalAlign: "middle" }}>No longer listed</span>}
                     </div>
                     <div style={{ fontSize: 12, color: "#8b7f72", marginTop: 4 }}>{p.price}{p.price && " · "}<em style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: scoreColor(total) }}>{verdictFor(total)}</em></div>
                     {narrow && <div style={{ fontSize: 11, color: "#8b7f72", marginTop: 4 }}>Best: {best.title} · Weakest: {worst.title}</div>}
@@ -2053,6 +2135,26 @@ export default function NestWell() {
         .catch(() => {});
     }
   }, []);
+
+  // Quietly re-check listing links (oldest first, a few per visit, at most every 12h each)
+  const checkedOnce = useRef(false);
+  useEffect(() => {
+    if (!dataLoaded || checkedOnce.current) return;
+    checkedOnce.current = true;
+    const STALE = 12 * 60 * 60 * 1000;
+    const due = properties
+      .filter(p => p.url && p.status !== "archived" && p.listingOverride !== "available" && (!p.listingCheckedAt || Date.now() - p.listingCheckedAt > STALE))
+      .sort((a, b) => (a.listingCheckedAt || 0) - (b.listingCheckedAt || 0))
+      .slice(0, 6);
+    (async () => {
+      for (const p of due) {
+        try {
+          const res = await fetch(`/api/listing-status?url=${encodeURIComponent(p.url)}`).then(r => r.json());
+          if (res.ok && res.status !== "unknown") updateProperty(p.id, { listingStatus: res.status, listingCheckedAt: Date.now(), updatedAt: Date.now() });
+        } catch {}
+      }
+    })();
+  }, [dataLoaded]);
 
   // Plan for this board (free / Search / Unlimited)
   useEffect(() => {

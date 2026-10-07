@@ -2,7 +2,7 @@ import http from 'http'
 import fs   from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { fetchPropertyData } from './scraper.js'
+import { fetchPropertyData, checkListingStatus } from './scraper.js'
 import { handleBillingApi } from './billing.js'
 import pg from 'pg'
 
@@ -199,6 +199,15 @@ const server = http.createServer(async (req, res) => {
       })
       return
     }
+  }
+
+  // ── Listing availability (has the agent taken it down?) ───────────────────
+  if (url.pathname === '/api/listing-status' && req.method === 'GET') {
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    const target = url.searchParams.get('url')
+    if (!target) { res.statusCode = 400; return res.end(JSON.stringify({ ok: false, error: 'Missing url parameter' })) }
+    return res.end(JSON.stringify({ ok: true, ...(await checkListingStatus(target)) }))
   }
 
   // ── Scrape endpoint ───────────────────────────────────────────────────────
