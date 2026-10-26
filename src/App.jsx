@@ -656,18 +656,26 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
           </div>
         )}
 
-        {/* Score CTA — only when viewed */}
+        {/* Score CTA — only when viewed. Unscored homes get the bold terracotta panel so it stands out. */}
         {property.status === "viewed" && (
-          <div style={{ background: hasScore ? "#fbf8f3" : "#f1ddd2", border: `1px solid ${hasScore ? "rgba(43,37,33,0.10)" : "transparent"}`, borderRadius: 22, padding: "18px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 22, fontWeight: 500, color: "#2b2521", marginBottom: 2 }}>
+          <div style={hasScore
+            ? { background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 22, padding: "18px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16 }
+            : { position: "relative", overflow: "hidden", background: "#a3462b", borderRadius: 22, padding: "22px 22px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16, boxShadow: "0 24px 44px -26px rgba(163,70,43,0.9)" }}>
+            {!hasScore && (
+              // Soft limewash glow behind the button
+              <div style={{ position: "absolute", right: -70, top: -120, width: 260, height: 260, borderRadius: "50%", background: "radial-gradient(circle, rgba(251,245,238,0.14), rgba(251,245,238,0) 70%)", pointerEvents: "none" }} />
+            )}
+            <div style={{ flex: 1, position: "relative" }}>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: hasScore ? 22 : 26, fontWeight: 500, color: hasScore ? "#2b2521" : "#fbf5ee", marginBottom: 3, lineHeight: 1.1 }}>
                 {hasScore ? "Update your scorecard" : "How did the viewing go?"}
               </div>
-              <div style={{ fontSize: 13, color: "#5b4c3f", lineHeight: 1.4 }}>
+              <div style={{ fontSize: 13, color: hasScore ? "#5b4c3f" : "rgba(251,245,238,0.85)", lineHeight: 1.45 }}>
                 {hasScore ? `Current score: ${total}` : "Score it while it’s fresh: six categories, about two minutes."}
               </div>
             </div>
-            <button onClick={onStartScoring} style={{ ...primaryBtnSt, flexShrink: 0, whiteSpace: "nowrap" }}>
+            <button onClick={onStartScoring} style={hasScore
+              ? { ...primaryBtnSt, flexShrink: 0, whiteSpace: "nowrap" }
+              : { ...primaryBtnSt, position: "relative", flexShrink: 0, whiteSpace: "nowrap", background: "#fbf8f3", color: "#a3462b", boxShadow: "0 10px 20px -12px rgba(43,37,33,0.6)" }}>
               {hasScore ? "Edit →" : "Start →"}
             </button>
           </div>
