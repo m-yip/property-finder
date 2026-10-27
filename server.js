@@ -14,6 +14,14 @@ function generateCode() {
   return code
 }
 
+// Only accept known search settings
+function cleanSettings(v) {
+  const out = {}
+  if (v && ['rent', 'buy'].includes(v.mode)) out.mode = v.mode
+  if (v && ['flat', 'house', 'both'].includes(v.lookingFor)) out.lookingFor = v.lookingFor
+  return out
+}
+
 // ── Database setup ────────────────────────────────────────────────────────────
 let db = null
 
@@ -41,6 +49,8 @@ async function initDb() {
   `)
   // Add name column if upgrading from old schema
   await db.query(`ALTER TABLE boards ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT ''`)
+  // Search settings: { mode: 'rent' | 'buy', lookingFor: 'flat' | 'house' | 'both' }
+  await db.query(`ALTER TABLE boards ADD COLUMN IF NOT EXISTS settings JSONB NOT NULL DEFAULT '{}'::jsonb`)
 
   // Meta table — stores migration info
   await db.query(`
@@ -102,10 +112,10 @@ const server = http.createServer(async (req, res) => {
     let body = ''
     req.on('data', chunk => { body += chunk })
     await new Promise(resolve => req.on('end', resolve))
-    let name = ''
-    try { name = JSON.parse(body).name || '' } catch {}
+    let name = '', settings = {}
+    try { const b = JSON.parse(body); name = b.name || ''; settings = cleanSettings(b.settings) } catch {}
     const code = generateCode()
-    await db.query('INSERT INTO boards (code, data, name) VALUES ($1, $2, $3)', [code, '[]', name])
+    await db.query('INSERT INTO boards (code, data, name, settings) VALUES ($1, $2, $3, $4)', [code, '[]', name, JSON.stringify(settings)])
     return res.end(JSON.stringify({ ok: true, code }))
   }
 
@@ -119,12 +129,12 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET') {
       if (!db) return res.end(JSON.stringify({ ok: false, error: 'No database' }))
-      const result = await db.query('SELECT data, name FROM boards WHERE code = $1', [code])
+      const result = await db.query('SELECT data, name, settings FROM boards WHERE code = $1', [code])
       if (!result.rows.length) {
         res.statusCode = 404
         return res.end(JSON.stringify({ ok: false, error: 'Board not found' }))
       }
-      return res.end(JSON.stringify({ ok: true, data: result.rows[0].data, name: result.rows[0].name || '' }))
+      return res.end(JSON.stringify({ ok: true, data: result.rows[0].data, name: result.rows[0].name || '', settings: result.rows[0].settings || {} }))
     }
 
     if (req.method === 'PATCH') {
@@ -133,8 +143,9 @@ const server = http.createServer(async (req, res) => {
       req.on('data', chunk => { body += chunk })
       req.on('end', async () => {
         try {
-          const { name } = JSON.parse(body)
-          await db.query('UPDATE boards SET name = $1 WHERE code = $2', [name || '', code])
+          const { name, settings } = JSON.parse(body)
+          if (name !== undefined) await db.query('UPDATE boards SET name = $1 WHERE code = $2', [name || '', code])
+          if (settings !== undefined) await db.query('UPDATE boards SET settings = $1 WHERE code = $2', [JSON.stringify(cleanSettings(settings)), code])
           res.end(JSON.stringify({ ok: true }))
         } catch (err) {
           res.statusCode = 400

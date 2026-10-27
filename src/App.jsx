@@ -36,17 +36,27 @@ function mineSqft(desc) {
 }
 
 // ─── SCORING SECTIONS ──────────────────────────────────────────────────────
+// The scorecard adapts to the search. ctx = { mode: "rent" | "buy", homeType: "flat" | "house" | null }
+// Questions with show(ctx) only appear where they make sense; labelFor/anchorsFor/hintFor tailor the wording.
+const isFlat = c => c.homeType !== "house";
+const isHouse = c => c.homeType === "house";
+const isRent = c => c.mode === "rent";
+const isBuy = c => c.mode !== "rent";
+
 const SECTIONS = [
   {
     id: "financials", icon: "solar:wallet-money-bold", title: "Financials", subtitle: "Let's talk numbers",
+    titleFor: c => isRent(c) ? "Rent & costs" : "Price & costs",
     questions: [
       {
         id: "price", label: "Asking Price Value", weight: 3,
+        labelFor: c => isRent(c) ? "Rent value" : "Asking price value",
         anchors: { 1: "Way overpriced for this area", 2: "Slightly high — priced to negotiate", 3: "Fair market value", 4: "Good value for money", 5: "Exceptional value — below market" },
+        anchorsFor: c => isRent(c) ? { 1: "Well over the going rate", 2: "A bit high for the area", 3: "Fair for what you get", 4: "Good value", 5: "A real bargain for the area" } : null,
         contextHint: (p) => p.price ? `Listed at ${p.price}` : null,
       },
       {
-        id: "service_charge", label: "Service Charge", weight: 2,
+        id: "service_charge", label: "Service Charge", weight: 2, show: c => isBuy(c) && isFlat(c),
         anchors: { 1: "Very high — £5,000+/yr", 2: "High — £3,000–5,000/yr", 3: "Average — £2,000–3,000/yr", 4: "Reasonable — £1,000–2,000/yr", 5: "Low or nil — under £1,000/yr" },
         contextHint: (p) => {
           if (p.serviceCharge != null) return `Service charge: £${Number(p.serviceCharge).toLocaleString()}/yr`;
@@ -56,7 +66,7 @@ const SECTIONS = [
         },
       },
       {
-        id: "ground_rent", label: "Ground Rent", weight: 1,
+        id: "ground_rent", label: "Ground Rent", weight: 1, show: c => isBuy(c) && isFlat(c),
         anchors: { 1: "High escalating — £500+/yr", 2: "Moderate — £250–500/yr", 3: "Low — £100–250/yr", 4: "Nominal — under £100/yr", 5: "Peppercorn or zero" },
         contextHint: (p) => {
           if (p.groundRent === 0 || p.groundRent === "0") return "Ground rent: peppercorn / zero";
@@ -68,7 +78,7 @@ const SECTIONS = [
         },
       },
       {
-        id: "lease_length", label: "Lease Length", weight: 2,
+        id: "lease_length", label: "Lease Length", weight: 2, show: c => isBuy(c) && isFlat(c),
         anchors: { 1: "~80 years — urgent problem", 2: "~90–100 years — negotiate extension", 3: "~110 years — acceptable", 4: "150+ years — no concerns", 5: "999 years or freehold — ideal" },
         contextHint: (p) => {
           if (p.leaseLength) return `Lease: ${p.leaseLength}`;
@@ -79,6 +89,19 @@ const SECTIONS = [
           return "Not extracted — confirm with the agent";
         },
       },
+      {
+        id: "running_costs", label: "Running costs", weight: 2,
+        anchors: { 1: "Expensive — poor energy rating, high council tax", 2: "Above average", 3: "About average", 4: "Fairly low", 5: "Low — efficient home, low council tax band" },
+        contextHint: (p, c) => {
+          const bits = [p.epcRating && `EPC ${p.epcRating}`, isRent(c) && /bills included/i.test(p.description || "") && "bills included"].filter(Boolean);
+          return bits.length ? `From the listing: ${bits.join(", ")}` : "Think about the energy rating (EPC), council tax band and likely bills";
+        },
+      },
+      {
+        id: "tenancy_terms", label: "Tenancy terms", weight: 2, show: isRent,
+        anchors: { 1: "Rigid — long tie-in, no break clause", 2: "Restrictive on pets or changes", 3: "Standard 12 months with a break clause", 4: "Flexible on what matters to us", 5: "Ideal terms for us" },
+        contextHint: () => "Tenancy length, break clause, pets, move-in date and the deposit",
+      },
     ]
   },
   {
@@ -87,6 +110,7 @@ const SECTIONS = [
       {
         id: "sqft", label: "Size", weight: 2,
         anchors: { 1: "Under 400 sq ft — too cramped", 2: "Around 420 sq ft — tight", 3: "Around 430 sq ft — just about workable", 4: "450+ sq ft — good for a 1-bed", 5: "500+ sq ft — spacious" },
+        anchorsFor: () => ({ 1: "Too cramped for us", 2: "Tight", 3: "Just about workable", 4: "Comfortable", 5: "Spacious" }),
         contextHint: (p) => {
           if (p.sqft) return `Floor area: ${p.sqft} sq ft`;
           const found = mineSqft(p.description);
@@ -107,17 +131,34 @@ const SECTIONS = [
       {
         id: "storage", label: "Storage Space", weight: 1,
         anchors: { 1: "No storage whatsoever", 2: "Very limited — one small cupboard", 3: "Some storage, workable", 4: "Good storage throughout", 5: "Excellent built-in storage" },
-        contextHint: () => "Think about built-in wardrobes, hallway cupboards, utility room, and any additional storage you noticed",
+        contextHint: (p, c) => isHouse(c) ? "Wardrobes, cupboards, loft, cellar or shed" : "Built-in wardrobes, hallway cupboards, utility room or a storage cage",
       },
       {
         id: "condition", label: "Condition / Work Needed", weight: 2,
         anchors: { 1: "Major structural works required", 2: "Significant renovation needed", 3: "Cosmetic updates only", 4: "Minor refresh — a lick of paint", 5: "Immaculate — move-in ready" },
+        anchorsFor: c => isRent(c) ? { 1: "Poorly kept — things broken", 2: "Tired and needs attention", 3: "Fine, some wear", 4: "Well kept", 5: "Immaculate — move-in ready" } : null,
         contextHint: () => "Consider the kitchen, bathrooms, flooring, windows, boiler age, and overall finish you observed",
+      },
+      {
+        id: "furnishing", label: "Furnishing", weight: 1, show: isRent,
+        anchors: { 1: "Tired, or not what we need", 2: "Some pieces we’d want gone", 3: "Fine as it is", 4: "Nicely done", 5: "Exactly how we want it" },
+        contextHint: () => "Furnished, part-furnished or unfurnished — and is that what you want?",
+      },
+      {
+        id: "structure", label: "Roof, walls & damp", weight: 2, show: c => isHouse(c),
+        anchors: { 1: "Visible damp or cracks — needs a survey", 2: "Some worrying signs", 3: "Normal wear, nothing alarming", 4: "Well maintained", 5: "Sound and dry throughout" },
+        contextHint: (p, c) => isRent(c) ? "Ceilings, window frames and any musty smells: damp is the landlord’s problem, but you’ll live with it" : "Ceilings, window frames, the roof line and any musty smells: flag anything for the survey",
+      },
+      {
+        id: "potential", label: "Potential to improve", weight: 2, show: isBuy,
+        anchors: { 1: "Little scope, or costly to change", 2: "Limited options", 3: "Some cosmetic potential", 4: "Good scope to update", 5: "Real room to extend or add value" },
+        contextHint: (p, c) => isHouse(c) ? "Loft, extension or knock-through, and whether planning would allow it" : "Layout changes, a new kitchen or bathroom, and what the lease allows",
       },
     ]
   },
   {
     id: "views", icon: "solar:sun-fog-bold", title: "Views & Light", subtitle: "What you see every day",
+    titleFor: c => isHouse(c) ? "Light & outdoor space" : "Views & Light",
     questions: [
       {
         id: "view", label: "View Quality", weight: 2,
@@ -125,9 +166,14 @@ const SECTIONS = [
         contextHint: () => "What could you see from the main windows and living areas?",
       },
       {
-        id: "balcony", label: "Balcony / Outdoor Space", weight: 2,
+        id: "balcony", label: "Balcony / Outdoor Space", weight: 2, show: isFlat,
         anchors: { 1: "No outdoor space at all", 2: "Window ledge only", 3: "Juliet balcony or shared terrace", 4: "Small private balcony", 5: "Private balcony, terrace or garden" },
         contextHint: () => "Did the property have any private outdoor space? Think about size, condition, and usability",
+      },
+      {
+        id: "garden", label: "Garden", weight: 3, show: c => isHouse(c),
+        anchors: { 1: "No outdoor space", 2: "A small yard", 3: "A usable patio or small garden", 4: "A good private garden", 5: "A generous, private garden" },
+        contextHint: () => "Size, privacy, sunlight and how much upkeep it needs",
       },
       {
         id: "light", label: "Natural Light", weight: 2,
@@ -157,7 +203,8 @@ const SECTIONS = [
       {
         id: "parking", label: "Parking", weight: 1,
         anchors: { 1: "No parking anywhere near", 2: "Very limited, restricted street parking", 3: "Permit zone with availability", 4: "Unrestricted easy street parking", 5: "Dedicated private parking included" },
-        contextHint: () => "Did the property include parking? If not, how was the street parking situation?",
+        anchorsFor: c => isHouse(c) ? { 1: "No parking anywhere near", 2: "Very limited street parking", 3: "Permit zone with availability", 4: "Easy street parking", 5: "Driveway or garage" } : null,
+        contextHint: (p, c) => isHouse(c) ? "Is there a driveway or garage? If not, how was the street parking?" : "Did the property include parking? If not, how was the street parking situation?",
       },
     ]
   },
@@ -167,17 +214,28 @@ const SECTIONS = [
       {
         id: "noise", label: "Noise Level", weight: 2,
         anchors: { 1: "Extremely loud — constant traffic or noise", 2: "Frequently noisy — hard to ignore", 3: "Some noise but manageable", 4: "Mostly quiet — occasional sounds", 5: "Very peaceful and quiet inside" },
-        contextHint: () => "How was it inside the flat — road noise through windows, neighbours above/below, building sounds?",
+        contextHint: (p, c) => isHouse(c) ? "Road noise, shared walls with next door, and anything nearby like pubs or schools" : "Road noise through the windows, neighbours above and below, and building sounds",
       },
       {
-        id: "building", label: "Building Quality", weight: 2,
+        id: "building", label: "Building Quality", weight: 2, show: isFlat,
+        labelFor: () => "Building & communal areas",
         anchors: { 1: "Poor condition, visible disrepair", 2: "Below average — some neglect", 3: "Average — functional and adequate", 4: "Well maintained throughout", 5: "Premium finish — immaculate communal areas" },
         contextHint: () => "Entrance, hallways, lifts, bin stores, communal areas — what was the overall upkeep like?",
+      },
+      {
+        id: "street", label: "Street & exterior", weight: 2, show: c => isHouse(c),
+        anchors: { 1: "Neglected exterior or street", 2: "Needs some work", 3: "Fine, nothing special", 4: "Well kept and pleasant", 5: "Lovely street, beautifully kept" },
+        contextHint: () => "The front of the house, the neighbouring homes, bins, and how the street feels",
       },
       {
         id: "safety", label: "Safety & Area Feel", weight: 2,
         anchors: { 1: "Felt unsafe or uncomfortable", 2: "Some unease in the area", 3: "Average — felt fine during the day", 4: "Generally safe, well-lit streets", 5: "Very safe and comfortable at all times" },
         contextHint: () => "How did the street and surrounding area feel? Think about lighting, foot traffic, and your gut instinct",
+      },
+      {
+        id: "landlord", label: "Landlord & agent", weight: 2, show: isRent,
+        anchors: { 1: "Unresponsive or pushy", 2: "Slow to reply", 3: "Professional enough", 4: "Helpful and clear", 5: "Responsive and fair — a good sign" },
+        contextHint: () => "How quickly they replied, how they answered questions, and how the viewing was run",
       },
     ]
   },
@@ -194,13 +252,34 @@ const SECTIONS = [
 ];
 
 const ALL_QUESTIONS = SECTIONS.flatMap(s => s.questions);
-const MAX_WEIGHTED = ALL_QUESTIONS.reduce((sum, q) => sum + 5 * q.weight, 0);
 
-function getTotal(scores) {
+// Board settings + home type → scorecard context
+function scoreCtx(property, settings) {
+  const lf = settings?.lookingFor;
+  return { mode: settings?.mode || "buy", homeType: property?.homeType || (lf === "house" ? "house" : lf === "flat" ? "flat" : null) };
+}
+function sectionsFor(ctx) {
+  return SECTIONS.map(s => ({ ...s, title: s.titleFor?.(ctx) || s.title, questions: s.questions.filter(q => !q.show || q.show(ctx)).map(q => resolveQ(q, ctx)) }))
+    .filter(s => s.questions.length);
+}
+function resolveQ(q, ctx) {
+  return { ...q, label: q.labelFor?.(ctx) || q.label, anchors: q.anchorsFor?.(ctx) || q.anchors, hint: (p) => q.contextHint ? q.contextHint(p, ctx) : null };
+}
+function sectionTitle(s, ctx) { return s.titleFor?.(ctx) || s.title; }
+// For showing saved scores: every question that might have been answered, worded for this home
+function displaySections(ctx) {
+  return SECTIONS.map(s => ({ ...s, title: s.titleFor?.(ctx) || s.title, questions: s.questions.map(q => resolveQ(q, ctx)) }));
+}
+const MODE_LABEL = { rent: "Renting", buy: "Buying" };
+const LOOKING_LABEL = { flat: "Flats", house: "Houses", both: "Flats & houses" };
+
+// Score out of 100 across the questions asked (or answered, for saved scorecards)
+function getTotal(scores, questions) {
   if (!scores || !Object.keys(scores).length) return 0;
-  let w = 0;
-  ALL_QUESTIONS.forEach(q => { w += (scores[q.id] ?? 0) * q.weight; });
-  return Math.round((w / MAX_WEIGHTED) * 100);
+  const list = questions || ALL_QUESTIONS.filter(q => scores[q.id] !== undefined);
+  let w = 0, max = 0;
+  list.forEach(q => { w += (scores[q.id] ?? 0) * q.weight; max += 5 * q.weight; });
+  return max ? Math.round((w / max) * 100) : 0;
 }
 
 function scoreColor(pct) {
@@ -312,13 +391,13 @@ function mergeProperties(local, remote) {
 }
 
 // ─── SCORING SUMMARY GENERATOR ──────────────────────────────────────────────
-function generateScoringSummary(property, scores, bonuses) {
+function generateScoringSummary(property, scores, bonuses, ctx = scoreCtx(property)) {
   const total = getTotal(scores) + getBonusTotal(bonuses);
   const verdict = total >= 75 ? "strong contender" : total >= 55 ? "decent option" : total >= 40 ? "mixed bag" : "weak fit";
 
   // Per-section sentences
   const lines = [];
-  SECTIONS.forEach(s => {
+  displaySections(ctx).forEach(s => {
     const answered = s.questions.filter(q => scores[q.id] !== undefined);
     if (!answered.length) return;
     const avg = answered.reduce((sum, q) => sum + scores[q.id], 0) / answered.length;
@@ -454,7 +533,8 @@ function MapEmbed({ address }) {
 }
 
 // ─── PROPERTY OVERVIEW ─────────────────────────────────────────────────────
-function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove, onEdit }) {
+function PropertyOverview({ property, boardSettings, onStartScoring, onClose, onDelete, onMove, onEdit }) {
+  const ctx = scoreCtx(property, boardSettings);
   const hasScore = property.scores && Object.keys(property.scores).length > 0;
   const total = getTotal(property.scores) + getBonusTotal(property.bonuses);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -494,7 +574,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0 18px" }}>
           <button onClick={onClose} style={ghostBtnSt}>← Back to board</button>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button onClick={() => { setEditForm({ address: property.address || property.name || "", price: property.price || "", bedrooms: property.bedrooms || "", bathrooms: property.bathrooms || "", sqft: property.sqft || "", agent: property.agent || "", agentPhone: property.agentPhone || "", leaseLength: property.leaseLength || "", tenure: property.tenure || "", serviceCharge: property.serviceCharge ?? "", groundRent: property.groundRent ?? "", image: property.image || "", notes: property.notes || "" }); setEditing(true); }}
+            <button onClick={() => { setEditForm({ address: property.address || property.name || "", price: property.price || "", bedrooms: property.bedrooms || "", bathrooms: property.bathrooms || "", sqft: property.sqft || "", agent: property.agent || "", agentPhone: property.agentPhone || "", leaseLength: property.leaseLength || "", tenure: property.tenure || "", serviceCharge: property.serviceCharge ?? "", groundRent: property.groundRent ?? "", image: property.image || "", notes: property.notes || "", homeType: property.homeType || "" }); setEditing(true); }}
               style={{ ...ghostBtnSt, display: "flex", alignItems: "center", gap: 6 }}>
               <Icon icon="solar:pen-bold" width={14} /> Edit
             </button>
@@ -623,7 +703,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
               {(() => {
-                const rows = SECTIONS.map(s => {
+                const rows = displaySections(ctx).map(s => {
                   const answered = s.questions.filter(q => property.scores[q.id] !== undefined);
                   if (!answered.length) return null;
                   const weighted = answered.reduce((sum, q) => sum + property.scores[q.id] * q.weight, 0);
@@ -783,7 +863,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
               <Icon icon="solar:chart-2-bold" width={13} /> Score Breakdown
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {SECTIONS.map(s => {
+              {displaySections(ctx).map(s => {
                 const answered = s.questions.filter(q => property.scores[q.id] !== undefined);
                 if (!answered.length) return null;
                 const weighted = answered.reduce((sum, q) => sum + property.scores[q.id] * q.weight, 0);
@@ -871,6 +951,7 @@ function PropertyOverview({ property, onStartScoring, onClose, onDelete, onMove,
               <div><label style={labelSt}>Estate Agent</label><input value={editForm.agent} onChange={e => setEditForm(f => ({ ...f, agent: e.target.value }))} style={inputSt} /></div>
               <div><label style={labelSt}>Agent Phone</label><input value={editForm.agentPhone} onChange={e => setEditForm(f => ({ ...f, agentPhone: e.target.value }))} style={inputSt} /></div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ gridColumn: "1 / -1" }}><label style={labelSt}>Home type</label><Segmented options={[["flat", "Flat"], ["house", "House"]]} value={editForm.homeType} onChange={v => setEditForm(f => ({ ...f, homeType: v }))} /></div>
                 <div><label style={labelSt}>Tenure</label><input value={editForm.tenure} onChange={e => setEditForm(f => ({ ...f, tenure: e.target.value }))} style={inputSt} placeholder="Leasehold / Freehold" /></div>
                 <div><label style={labelSt}>Lease Length</label><input value={editForm.leaseLength} onChange={e => setEditForm(f => ({ ...f, leaseLength: e.target.value }))} style={inputSt} placeholder="e.g. 125 years" /></div>
               </div>
@@ -915,18 +996,22 @@ function ContextPill({ hint }) {
 }
 
 // ─── SCORING WIZARD ─────────────────────────────────────────────────────────
-function ScoringWizard({ property, onClose, onSave }) {
+function ScoringWizard({ property, boardSettings, onClose, onSave }) {
+  const [homeType, setHomeType] = useState(() => property.homeType || scoreCtx(property, boardSettings).homeType);
+  const ctx = { mode: boardSettings?.mode || "buy", homeType };
+  const WS = sectionsFor(ctx);
+  const asked = WS.flatMap(s => s.questions);
   const [sectionIdx, setSectionIdx] = useState(0);
   const [scores, setScores] = useState(property.scores || {});
   const [bonuses, setBonuses] = useState(property.bonuses || {});
   const [showSummary, setShowSummary] = useState(false);
   const [summaryText, setSummaryText] = useState("");
   const scrollRef = useRef(null);
-  const section = SECTIONS[sectionIdx];
-  const isLastSection = sectionIdx === SECTIONS.length - 1;
+  const section = WS[Math.min(sectionIdx, WS.length - 1)];
+  const isLastSection = sectionIdx === WS.length - 1;
   const answeredInSection = section.questions.filter(q => scores[q.id] !== undefined).length;
   const sectionComplete = answeredInSection === section.questions.length;
-  const runningTotal = getTotal(scores);
+  const runningTotal = getTotal(scores, asked);
   const bonusTotal = getBonusTotal(bonuses);
   const combinedTotal = Math.min(runningTotal + bonusTotal, 110);
 
@@ -935,16 +1020,18 @@ function ScoringWizard({ property, onClose, onSave }) {
   }, [sectionIdx, showSummary]);
 
   function next() {
-    if (sectionIdx < SECTIONS.length - 1) setSectionIdx(s => s + 1);
+    if (sectionIdx < WS.length - 1) setSectionIdx(s => s + 1);
   }
 
   function openSummary() {
-    setSummaryText(generateScoringSummary(property, scores, bonuses));
+    setSummaryText(generateScoringSummary(property, scores, bonuses, ctx));
     setShowSummary(true);
   }
 
   function save() {
-    onSave({ ...property, scores, bonuses, scoringSummary: summaryText });
+    // Keep only the questions this home was asked (e.g. drop service charge for a rental)
+    const kept = Object.fromEntries(asked.filter(q => scores[q.id] !== undefined).map(q => [q.id, scores[q.id]]));
+    onSave({ ...property, homeType, scores: kept, bonuses, scoringSummary: summaryText });
     onClose();
   }
 
@@ -954,7 +1041,31 @@ function ScoringWizard({ property, onClose, onSave }) {
     else onClose();
   }
 
-  const completedSections = SECTIONS.map(s => s.questions.every(q => scores[q.id] !== undefined));
+  // Flat or house? Ask once if we couldn't tell from the listing or the board
+  if (!homeType) {
+    const opt = (id, icon, title, sub) => (
+      <button key={id} onClick={() => setHomeType(id)} style={{ flex: 1, textAlign: "left", background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.12)", borderRadius: 22, padding: "22px 20px", cursor: "pointer", fontFamily: "'Manrope', sans-serif" }}>
+        <Icon icon={icon} width={28} style={{ color: "#a3462b" }} />
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, margin: "10px 0 4px", color: "#2b2521" }}>{title}</div>
+        <div style={{ fontSize: 12.5, color: "#5b4c3f", lineHeight: 1.45 }}>{sub}</div>
+      </button>
+    );
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 130, ...PLASTER_BG, overflowY: "auto", animation: "slideIn 0.28s ease" }}>
+        <div style={{ maxWidth: 540, margin: "0 auto", padding: "60px 20px" }}>
+          <button onClick={onClose} style={ghostBtnSt}>← Back</button>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 38, fontWeight: 500, lineHeight: 1.05, margin: "28px 0 8px" }}>Is {(property.name || "this home").split(",")[0]} a flat or a house?</h2>
+          <p style={{ fontSize: 14, color: "#5b4c3f", lineHeight: 1.55, marginBottom: 22 }}>We’ll tailor the questions, like service charge and communal areas for flats, or the garden and roof for houses.</p>
+          <div style={{ display: "flex", gap: 12 }}>
+            {opt("flat", "solar:buildings-2-bold", "Flat", "Apartment, maisonette or studio")}
+            {opt("house", "solar:home-2-bold", "House", "Terraced, semi, detached or bungalow")}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const completedSections = WS.map(s => s.questions.every(q => scores[q.id] !== undefined));
 
   return (
     <div ref={scrollRef} style={{
@@ -970,7 +1081,7 @@ function ScoringWizard({ property, onClose, onSave }) {
             ← {sectionIdx === 0 ? "Overview" : "Back"}
           </button>
           <div style={{ flex: 1, padding: "0 16px" }}>
-            <ProgressBar sectionIdx={sectionIdx} total={SECTIONS.length} completedSections={completedSections} onJump={setSectionIdx} />
+            <ProgressBar sectionIdx={sectionIdx} total={WS.length} completedSections={completedSections} onJump={setSectionIdx} />
           </div>
           <div style={{ fontSize: 13, fontWeight: 800, color: Object.keys(scores).length > 0 ? scoreColor(runningTotal) : "#a89a8a", fontFamily: "'Cormorant Garamond', serif", minWidth: 40, textAlign: "right" }}>
             {Object.keys(scores).length > 0 ? `${runningTotal}/100` : "—"}
@@ -992,7 +1103,14 @@ function ScoringWizard({ property, onClose, onSave }) {
             {property.price && <div style={{ fontSize: 12, color: "#a3462b", fontWeight: 600, marginTop: 1 }}>{property.price}</div>}
           </div>
           <div style={{ marginLeft: "auto", fontSize: 11, color: "#8b7f72", flexShrink: 0 }}>
-            {sectionIdx + 1}/{SECTIONS.length}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              {MODE_LABEL[ctx.mode]} ·
+              <button onClick={() => { setHomeType(homeType === "house" ? "flat" : "house"); setSectionIdx(0); }} title="Switch between flat and house questions"
+                style={{ background: "#e3d8c9", border: "none", borderRadius: 99, padding: "3px 9px", fontSize: 11, fontWeight: 600, color: "#5b4c3f", cursor: "pointer", fontFamily: "'Manrope', sans-serif" }}>
+                {homeType === "house" ? "House" : "Flat"} ⇄
+              </button>
+              · {sectionIdx + 1}/{WS.length}
+            </span>
           </div>
         </div>
 
@@ -1010,7 +1128,7 @@ function ScoringWizard({ property, onClose, onSave }) {
           {section.questions.map((q, qi) => {
             const val = scores[q.id] ?? 0;
             const answered = scores[q.id] !== undefined;
-            const hint = q.contextHint ? q.contextHint(property) : null;
+            const hint = q.hint(property);
             const isFirst = qi === 0;
             const locked = qi > 0 && scores[section.questions[qi - 1].id] === undefined;
             return (
@@ -1090,7 +1208,7 @@ function ScoringWizard({ property, onClose, onSave }) {
             <Icon icon="solar:check-circle-bold" width={20} style={{ color: "#5f6b3a", flexShrink: 0 }} />
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#5f6b3a" }}>Section complete</div>
-              <div style={{ fontSize: 12, color: "#5b4c3f" }}>Up next: {SECTIONS[sectionIdx + 1].title}</div>
+              <div style={{ fontSize: 12, color: "#5b4c3f" }}>Up next: {WS[sectionIdx + 1].title}</div>
             </div>
           </div>
         )}
@@ -1111,7 +1229,7 @@ function ScoringWizard({ property, onClose, onSave }) {
               transition: "all 0.2s"
             }}
           >
-            {isLastSection ? "Review & Save →" : `Next: ${SECTIONS[sectionIdx + 1].title} →`}
+            {isLastSection ? "Review & Save →" : `Next: ${WS[sectionIdx + 1].title} →`}
           </button>
           {!sectionComplete && (
             <div style={{ textAlign: "center", fontSize: 12, color: "#8b7f72", marginTop: 8 }}>
@@ -1252,6 +1370,7 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
         )}
         {(property.bedrooms || property.sqft) && (
           <div style={{ fontSize: 12, color: "#8b7f72", marginTop: 3 }}>
+            {property.homeType && `${property.homeType === "house" ? "House" : "Flat"} · `}
             {property.bedrooms && `${property.bedrooms} bed`}
             {property.bathrooms && ` · ${property.bathrooms} bath`}
             {property.sqft && ` · ${property.sqft} sq ft`}
@@ -1332,7 +1451,7 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
 }
 
 // ─── ADD PROPERTY MODAL ─────────────────────────────────────────────────────
-function AddModal({ onClose, onAdd }) {
+function AddModal({ boardSettings = {}, onClose, onAdd }) {
   const [step, setStep] = useState("url");
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState("listing");
@@ -1377,6 +1496,8 @@ function AddModal({ onClose, onAdd }) {
                 tenure: d.tenure || '',
                 description: d.description || '',
                 epcRating: d.epcRating || '',
+                homeType: d.homeType || '',
+                priceType: d.priceType || '',
                 dateListed: '',
               };
               setExtracted(ext);
@@ -1573,7 +1694,9 @@ ${trimmed}`
 
   function handleAdd() {
     const viewingDateTime = (status === "booked" && viewingDate && viewingTime) ? `${viewingDate}T${viewingTime}` : null;
-    onAdd({ id: Date.now(), url: url.trim(), status, viewingDate: viewingDateTime, scores: {}, ...extracted });
+    const lf = boardSettings.lookingFor;
+    const homeType = extracted?.homeType || (lf === "flat" || lf === "house" ? lf : "");
+    onAdd({ id: Date.now(), url: url.trim(), status, viewingDate: viewingDateTime, scores: {}, ...extracted, homeType });
     onClose();
   }
 
@@ -1608,7 +1731,7 @@ ${trimmed}`
             }}>
               {loading ? "Fetching the details…" : "Extract Details →"}
             </button>
-            <button onClick={() => { setExtracted({ address: "", name: "", price: "", bedrooms: "", bathrooms: "", sqft: "", image: "", agent: "", agentPhone: "", serviceCharge: null, groundRent: null, leaseLength: "", tenure: "", description: "", epcRating: "", dateListed: "" }); setStep("confirm"); }}
+            <button onClick={() => { setExtracted({ address: "", name: "", price: "", bedrooms: "", bathrooms: "", sqft: "", image: "", agent: "", agentPhone: "", serviceCharge: null, groundRent: null, leaseLength: "", tenure: "", description: "", epcRating: "", dateListed: "", homeType: "" }); setStep("confirm"); }}
               style={{ width: "100%", marginTop: 10, padding: "11px", background: "none", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 99, color: "#8b7f72", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif" }}>
               Enter details manually →
             </button>
@@ -1640,7 +1763,20 @@ ${trimmed}`
                 <div><label style={labelSt}>Sq ft</label><input value={extracted.sqft || ""} onChange={e => setExtracted(x => ({ ...x, sqft: e.target.value }))} style={inputSt} placeholder="e.g. 750" /></div>
               </div>
               <div>
+                <label style={labelSt}>Home type</label>
+                <Segmented options={[["flat", "Flat"], ["house", "House"]]}
+                  value={extracted.homeType || (boardSettings.lookingFor === "flat" || boardSettings.lookingFor === "house" ? boardSettings.lookingFor : "")}
+                  onChange={v => setExtracted(x => ({ ...x, homeType: v }))} />
+              </div>
+              {boardSettings.mode && extracted.priceType && extracted.priceType !== boardSettings.mode && (
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "#f1e9df", borderRadius: 14, padding: "11px 13px", fontSize: 12.5, color: "#5b4c3f", lineHeight: 1.45 }}>
+                  <Icon icon="solar:info-circle-linear" width={16} style={{ color: "#a3462b", flexShrink: 0, marginTop: 1 }} />
+                  This looks like a {extracted.priceType === "rent" ? "rental" : "sale"} listing, but your board is set up for {boardSettings.mode === "rent" ? "renting" : "buying"}. You can still add it, or change your search in board settings.
+                </div>
+              )}
+              <div>
                 <label style={labelSt}>Estate Agent</label>
+
                 <input value={extracted.agent || ""} onChange={e => setExtracted(x => ({ ...x, agent: e.target.value }))} style={inputSt} placeholder="e.g. Knight Frank" />
               </div>
             </div>
@@ -1684,7 +1820,7 @@ ${trimmed}`
 }
 
 // ─── LEADERBOARD ────────────────────────────────────────────────────────────
-function Leaderboard({ properties, onClose, onRescore }) {
+function Leaderboard({ properties, boardSettings, onClose, onRescore }) {
   const narrow = useNarrow();
   const scored = [...properties]
     .filter(p => p.scores && Object.keys(p.scores).length > 0)
@@ -1713,7 +1849,11 @@ function Leaderboard({ properties, onClose, onRescore }) {
             {scored.map((p, i) => {
               const total = getTotal(p.scores) + getBonusTotal(p.bonuses);
               const isFirst = i === 0;
-              const sectionAvgs = SECTIONS.map(s => ({ title: s.title, avg: s.questions.reduce((sum, q) => sum + (p.scores[q.id] ?? 0), 0) / s.questions.length }));
+              const ctx = scoreCtx(p, boardSettings);
+              const sectionAvgs = SECTIONS.map(s => {
+                const answered = s.questions.filter(q => p.scores[q.id] !== undefined);
+                return answered.length ? { title: sectionTitle(s, ctx), avg: answered.reduce((sum, q) => sum + p.scores[q.id], 0) / answered.length } : null;
+              }).filter(Boolean);
               const best = [...sectionAvgs].sort((a, b) => b.avg - a.avg)[0];
               const worst = [...sectionAvgs].sort((a, b) => a.avg - b.avg)[0];
               return (
@@ -1861,6 +2001,57 @@ function captureAttribution() {
 function track(event, props = {}, board) {
   const body = JSON.stringify({ event, anonId: getAnonId(), email: getUser()?.email, board, props: { ...props, ref: getAttribution()?.ref } });
   fetch("/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
+}
+
+// ─── SEGMENTED CONTROL ──────────────────────────────────────────────────────
+function Segmented({ options, value, onChange }) {
+  return (
+    <div style={{ display: "flex", gap: 4, background: "#ece4d9", padding: 4, borderRadius: 99 }}>
+      {options.map(([id, label]) => (
+        <button key={id} type="button" onClick={() => onChange(id)}
+          style={{ flex: 1, padding: "9px 12px", borderRadius: 99, border: "none", cursor: "pointer", fontFamily: "'Manrope', sans-serif", fontSize: 13, fontWeight: 600,
+            background: value === id ? "#fbf8f3" : "transparent", color: value === id ? "#2b2521" : "#8b7f72", boxShadow: value === id ? "0 6px 14px -10px rgba(43,37,33,0.6)" : "none", transition: "all 0.15s" }}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── SEARCH SETUP (renting or buying, flats or houses) ──────────────────────
+function SearchSetup({ initial = {}, title, subtitle, cta, onDone, onBack }) {
+  const [mode, setMode] = useState(initial.mode || null);
+  const [lookingFor, setLookingFor] = useState(initial.lookingFor || null);
+  const ready = mode && lookingFor;
+  const big = (id, icon, label, sub) => {
+    const on = mode === id;
+    return (
+      <button key={id} type="button" onClick={() => setMode(id)}
+        style={{ flex: 1, textAlign: "left", position: "relative", background: on ? "#fbf8f3" : "rgba(251,248,243,0.5)", border: on ? "1.5px solid #a3462b" : "1px solid rgba(43,37,33,0.12)", borderRadius: 20, padding: "16px 16px 14px", cursor: "pointer", fontFamily: "'Manrope', sans-serif", boxShadow: on ? "0 18px 30px -24px rgba(163,70,43,0.8)" : "none", transition: "all 0.15s" }}>
+        {on && <Icon icon="solar:check-circle-bold" width={18} style={{ position: "absolute", top: 12, right: 12, color: "#a3462b" }} />}
+        <Icon icon={icon} width={24} style={{ color: on ? "#a3462b" : "#8b7f72" }} />
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 600, color: "#2b2521", margin: "6px 0 2px" }}>{label}</div>
+        <div style={{ fontSize: 12, color: "#5b4c3f", lineHeight: 1.4 }}>{sub}</div>
+      </button>
+    );
+  };
+  return (
+    <div style={{ background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.10)", borderRadius: 26, padding: 24, textAlign: "left", animation: "fadeUp 0.3s ease", boxShadow: "0 30px 60px -36px rgba(91,76,63,0.55)" }}>
+      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 28, fontWeight: 500, lineHeight: 1.1, color: "#2b2521" }}>{title}</div>
+      <p style={{ fontSize: 13.5, color: "#5b4c3f", lineHeight: 1.55, margin: "8px 0 18px" }}>{subtitle}</p>
+      <div style={labelSt}>Are you renting or buying?</div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+        {big("rent", "solar:key-bold", "Renting", "Rent, tenancy terms and the landlord")}
+        {big("buy", "solar:home-smile-bold", "Buying", "Price, running costs, lease and potential")}
+      </div>
+      <div style={labelSt}>What are you looking at?</div>
+      <Segmented options={[["flat", "Flats"], ["house", "Houses"], ["both", "Both"]]} value={lookingFor} onChange={setLookingFor} />
+      <button type="button" disabled={!ready} onClick={() => onDone({ mode, lookingFor })}
+        style={{ ...primaryBtnSt, width: "100%", padding: 15, fontSize: 15, marginTop: 20, opacity: ready ? 1 : 0.45, cursor: ready ? "pointer" : "not-allowed" }}>{cta}</button>
+      <p style={{ fontSize: 11.5, color: "#8b7f72", lineHeight: 1.5, marginTop: 12, textAlign: "center" }}>Your scorecard questions adapt to this. You can change it anytime in board settings.</p>
+      {onBack && <button type="button" onClick={onBack} style={{ display: "block", margin: "8px auto 0", background: "none", border: "none", color: "#8b7f72", fontSize: 12.5, cursor: "pointer", fontFamily: "'Manrope', sans-serif", textDecoration: "underline" }}>← Back</button>}
+    </div>
+  );
 }
 
 // ─── EMAIL CAPTURE (onboarding) ─────────────────────────────────────────────
@@ -2014,13 +2205,17 @@ function LandingPage({ onStart, onJoin, migrationCode, starting, user, onUser })
   }
 
   function handleStart() {
-    if (!user) { setPending({ type: 'start', name: nameInput.trim() }); return }
-    onStart(nameInput.trim())
+    setPending({ type: 'setup', name: nameInput.trim() })
+  }
+
+  function setupDone(settings) {
+    if (!user) { setPending({ type: 'start', name: pending.name, settings }); return }
+    onStart(pending.name, settings)
   }
 
   function emailDone(u) {
     onUser(u)
-    if (pending.type === 'start') onStart(pending.name)
+    if (pending.type === 'start') onStart(pending.name, pending.settings)
     else onJoin(pending.code)
   }
 
@@ -2056,7 +2251,10 @@ function LandingPage({ onStart, onJoin, migrationCode, starting, user, onUser })
           </div>
         )}
 
-        {pending ? (
+        {pending?.type === 'setup' ? (
+          <SearchSetup title="Tailor your board" subtitle="Tell us what you’re hunting for and we’ll ask the right questions after every viewing."
+            cta={user ? 'Start my home search →' : 'Continue →'} onDone={setupDone} onBack={() => setPending(null)} />
+        ) : pending ? (
           <EmailCapture
             context={pending.type === 'start' ? 'start' : 'join'}
             title={pending.type === 'start' ? 'Where should we keep your board?' : 'Join the search'}
@@ -2123,6 +2321,8 @@ export default function NestWell() {
   const medium = useNarrow(823);    // < 823px — icon-only header links
   const isRemoteUpdate = useRef(false);
   const [user, setUser] = useState(() => getUser());
+  const [boardSettings, setBoardSettings] = useState({});
+  const [setupPrompt, setSetupPrompt] = useState(null); // { then?: property } — ask renting/buying before scoring
   const [entitlement, setEntitlement] = useState(FREE_ENTITLEMENT);
   const [paywall, setPaywall] = useState(null); // { reason: 'score' | 'homes' | 'upgrade' }
   const [toastMsg, setToastMsg] = useState("");
@@ -2188,23 +2388,33 @@ export default function NestWell() {
 
   function claimBoard(code) {
     const u = getUser();
-    track("board_created", {}, code);
+    let st = {}; try { st = JSON.parse(localStorage.getItem(`nest-well-settings-${code}`) || "{}"); } catch {}
+    track("board_created", { mode: st.mode, lookingFor: st.lookingFor }, code);
     if (!u) return;
     fetch("/api/entitlement", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ board: code, email: u.email }) })
       .then(r => r.json()).then(res => { if (res.ok) setEntitlement(res); }).catch(() => {});
   }
 
-  async function handleCreateBoard(name = '') {
+  function saveBoardSettings(next, code = boardCode) {
+    setBoardSettings(next);
+    if (!code) return;
+    localStorage.setItem(`nest-well-settings-${code}`, JSON.stringify(next));
+    fetch(`/api/boards/${code}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ settings: next }) }).catch(() => {});
+  }
+
+  async function handleCreateBoard(name = '', settings = {}) {
     setStarting(true);
+    setBoardSettings(settings);
     try {
-      const res = await fetch('/api/boards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+      const res = await fetch('/api/boards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, settings }) });
       if (res.ok) {
         const data = await res.json();
-        if (data.ok) { window.history.pushState({}, '', `?board=${data.code}`); setBoardCode(data.code); setBoardName(name); setStarting(false); claimBoard(data.code); return; }
+        if (data.ok) { localStorage.setItem(`nest-well-settings-${data.code}`, JSON.stringify(settings)); window.history.pushState({}, '', `?board=${data.code}`); setBoardCode(data.code); setBoardName(name); setStarting(false); claimBoard(data.code); return; }
       }
     } catch {}
     // Fallback: generate locally (dev / no db)
     const code = generateClientCode();
+    localStorage.setItem(`nest-well-settings-${code}`, JSON.stringify(settings));
     window.history.pushState({}, '', `?board=${code}`);
     setBoardCode(code);
     setBoardName(name);
@@ -2246,12 +2456,17 @@ export default function NestWell() {
     fetch(`/api/boards/${boardCode}`)
       .then(r => r.json())
       .then(res => {
-        if (res.ok && Array.isArray(res.data)) { setProperties(res.data); if (res.name) setBoardName(res.name); }
+        if (res.ok && Array.isArray(res.data)) {
+          setProperties(res.data); if (res.name) setBoardName(res.name);
+          const local = JSON.parse(localStorage.getItem(`nest-well-settings-${boardCode}`) || "{}");
+          setBoardSettings(res.settings && Object.keys(res.settings).length ? res.settings : local);
+        }
         else throw new Error('not found');
       })
       .catch(() => {
         const saved = localStorage.getItem(`nest-well-board-${boardCode}`);
         if (saved) try { setProperties(JSON.parse(saved)); } catch {}
+        try { setBoardSettings(JSON.parse(localStorage.getItem(`nest-well-settings-${boardCode}`) || "{}")); } catch {}
       })
       .finally(() => setDataLoaded(true));
   }, [boardCode]);
@@ -2344,6 +2559,7 @@ export default function NestWell() {
     setShowAdd(true);
   }
   function requestScoring(prop) {
+    if (!boardSettings.mode) { setSetupPrompt({ then: prop }); return; }
     const alreadyScored = prop.scores && Object.keys(prop.scores).length > 0;
     if (entitlement.plan === "free" && !alreadyScored && activeCount >= (entitlement.freeScoreAfter ?? 3) && scoredCount >= 1) {
       setPaywall({ reason: "score" });
@@ -2469,7 +2685,16 @@ export default function NestWell() {
                   style={{ ...primaryBtnSt, width: "100%", padding: "10px", marginBottom: 16 }}>
                   Save name
                 </button>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, borderTop: "1px solid rgba(43,37,33,0.10)", padding: "14px 0" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, borderTop: "1px solid rgba(43,37,33,0.10)", padding: "14px 0 0" }}>
+                  <div>
+                    <div style={labelSt}>Your search</div>
+                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 600, marginTop: -4 }}>
+                      {boardSettings.mode ? `${MODE_LABEL[boardSettings.mode]} · ${LOOKING_LABEL[boardSettings.lookingFor] || "Any home"}` : "Not set yet"}
+                    </div>
+                  </div>
+                  <button onClick={() => { setShowBoardMenu(false); setSetupPrompt({}); }} style={{ ...ghostBtnSt, padding: "8px 14px", fontSize: 12 }}>{boardSettings.mode ? "Change" : "Set up"}</button>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "14px 0" }}>
                   <div>
                     <div style={labelSt}>Your plan</div>
                     <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 600, marginTop: -4 }}>
@@ -2622,10 +2847,32 @@ export default function NestWell() {
       )}
 
       {/* MODALS & OVERLAYS */}
-      {showAdd && <AddModal onClose={() => setShowAdd(false)} onAdd={addProperty} />}
+      {showAdd && <AddModal boardSettings={boardSettings} onClose={() => setShowAdd(false)} onAdd={addProperty} />}
+
+      {setupPrompt && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(43,37,33,0.32)", backdropFilter: "blur(10px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: "fadeUp 0.2s ease" }}
+          onClick={e => e.target === e.currentTarget && setSetupPrompt(null)}>
+          <div style={{ width: "100%", maxWidth: 480 }}>
+            <SearchSetup initial={boardSettings}
+              title={setupPrompt.then ? "Before you score" : "Your search"}
+              subtitle={setupPrompt.then ? "Tell us what you’re hunting for so the scorecard asks the right questions." : "Change this anytime. New scorecards use the updated questions; saved scores stay as they are."}
+              cta={setupPrompt.then ? "Start scoring →" : "Save"}
+              onBack={() => setSetupPrompt(null)}
+              onDone={settings => {
+                saveBoardSettings(settings);
+                const then = setupPrompt.then;
+                setSetupPrompt(null);
+                track("search_setup", settings, boardCode);
+                if (then) { track("scorecard_started", {}, boardCode); setScoringProp(then); }
+              }} />
+          </div>
+        </div>
+      )}
+
 
       {overviewProp && !scoringProp && (
         <PropertyOverview
+          boardSettings={boardSettings}
           property={(() => properties.find(p => p.id === overviewProp.id) || overviewProp)()}
           onClose={() => setOverviewProp(null)}
           onDelete={deleteProperty}
@@ -2640,6 +2887,7 @@ export default function NestWell() {
 
       {scoringProp && (
         <ScoringWizard
+          boardSettings={boardSettings}
           property={scoringProp}
           onClose={() => { setScoringProp(null); }}
           onSave={updated => {
@@ -2652,6 +2900,7 @@ export default function NestWell() {
 
       {showLeaderboard && (
         <Leaderboard
+          boardSettings={boardSettings}
           properties={properties}
           onClose={() => setShowLeaderboard(false)}
           onRescore={prop => { setOverviewProp(prop); }}

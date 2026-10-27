@@ -89,8 +89,20 @@ export async function fetchPropertyData(url) {
 
   const gen = parseGeneric(html, url)
   result = fillMissing(result, gen)
+  if (!result.homeType) result.homeType = inferHomeType([getTitle(html), getMeta(html, 'og:title'), result.address, result.description].filter(Boolean).join(' · '))
 
   return result
+}
+
+// Flat or house, from the listing's own wording (title first, then description)
+function inferHomeType(text) {
+  const t = String(text || '').slice(0, 4000)
+  const flat = t.search(/\b(flat|apartment|maisonette|studio|penthouse|duplex)\b/i)
+  const house = t.search(/\b(house|terraced|terrace house|semi-detached|detached|bungalow|cottage|townhouse|end of terrace|mews)\b/i)
+  if (flat === -1 && house === -1) return ''
+  if (house === -1) return 'flat'
+  if (flat === -1) return 'house'
+  return flat < house ? 'flat' : 'house'
 }
 
 function fillMissing(primary, fallback) {

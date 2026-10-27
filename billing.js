@@ -19,7 +19,7 @@ export const FREE_SCORE_AFTER = 3
 const EVENTS = new Set([
   'landing_view', 'landing_cta', 'app_open', 'onboarding_view', 'email_submitted', 'board_created', 'board_joined',
   'listing_added', 'scorecard_started', 'scorecard_saved', 'paywall_shown', 'paywall_dismissed', 'plan_selected',
-  'checkout_started', 'purchase_completed',
+  'checkout_started', 'purchase_completed', 'search_setup',
 ])
 
 // ── Storage adapter ─────────────────────────────────────────────────────────────
