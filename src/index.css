@@ -18,3 +18,9 @@
     display: none;
   }
 }
+
+/* Delete (trash) buttons: clear hover + a larger click area */
+.trash-btn { position: relative; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease; }
+.trash-btn::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
+.trash-btn:hover { background: #f6e3dd !important; color: #9b3b2a !important; border-color: #ecc9bf !important; transform: scale(1.12); box-shadow: 0 6px 16px -6px rgba(155,59,42,0.45); }
+.trash-btn:active { transform: scale(0.98); }

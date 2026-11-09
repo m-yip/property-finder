@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from '@iconify/react';
 
 // ─── NARROW HOOK ────────────────────────────────────────────────────────────
@@ -548,10 +549,43 @@ function MapEmbed({ address }) {
 }
 
 // ─── PROPERTY OVERVIEW ─────────────────────────────────────────────────────
+// ─── CONFIRM DELETE MODAL ──────────────────────────────────────────────────
+// Rendered in a portal on <body> so it is always centred on the screen, whatever card it was opened from.
+function ConfirmDelete({ onConfirm, onCancel }) {
+  useEffect(() => {
+    const onKey = e => { if (e.key === "Escape") onCancel(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+  return createPortal(
+    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 1000, background: "rgba(43,37,33,0.45)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeUp 0.2s ease" }}
+      onClick={e => { e.stopPropagation(); onCancel(); }}>
+      <div onClick={e => e.stopPropagation()} style={{ position: "relative", width: "100%", maxWidth: 400, background: "#f6f1ea", borderRadius: 30, padding: "34px 30px 30px", textAlign: "center", boxShadow: "0 40px 80px -30px rgba(43,37,33,0.55)" }}>
+        <button onClick={onCancel} aria-label="Close" style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "#8b7f72", cursor: "pointer", display: "flex" }}>
+          <Icon icon="solar:close-circle-bold" width={24} />
+        </button>
+        <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#f6e3dd", color: "#9b3b2a", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+          <Icon icon="solar:trash-bin-2-bold" width={24} />
+        </div>
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 30, fontWeight: 500, color: "#2b2521", lineHeight: 1.1, marginBottom: 8 }}>Not the one?</h2>
+        <p style={{ fontSize: 13.5, color: "#5b4c3f", lineHeight: 1.5, marginBottom: 22 }}>
+          No worries. We’ll take it off your board, along with its scores and notes. There’s no undoing this.
+        </p>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={onCancel} style={{ flex: 1, padding: "13px 16px", borderRadius: 999, background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.12)", color: "#2b2521", fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Keep it</button>
+          <button onClick={onConfirm} style={{ flex: 1, padding: "13px 16px", borderRadius: 999, background: "#9b3b2a", border: "none", color: "#fbf8f3", fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Remove it</button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function PropertyOverview({ property, boardSettings, onStartScoring, onClose, onDelete, onMove, onEdit }) {
   const ctx = scoreCtx(property, boardSettings);
   const hasScore = property.scores && Object.keys(property.scores).length > 0;
   const total = getTotal(property.scores) + getBonusTotal(property.bonuses);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
   const [editing, setEditing] = useState(false);
@@ -594,10 +628,11 @@ function PropertyOverview({ property, boardSettings, onStartScoring, onClose, on
               <Icon icon="solar:pen-bold" width={14} /> Edit
             </button>
             {onDelete && (
-              <button onClick={() => { if (window.confirm("Delete this property?")) onDelete(property.id); }}
+              <button className="trash-btn" onClick={() => setConfirmingDelete(true)}
                 style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(251,248,243,0.6)", border: "1px solid #ecc9bf", color: "#9b3b2a", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                 title="Delete property"><Icon icon="solar:trash-bin-2-bold" width={16} /></button>
             )}
+            {confirmingDelete && <ConfirmDelete onCancel={() => setConfirmingDelete(false)} onConfirm={() => { setConfirmingDelete(false); onDelete(property.id); }} />}
           </div>
         </div>
 
@@ -1295,6 +1330,7 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
   const hasScore = property.scores && Object.keys(property.scores).length > 0;
   const col = COLUMNS.find(c => c.id === property.status);
   const [editingDate, setEditingDate] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
   const removed = isRemoved(property);
   const [dateVal, setDateVal] = useState('');
@@ -1367,10 +1403,11 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
       </div>
 
       {onDelete && (
-        <button onClick={e => { e.stopPropagation(); if (window.confirm("Delete this property?")) onDelete(property.id); }}
+        <button className="trash-btn trash-btn-card" onClick={e => { e.stopPropagation(); setConfirmingDelete(true); }}
           style={{ position: "absolute", top: 16, right: 16, width: 28, height: 28, borderRadius: "50%", background: "rgba(251,248,243,0.88)", backdropFilter: "blur(6px)", border: "none", color: "#8b7f72", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
           title="Delete"><Icon icon="solar:trash-bin-2-bold" width={14} /></button>
       )}
+      {confirmingDelete && <ConfirmDelete onCancel={() => setConfirmingDelete(false)} onConfirm={() => { setConfirmingDelete(false); onDelete(property.id); }} />}
 
       {/* Content */}
       <div style={{ padding: "12px 6px 0", position: "relative" }}>
