@@ -42,6 +42,21 @@ const isFlat = c => c.homeType !== "house";
 const isHouse = c => c.homeType === "house";
 const isRent = c => c.mode === "rent";
 const isBuy = c => c.mode !== "rent";
+// Service charge, ground rent and lease length only apply to leasehold (or share-of-freehold) homes
+const isLeasehold = c => c.leasehold === true;
+
+// Does the listing say this home is leasehold? Freehold wins; otherwise any lease evidence counts.
+function detectLeasehold(p) {
+  if (!p) return false;
+  const tenure = String(p.tenure || "");
+  if (/share\s+of\s+(?:the\s+)?freehold/i.test(tenure)) return true;
+  if (/freehold/i.test(tenure)) return false;
+  if (/lease/i.test(tenure)) return true;
+  if (p.leaseLength || Number(p.serviceCharge) > 0 || Number(p.groundRent) > 0) return true;
+  const d = String(p.description || "");
+  if (/share\s+of\s+(?:the\s+)?freehold/i.test(d)) return true;
+  return /\bleasehold\b|\d{2,4}\s+years?\s+(?:remaining|left|unexpired|lease)/i.test(d) && !/\bfreehold\b/i.test(d.replace(/share\s+of\s+(?:the\s+)?freehold/gi, ""));
+}
 
 const SECTIONS = [
   {
@@ -56,7 +71,7 @@ const SECTIONS = [
         contextHint: (p) => p.price ? `Listed at ${p.price}` : null,
       },
       {
-        id: "service_charge", label: "Service Charge", weight: 2, show: c => isBuy(c) && isFlat(c),
+        id: "service_charge", label: "Service Charge", weight: 2, show: c => isBuy(c) && isLeasehold(c),
         anchors: { 1: "Very high — £5,000+/yr", 2: "High — £3,000–5,000/yr", 3: "Average — £2,000–3,000/yr", 4: "Reasonable — £1,000–2,000/yr", 5: "Low or nil — under £1,000/yr" },
         contextHint: (p) => {
           if (p.serviceCharge != null) return `Service charge: £${Number(p.serviceCharge).toLocaleString()}/yr`;
@@ -66,7 +81,7 @@ const SECTIONS = [
         },
       },
       {
-        id: "ground_rent", label: "Ground Rent", weight: 1, show: c => isBuy(c) && isFlat(c),
+        id: "ground_rent", label: "Ground Rent", weight: 1, show: c => isBuy(c) && isLeasehold(c),
         anchors: { 1: "High escalating — £500+/yr", 2: "Moderate — £250–500/yr", 3: "Low — £100–250/yr", 4: "Nominal — under £100/yr", 5: "Peppercorn or zero" },
         contextHint: (p) => {
           if (p.groundRent === 0 || p.groundRent === "0") return "Ground rent: peppercorn / zero";
@@ -78,7 +93,7 @@ const SECTIONS = [
         },
       },
       {
-        id: "lease_length", label: "Lease Length", weight: 2, show: c => isBuy(c) && isFlat(c),
+        id: "lease_length", label: "Lease Length", weight: 2, show: c => isBuy(c) && isLeasehold(c),
         anchors: { 1: "~80 years — urgent problem", 2: "~90–100 years — negotiate extension", 3: "~110 years — acceptable", 4: "150+ years — no concerns", 5: "999 years or freehold — ideal" },
         contextHint: (p) => {
           if (p.leaseLength) return `Lease: ${p.leaseLength}`;
@@ -256,7 +271,7 @@ const ALL_QUESTIONS = SECTIONS.flatMap(s => s.questions);
 // Board settings + home type → scorecard context
 function scoreCtx(property, settings) {
   const lf = settings?.lookingFor;
-  return { mode: settings?.mode || "buy", homeType: property?.homeType || (lf === "house" ? "house" : lf === "flat" ? "flat" : null) };
+  return { mode: settings?.mode || "buy", homeType: property?.homeType || (lf === "house" ? "house" : lf === "flat" ? "flat" : null), leasehold: detectLeasehold(property) };
 }
 function sectionsFor(ctx) {
   return SECTIONS.map(s => ({ ...s, title: s.titleFor?.(ctx) || s.title, questions: s.questions.filter(q => !q.show || q.show(ctx)).map(q => resolveQ(q, ctx)) }))
@@ -998,7 +1013,7 @@ function ContextPill({ hint }) {
 // ─── SCORING WIZARD ─────────────────────────────────────────────────────────
 function ScoringWizard({ property, boardSettings, onClose, onSave }) {
   const [homeType, setHomeType] = useState(() => property.homeType || scoreCtx(property, boardSettings).homeType);
-  const ctx = { mode: boardSettings?.mode || "buy", homeType };
+  const ctx = { mode: boardSettings?.mode || "buy", homeType, leasehold: detectLeasehold(property) };
   const WS = sectionsFor(ctx);
   const asked = WS.flatMap(s => s.questions);
   const [sectionIdx, setSectionIdx] = useState(0);
@@ -1167,7 +1182,7 @@ function ScoringWizard({ property, boardSettings, onClose, onSave }) {
               <div style={{ flex: 1, height: 1, background: "#e3d9cc" }} />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {BONUSES.map(b => {
+              {BONUSES.filter(b => b.id !== "low_charge" || (isBuy(ctx) && isLeasehold(ctx))).map(b => {
                 const active = !!bonuses[b.id];
                 return (
                   <button key={b.id} onClick={() => setBonuses(prev => ({ ...prev, [b.id]: !prev[b.id] }))}

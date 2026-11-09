@@ -87,14 +87,25 @@ export async function fetchPropertyData(url) {
   else if (host.includes('savills')) result = parseSavills(html)
   else if (host.includes('knightfrank')) result = parseKnightFrank(html)
 
+  // Sanity: a sale price that is tiny or equals the bedroom count is a mis-parse, not a price.
+  // Drop it so the generic fallbacks get a chance to find the real figure.
+  const implausible = p => !p.price || (p.priceType !== 'rent' && p.price < 10000) || p.price === p.bedrooms
+  if (implausible(result)) { delete result.price; delete result.priceType }
+
   const gen = parseGeneric(html, url)
+  if (implausible(gen)) { delete gen.price; delete gen.priceType }
   result = fillMissing(result, gen)
+  // Branded agency sites: the agent is the agency, not the individual negotiator named on the page
+  const brand = Object.entries(BRANDED_HOSTS).find(([h]) => host.includes(h))
+  if (brand) result.estateAgent = brand[1]
   if (!result.homeType) result.homeType = inferHomeType([getTitle(html), getMeta(html, 'og:title'), result.address, result.description].filter(Boolean).join(' · '))
 
   return result
 }
 
 // Flat or house, from the listing's own wording (title first, then description)
+const BRANDED_HOSTS = { 'foxtons': 'Foxtons', 'savills': 'Savills', 'knightfrank': 'Knight Frank' }
+
 function inferHomeType(text) {
   const t = String(text || '').slice(0, 4000)
   const flat = t.search(/\b(flat|apartment|maisonette|studio|penthouse|duplex)\b/i)
@@ -422,6 +433,35 @@ function parseFoxtons(html) {
   const nd = tryExtractNextData(html)
   if (!nd) return parseGeneric(html)
 
+  // Current Foxtons pages: everything lives in pageProps.propertyDetail.
+  // Sales price = priceFrom; lettings price = pricePcm (priceFrom is a weekly figure there).
+  const pd = nd.props?.pageProps?.propertyDetail
+  if (pd && typeof pd === 'object' && (pd.priceFrom || pd.pricePcm)) {
+    const r = {}
+    const isRent = toNum(pd.pricePcm) > 0 || /let|rent/i.test(String(pd.instructionType || pd.instructionTypeShort || ''))
+    r.priceType = isRent ? 'rent' : 'buy'
+    r.price = isRent ? toNum(pd.pricePcm) : toNum(pd.priceFrom)
+    r.bedrooms = toNum(pd.bedrooms)
+    r.bathrooms = toNum(pd.bathrooms)
+    r.estateAgent = 'Foxtons'
+    r.sqft = toNum(pd.floorArea) || extractSqftFromHtml(html)
+    const photo = Array.isArray(pd.photos) && pd.photos[0]
+    if (photo) r.imageUrl = typeof photo === 'string' ? photo : photo.src || photo.url || ''
+    r.description = String(pd.description || pd.shortDescription || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    if (pd.tenure) r.tenure = capitalise(String(pd.tenure))
+    if (pd.entranceFloor) r.floor = `${capitalise(String(pd.entranceFloor))} floor`
+    if (pd.eerCurrentBand) r.epcRating = String(pd.eerCurrentBand).toUpperCase()
+    if (pd.serviceCharge) r.serviceCharge = toNum(pd.serviceCharge)
+    if (pd.groundRent != null) r.groundRent = toNum(pd.groundRent)
+    if (pd.tenureExpiresAt) {
+      const rem = new Date(pd.tenureExpiresAt).getFullYear() - new Date().getFullYear()
+      if (rem > 0) r.leaseLength = `${rem} years remaining`
+    }
+    if (!r.leaseLength) r.leaseLength = extractLeaseFromText(r.description) || ''
+    r.agentContact = extractPhoneFromHtml(html)
+    return r
+  }
+
   let prop = deepFind(nd, 'property') || deepFind(nd, 'listing')
   if (!prop || typeof prop !== 'object') return parseGeneric(html)
 
@@ -712,10 +752,13 @@ function parseGeneric(html, url) {
       if (!r.address && ld.name) r.address = ld.name
     }
     if (!r.price) {
-      const priceData = ld.offers || ld.priceSpecification
+      const offer     = [].concat(ld.offers || [])[0]
+      const priceData = offer?.priceSpecification || offer || ld.priceSpecification
       if (priceData) { const val = priceData.price || priceData.lowPrice; if (val) Object.assign(r, parsePriceString(String(val))) }
+      if (/Let|Rent/i.test(String(offer?.businessFunction || '')) && r.price) r.priceType = 'rent'
       if (!r.price && ld.price) Object.assign(r, parsePriceString(String(ld.price)))
     }
+    if (!r.description && typeof ld.description === 'string') r.description = ld.description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
     if (!r.bedrooms)  r.bedrooms  = toNum(ld.numberOfBedrooms  ?? ld.numberOfRooms)
     if (!r.bathrooms) r.bathrooms = toNum(ld.numberOfBathroomsTotal ?? ld.numberOfBathrooms)
     if (!r.sqft && ld.floorSize) {
@@ -887,12 +930,28 @@ function deepFind(obj, key, depth = 0) {
 }
 
 function parsePriceString(str) {
-  if (!str) return { price: 0, priceType: null }
-  const clean  = str.replace(/[£$€,\s]/g, '')
-  const num    = parseInt(clean)
+  if (str == null || str === '') return { price: 0, priceType: null }
+  str = String(str)
   const lower  = str.toLowerCase()
-  const isRent = /pcm|pw|per\s+month|per\s+week|\/mo|\/month/.test(lower)
-  return { price: num || 0, priceType: isRent ? 'rent' : (num > 0 ? 'buy' : null) }
+  const isRent = /pcm|\bpw\b|p\/w|per\s+month|per\s+week|\/mo\b|\/month|a\s+month|a\s+week/.test(lower)
+
+  // Only trust a number that is marked as money (£/$/€ prefix) or a bare numeric value.
+  // Never grab a stray leading digit from prose like "3 bed flat for sale" — that is the bedroom count.
+  let num = 0
+  const money = str.match(/[£$€]\s*([\d,]+(?:\.\d+)?)\s*(m\b|million|k\b)?/i)
+  if (money) {
+    num = parseFloat(money[1].replace(/,/g, ''))
+    const unit = (money[2] || '').toLowerCase()
+    if (unit.startsWith('m')) num *= 1_000_000
+    else if (unit === 'k') num *= 1_000
+  } else if (/^\s*[\d,]+(?:\.\d+)?\s*$/.test(str)) {
+    num = parseFloat(str.replace(/,/g, ''))
+  }
+  num = Math.round(num) || 0
+
+  // A weekly rent is quoted as pw — normalise to monthly so it matches "pcm" listings
+  if (isRent && /\bpw\b|p\/w|per\s+week|a\s+week/.test(lower) && !/pcm|per\s+month/.test(lower)) num = Math.round(num * 52 / 12)
+  return { price: num, priceType: isRent ? 'rent' : (num > 0 ? 'buy' : null) }
 }
 
 function getMeta(html, name) {
