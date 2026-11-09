@@ -347,6 +347,9 @@ const COLUMNS = [
   { id: "viewed",   label: "Seen",      sub: "Ranked by score",        icon: "solar:eye-bold",       color: "#a3462b", accent: "#f1ddd2" },
 ];
 
+// Drag-over tint: the CTA button colour (#a3462b) at 10%, the same for every column
+const DROP_TINT = "rgba(163,70,43,0.10)";
+
 // ─── LISTING AVAILABILITY ──────────────────────────────────────────────────
 // A listing is "removed" when the portal says so (checked server-side) and the user hasn't overridden it.
 function isRemoved(p) { return p?.listingStatus === "removed" && p?.listingOverride !== "available"; }
@@ -567,13 +570,13 @@ function ConfirmDelete({ onConfirm, onCancel }) {
         <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#f6e3dd", color: "#9b3b2a", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
           <Icon icon="solar:trash-bin-2-bold" width={24} />
         </div>
-        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 30, fontWeight: 500, color: "#2b2521", lineHeight: 1.1, marginBottom: 8 }}>Not the one?</h2>
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 30, fontWeight: 500, color: "#2b2521", lineHeight: 1.1, marginBottom: 8 }}>Delete this property?</h2>
         <p style={{ fontSize: 13.5, color: "#5b4c3f", lineHeight: 1.5, marginBottom: 22 }}>
-          No worries. We’ll take it off your board, along with its scores and notes. There’s no undoing this.
+          Deleting it permanently removes this property and all of its scoring and notes. This can’t be undone.
         </p>
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onCancel} style={{ flex: 1, padding: "13px 16px", borderRadius: 999, background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.12)", color: "#2b2521", fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Keep it</button>
-          <button onClick={onConfirm} style={{ flex: 1, padding: "13px 16px", borderRadius: 999, background: "#9b3b2a", border: "none", color: "#fbf8f3", fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Remove it</button>
+          <button onClick={onCancel} style={{ flex: 1, padding: "13px 16px", borderRadius: 999, background: "#fbf8f3", border: "1px solid rgba(43,37,33,0.12)", color: "#2b2521", fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
+          <button onClick={onConfirm} style={{ flex: 1, padding: "13px 16px", borderRadius: 999, background: "#9b3b2a", border: "none", color: "#fbf8f3", fontFamily: "'Manrope', sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Delete property</button>
         </div>
       </div>
     </div>,
@@ -1325,7 +1328,7 @@ function ScoringWizard({ property, boardSettings, onClose, onSave }) {
 }
 
 // ─── PROPERTY CARD (kanban tile) ────────────────────────────────────────────
-function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
+function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate, draggable = false, isDragging = false, onDragStart, onDragEnd }) {
   const total = getTotal(property.scores) + getBonusTotal(property.bonuses);
   const hasScore = property.scores && Object.keys(property.scores).length > 0;
   const col = COLUMNS.find(c => c.id === property.status);
@@ -1357,10 +1360,23 @@ function PropertyCard({ property, onOpen, onDelete, onMove, onUpdate }) {
   const pillSt = { position: "absolute", left: "50%", bottom: 10, transform: "translateX(-50%)", fontSize: 11, fontWeight: 600, padding: "6px 11px", borderRadius: 99, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 5 };
   const chipBtn = { fontSize: 10.5, padding: "4px 9px", borderRadius: 99, background: "transparent", border: "1px solid rgba(43,37,33,0.14)", color: "#8b7f72", fontWeight: 600, cursor: "pointer", fontFamily: "'Manrope', sans-serif" };
 
+  // Desktop drag and drop: the drag image is the card itself, anchored where it was grabbed
+  function handleDragStart(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(property.id));
+    e.dataTransfer.setDragImage(e.currentTarget, e.clientX - rect.left, e.clientY - rect.top);
+    onDragStart?.(property.id);
+  }
+
   return (
     <div
       onClick={() => onOpen(property)}
+      draggable={draggable}
+      onDragStart={draggable ? handleDragStart : undefined}
+      onDragEnd={draggable ? () => onDragEnd?.() : undefined}
       style={{
+        opacity: isDragging ? 0.35 : 1,
         background: "#fbf8f3",
         border: "1px solid rgba(43,37,33,0.10)",
         borderRadius: 20, padding: "8px 8px 12px", position: "relative",
@@ -2372,6 +2388,8 @@ export default function NestWell() {
   const narrow = useNarrow();       // < 768px — full mobile
   const medium = useNarrow(823);    // < 823px — icon-only header links
   const isRemoteUpdate = useRef(false);
+  const [draggingId, setDraggingId] = useState(null);   // card being dragged (desktop only)
+  const [overCol, setOverCol] = useState(null);         // column currently hovered while dragging
   const [user, setUser] = useState(() => getUser());
   const [boardSettings, setBoardSettings] = useState({});
   const [setupPrompt, setSetupPrompt] = useState(null); // { then?: property } — ask renting/buying before scoring
@@ -2550,9 +2568,9 @@ export default function NestWell() {
     if (prop.status === "viewed") setOverviewProp(prop);
   }
 
-  function moveProperty(id, newStatus) {
+  function moveProperty(id, newStatus, { silent = false } = {}) {
     setProperties(prev => prev.map(p => p.id === id ? { ...p, status: newStatus, updatedAt: Date.now() } : p));
-    if (newStatus === "viewed") {
+    if (newStatus === "viewed" && !silent) {
       const prop = properties.find(p => p.id === id);
       if (prop) setOverviewProp({ ...prop, status: "viewed" });
     }
@@ -2838,6 +2856,9 @@ export default function NestWell() {
         padding: "8px 32px 40px", overflowX: "auto", alignItems: "start",
       }}>
         {COLUMNS.map(col => {
+          const dragging = !narrow && draggingId != null;
+          const dragged = dragging ? properties.find(p => p.id === draggingId) : null;
+          const dropHere = dragging && overCol === col.id && dragged && dragged.status !== col.id;
           const colProps = properties.filter(p => p.status === col.id && p.status !== "archived");
           if (col.id === "booked") {
             colProps.sort((a, b) => {
@@ -2853,7 +2874,20 @@ export default function NestWell() {
             );
           }
           return (
-            <div key={col.id} style={{ minWidth: 0, paddingTop: narrow ? 14 : 0 }}>
+            <div key={col.id}
+              onDragOver={dragging ? e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; if (overCol !== col.id) setOverCol(col.id); } : undefined}
+              onDragLeave={dragging ? e => { if (!e.currentTarget.contains(e.relatedTarget)) setOverCol(c => (c === col.id ? null : c)); } : undefined}
+              onDrop={dragging ? e => {
+                e.preventDefault();
+                const id = Number(e.dataTransfer.getData("text/plain")) || draggingId;
+                const prop = properties.find(p => String(p.id) === String(id));
+                if (prop && prop.status !== col.id) moveProperty(prop.id, col.id, { silent: true });
+                setDraggingId(null); setOverCol(null);
+              } : undefined}
+              style={{ minWidth: 0, borderRadius: 24, ...(narrow ? { paddingTop: 14 } : { padding: 8, margin: -8 }),
+                minHeight: dragging ? "55vh" : undefined,
+                background: dropHere ? DROP_TINT : "transparent",
+                transition: "background 0.15s ease" }}>
               <div style={{ marginBottom: 14, display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "0 4px 8px", borderBottom: "1px solid rgba(43,37,33,0.10)" }}>
                 <div>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 25, fontWeight: 500, lineHeight: 1, color: "#2b2521" }}>{col.label}</div>
@@ -2866,8 +2900,15 @@ export default function NestWell() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {colProps.map(p => (
-                  <PropertyCard key={p.id} property={p} onOpen={handleCardOpen} onDelete={deleteProperty} onMove={moveProperty} onUpdate={updateProperty} />
+                  <PropertyCard key={p.id} property={p} onOpen={handleCardOpen} onDelete={deleteProperty} onMove={moveProperty} onUpdate={updateProperty}
+                    draggable={!narrow} isDragging={draggingId === p.id}
+                    onDragStart={id => setTimeout(() => setDraggingId(id), 0)} onDragEnd={() => { setDraggingId(null); setOverCol(null); }} />
                 ))}
+                {dropHere && (
+                  <div style={{ height: 84, borderRadius: 20, border: "1.5px dashed rgba(163,70,43,0.5)", background: "rgba(251,248,243,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 18, color: "#7a3420" }}>
+                    Drop to move to {col.label}
+                  </div>
+                )}
                 {col.id === "listing" ? (
                   <button onClick={requestAdd} style={{ border: "1.5px dashed #d6c8b6", borderRadius: 20, padding: "18px 14px", background: "transparent", color: "#8b7f72", fontSize: 12.5, cursor: "pointer", fontFamily: "'Manrope', sans-serif", textAlign: "center" }}>
                     <span style={{ display: "block", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 20, fontWeight: 500, color: "#2b2521", marginBottom: 3 }}>{colProps.length ? "Found another?" : "Add your first home"}</span>
