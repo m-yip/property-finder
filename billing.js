@@ -1,8 +1,8 @@
 // ── Accounts, funnel events and plans — shared by vite.config.js (dev) and server.js (prod) ──
 //
 // Storage: Postgres when DATABASE_URL is set, otherwise a local JSON file (.data/dev-store.json).
-// Payments: demo mode unlocks instantly. Set STRIPE_SECRET_KEY, STRIPE_PRICE_TEN and
-// STRIPE_PRICE_UNLIMITED to use real Stripe Checkout. Secrets are only ever read from env.
+// Payments: demo mode unlocks instantly. Set STRIPE_SECRET_KEY and STRIPE_PRICE_TEN (the £9.99
+// Search pass) to use real Stripe Checkout. Secrets are only ever read from env.
 
 import fs from 'fs'
 import path from 'path'
@@ -10,11 +10,11 @@ import crypto from 'crypto'
 import pg from 'pg'
 
 export const PLANS = {
-  free:      { label: 'Free',      homes: 10,   scorecards: 1 },        // 2nd scorecard is paywalled once a board has FREE_SCORE_AFTER homes
-  ten:       { label: 'Search',    homes: 10,   price: 800,  boards: 1 }, // pence
-  unlimited: { label: 'Unlimited', homes: null, price: 1500, boards: null },
+  free:      { label: 'Free',        homes: 5,    scorecards: null },       // 3 to start, 5 with an email (email is captured at sign-up)
+  ten:       { label: 'Search pass', homes: null, price: 999,  boards: 1 }, // pence. The one paid plan: unlimited homes, one board, forever. (id kept as 'ten' so stored data and Stripe env names still match)
+  unlimited: { label: 'Unlimited',   homes: null, price: 1500, boards: null }, // legacy: no longer offered, still honoured for existing buyers
 }
-export const FREE_SCORE_AFTER = 3
+export const FREE_SCORE_AFTER = null // no scorecard paywall: the free limit is on homes only
 
 const EVENTS = new Set([
   'landing_view', 'landing_cta', 'app_open', 'onboarding_view', 'email_submitted', 'board_created', 'board_joined',
@@ -123,7 +123,7 @@ async function grant(board, email, plan) {
 }
 
 // ── Stripe (REST, no SDK) ───────────────────────────────────────────────────────
-const stripeEnabled = () => !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_TEN && process.env.STRIPE_PRICE_UNLIMITED)
+const stripeEnabled = () => !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_TEN)
 async function stripe(method, endpoint, params) {
   const res = await fetch(`https://api.stripe.com/v1/${endpoint}`, {
     method,
@@ -195,7 +195,7 @@ export async function handleBillingApi(req, res) {
     if (p === '/api/checkout' && req.method === 'POST') {
       const b = await readJson(req)
       const email = String(b.email || '').toLowerCase(), board = clean(b.board, 12), plan = b.plan
-      if (!isEmail(email) || !board || !['ten', 'unlimited'].includes(plan)) return send(400, { ok: false, error: 'Missing details' })
+      if (!isEmail(email) || !board || plan !== 'ten') return send(400, { ok: false, error: 'Missing details' })
       if (!stripeEnabled()) {
         await grant(board, email, plan)
         return send(200, { ok: true, demo: true, ...(await entitlement(board, email)) })
@@ -203,7 +203,7 @@ export async function handleBillingApi(req, res) {
       const origin = clean(b.returnUrl, 500) || process.env.APP_URL || 'http://localhost:3000'
       const session = await stripe('POST', 'checkout/sessions', {
         mode: 'payment',
-        'line_items[0][price]': plan === 'ten' ? process.env.STRIPE_PRICE_TEN : process.env.STRIPE_PRICE_UNLIMITED,
+        'line_items[0][price]': process.env.STRIPE_PRICE_TEN,
         'line_items[0][quantity]': '1',
         customer_email: email,
         'metadata[board]': board, 'metadata[email]': email, 'metadata[plan]': plan,

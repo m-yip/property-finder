@@ -2034,10 +2034,10 @@ const USER_KEY = "nestwell-user", ANON_KEY = "nestwell-anon", ATTR_KEY = "nestwe
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PLAN_INFO = {
   free:      { name: "Free" },
-  ten:       { name: "Search", price: "£8", homes: 10 },
+  ten:       { name: "Search pass", price: "£9.99" },
   unlimited: { name: "Unlimited", price: "£15" },
 };
-const FREE_ENTITLEMENT = { plan: "free", homes: 10, freeScoreAfter: 3, demo: true };
+const FREE_ENTITLEMENT = { plan: "free", homes: 5, freeScoreAfter: null, demo: true };
 
 function getUser() { try { return JSON.parse(localStorage.getItem(USER_KEY)) || null; } catch { return null; } }
 function saveUser(u) { localStorage.setItem(USER_KEY, JSON.stringify(u)); }
@@ -2177,7 +2177,6 @@ function Paywall({ reason, homesCount, scoredCount, entitlement, boardCode, user
   const narrow = useNarrow();
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState("");
-  const upgradeOnly = entitlement.plan === "ten";
   useEffect(() => { track("paywall_shown", { reason, homes: homesCount, scored: scoredCount, plan: entitlement.plan }, boardCode); }, []);
 
   async function choose(plan) {
@@ -2194,13 +2193,12 @@ function Paywall({ reason, homesCount, scoredCount, entitlement, boardCode, user
   }
 
   const heading = reason === "homes" ? "Room for more homes" : reason === "upgrade" ? "Unlock your board" : "Keep scoring every viewing";
-  const sub = reason === "homes"
-    ? `You’ve reached ${homesCount} homes on this board. Unlock it to keep adding.`
-    : `You’ve added ${homesCount} home${homesCount === 1 ? "" : "s"} and scored ${scoredCount}. Unlock this board to score every viewing and compare them all.`;
+  const sub = "Try Nest Well free. When you’re ready to compare more homes, unlock your search for £9.99. One payment. No subscription.";
+  // Free is always listed first; the Search pass is the one paid plan
   const plans = [
-    !upgradeOnly && { id: "ten", name: "Search", price: "£8", tag: "For a short search", features: ["Up to 10 homes", "Unlimited scorecards", "One board", "Everyone on the board included"] },
-    { id: "unlimited", name: "Unlimited", price: "£15", tag: "Best value", features: ["Unlimited homes", "Unlimited boards", "Unlimited scorecards", "Everyone on your boards included"] },
-  ].filter(Boolean);
+    { id: "free", name: "Free", price: "£0", tag: "Your plan", blurb: "Everything you need to start.", features: ["3 homes to start", "5 homes with your email", "Scorecards, board and sharing"] },
+    { id: "ten", name: "Search pass", price: "£9.99", tag: "Unlock your search", blurb: "Unlimited homes, one board, forever.", features: ["Unlimited homes", "Unlimited scorecards", "One board, forever", "Everyone on the board included"] },
+  ];
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(43,37,33,0.32)", backdropFilter: "blur(10px)", display: "flex", alignItems: narrow ? "flex-end" : "center", justifyContent: "center", padding: narrow ? 0 : 20, animation: narrow ? "slideUp 0.28s ease" : "fadeUp 0.2s ease" }}
@@ -2212,9 +2210,9 @@ function Paywall({ reason, homesCount, scoredCount, entitlement, boardCode, user
           <p style={{ fontSize: 14, color: "#5b4c3f", lineHeight: 1.55, marginTop: 10, maxWidth: 460, marginLeft: "auto", marginRight: "auto" }}>{sub}</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: !narrow && plans.length > 1 ? "1fr 1fr" : "1fr", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: !narrow ? "1fr 1fr" : "1fr", gap: 14 }}>
           {plans.map(pl => {
-            const best = pl.id === "unlimited";
+            const best = pl.id === "ten";
             return (
               <div key={pl.id} style={{ position: "relative", background: best ? "#fbf8f3" : "rgba(251,248,243,0.55)", border: best ? "1.5px solid #a3462b" : "1px solid rgba(43,37,33,0.12)", borderRadius: 22, padding: "22px 22px 20px", boxShadow: best ? "0 24px 44px -30px rgba(163,70,43,0.7)" : "none", display: "flex", flexDirection: "column" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -2223,9 +2221,9 @@ function Paywall({ reason, homesCount, scoredCount, entitlement, boardCode, user
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "10px 0 4px" }}>
                   <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 52, fontWeight: 500, lineHeight: 1, color: best ? "#a3462b" : "#2b2521" }}>{pl.price}</span>
-                  <span style={{ fontSize: 12.5, color: "#8b7f72" }}>one payment</span>
+                  <span style={{ fontSize: 12.5, color: "#8b7f72" }}>{pl.id === "free" ? "to start" : "one payment · no subscription"}</span>
                 </div>
-                <div style={{ fontSize: 12.5, color: "#5b4c3f", marginBottom: 14 }}>{best ? "Unlimited homes, forever." : "Everything you need for one search."}</div>
+                <div style={{ fontSize: 12.5, color: "#5b4c3f", marginBottom: 14 }}>{pl.blurb}</div>
                 <ul style={{ listStyle: "none", display: "grid", gap: 8, marginBottom: 18, flex: 1 }}>
                   {pl.features.map(f => (
                     <li key={f} style={{ display: "flex", gap: 9, fontSize: 13.5, color: "#2b2521", alignItems: "center" }}>
@@ -2233,10 +2231,14 @@ function Paywall({ reason, homesCount, scoredCount, entitlement, boardCode, user
                     </li>
                   ))}
                 </ul>
-                <button onClick={() => choose(pl.id)} disabled={!!busy}
-                  style={best ? { ...primaryBtnSt, width: "100%", padding: 14, fontSize: 14, opacity: busy && busy !== pl.id ? 0.6 : 1 } : { ...ghostBtnSt, width: "100%", padding: 13, fontSize: 14, opacity: busy && busy !== pl.id ? 0.6 : 1 }}>
-                  {busy === pl.id ? "Opening checkout…" : `Unlock with ${pl.name} · ${pl.price}`}
-                </button>
+                {pl.id === "free" ? (
+                  <div style={{ textAlign: "center", fontSize: 13, color: "#8b7f72", padding: 13 }}>You’re here now</div>
+                ) : (
+                  <button onClick={() => choose(pl.id)} disabled={!!busy}
+                    style={{ ...primaryBtnSt, width: "100%", padding: 14, fontSize: 14, opacity: busy && busy !== pl.id ? 0.6 : 1 }}>
+                    {busy === pl.id ? "Opening checkout…" : `Unlock with ${pl.name} · ${pl.price}`}
+                  </button>
+                )}
               </div>
             );
           })}
@@ -2631,7 +2633,7 @@ export default function NestWell() {
   function requestScoring(prop) {
     if (!boardSettings.mode) { setSetupPrompt({ then: prop }); return; }
     const alreadyScored = prop.scores && Object.keys(prop.scores).length > 0;
-    if (entitlement.plan === "free" && !alreadyScored && activeCount >= (entitlement.freeScoreAfter ?? 3) && scoredCount >= 1) {
+    if (entitlement.plan === "free" && !alreadyScored && entitlement.freeScoreAfter != null && activeCount >= entitlement.freeScoreAfter && scoredCount >= 1) {
       setPaywall({ reason: "score" });
       return;
     }

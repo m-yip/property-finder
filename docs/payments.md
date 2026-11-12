@@ -7,23 +7,24 @@
 
 | Plan | Price | Homes | Boards | Scorecards |
 |---|---|---|---|---|
-| Free | £0 | up to 10 | – | 1, then the paywall appears on the 2nd once the board has 3+ homes |
-| Search | £8 once | up to 10 | the board it was bought on | unlimited |
-| Unlimited | £15 once | unlimited | every board the buyer owns | unlimited |
+| Free | £0 | 3 to start, 5 with your email | – | unlimited |
+| Search pass | £9.99 once | unlimited, forever | the board it was bought on | unlimited |
 
-- **The paywall appears** when someone starts a 2nd scorecard on a free board with 3+ homes, adds a home past the plan's limit, or taps **Upgrade** in the board menu.
+Everyone starts on Free. The old Unlimited plan (£15, all boards) is no longer offered but is still honoured for anyone who bought it.
+
+- **The paywall appears** when someone adds a home past the free limit, or taps **Upgrade** in the board menu. There is no scorecard paywall any more: the free limit is on homes only.
+- **Not built yet:** the 3-then-5 step. Email is captured at sign-up today, so the effective free limit is 5. The permanent tally (deleted homes still count) and the later email step are still to do; for now the limit counts the homes currently on the board.
 - Limits live in `billing.js` (`PLANS`, `FREE_SCORE_AFTER`) and the paywall copy lives in `src/App.jsx` (`Paywall`).
 
 ## Payments
 
 - **Demo mode (default):** choosing a plan unlocks the board straight away. The paywall shows "Demo mode: no card needed".
-- **Real payments:** create two one-off Prices in Stripe (£8 and £15), then set these environment variables on the server, never in code:
+- **Real payments:** create one one-off Price in Stripe (£9.99), then set these environment variables on the server, never in code:
 
 | Variable | Purpose |
 |---|---|
 | `STRIPE_SECRET_KEY` | Stripe secret key (use a test key first) |
-| `STRIPE_PRICE_TEN` | Price ID for Search (£8) |
-| `STRIPE_PRICE_UNLIMITED` | Price ID for Unlimited (£15) |
+| `STRIPE_PRICE_TEN` | Price ID for the Search pass (£9.99). The name `TEN` is historical |
 | `APP_URL` | Public app URL, used for Checkout return links |
 
 With all three Stripe variables set, the paywall redirects to Stripe Checkout. When the buyer returns, `/api/checkout/verify` confirms the payment with Stripe before unlocking the board. Before launch, add a Stripe webhook as a backstop for buyers who close the tab before they're redirected back.
@@ -42,7 +43,7 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" https://<app>/api/admin/funnel   # 
 curl -H "Authorization: Bearer $ADMIN_TOKEN" https://<app>/api/admin/users    # emails, plans, attribution
 ```
 
-**Landing page:** set `APP_URL` at the top of the script in `docs/landing/index.html` to the live app URL before publishing.
+**Landing page:** set `APP_URL` at the top of the script in `landing/index.html` to the live app URL before publishing.
 
 ## Before launch
 

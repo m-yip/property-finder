@@ -15,7 +15,7 @@
   --terracotta: #a3462b; --terracotta-soft: #f1ddd2; --olive: #5f6b3a; --olive-soft: #e3e4d0; --ochre: #b0813a;
   --serif: 'Cormorant Garamond', serif; --sans: 'Manrope', sans-serif;
   --shadow: 0 30px 60px -34px rgba(91,76,63,.55); --shadow-sm: 0 12px 26px -18px rgba(91,76,63,.55);
-  --img: ../assets/demo-images;
+  --img: assets/demo-images;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -281,7 +281,7 @@ footer .grow { flex: 1; }
       <li><a href="#how">How it works</a></li>
       <li><a href="#scoring">Scorecard</a></li>
       <li><a href="#together">Shared boards</a></li>
-      <li><a href="#next">What’s next</a></li>
+      <!-- hidden for launch: <li><a href="#next">What’s next</a></li> -->
     </ul>
     <a href="#" data-cta="nav" class="btn pri">Start your search</a>
   </div>
@@ -302,10 +302,10 @@ footer .grow { flex: 1; }
     </div>
 
     <div class="collage reveal d2">
-      <div class="main"><img src="../assets/demo-images/flat-6.jpg" alt="Bright top-floor flat with skylights and plants"></div>
-      <div class="round"><img src="../assets/demo-images/flat-8.jpg" alt=""></div>
+      <div class="main"><img src="assets/demo-images/flat-6.jpg" alt="Bright top-floor flat with skylights and plants"></div>
+      <div class="round"><img src="assets/demo-images/flat-8.jpg" alt=""></div>
       <div class="float f-view">
-        <div class="th"><img src="../assets/demo-images/flat-7.jpg" alt=""></div>
+        <div class="th"><img src="assets/demo-images/flat-7.jpg" alt=""></div>
         <div><small>Next viewing</small><b>Greenwich High Road</b><span>Saturday · 2:00pm</span></div>
       </div>
       <div class="float f-score">
@@ -373,7 +373,7 @@ footer .grow { flex: 1; }
         </ul>
       </div>
       <div class="reveal d1" style="position:relative">
-        <div class="shot"><div class="bar"><i></i><i></i><i></i><span>Nest Well · London Rentals 2026</span></div><div class="crop"><img src="../assets/stills/01-board-overview-screen.png" alt="The Nest Well board with homes in Saved, Enquired, Visiting and Seen columns"></div></div>
+        <div class="shot"><div class="bar"><i></i><i></i><i></i><span>Nest Well · London Rentals 2026</span></div><div class="crop"><img src="assets/stills/01-board-overview-screen.png" alt="The Nest Well board with homes in Saved, Enquired, Visiting and Seen columns"></div></div>
         <div class="badge-float" style="left:-22px; bottom:40px"><i></i>Details filled in from the listing link</div>
       </div>
     </div>
@@ -393,12 +393,12 @@ footer .grow { flex: 1; }
       <div class="follow reveal d1">
         <div class="col-label"><b>Enquired</b><span>Waiting on agents</span></div>
         <div class="fcard">
-          <div class="ph"><img src="../assets/demo-images/flat-4.jpg" alt=""></div>
+          <div class="ph"><img src="assets/demo-images/flat-4.jpg" alt=""></div>
           <div class="bd"><h5>Clapham Common North Side</h5><div class="pr">£2,850 pcm</div><span class="status">Enquired</span>
             <div class="ag"><i></i>Parkside Lettings<span class="call">✆</span></div></div>
         </div>
         <div class="fcard">
-          <div class="ph"><img src="../assets/demo-images/flat-5.jpg" alt=""></div>
+          <div class="ph"><img src="assets/demo-images/flat-5.jpg" alt=""></div>
           <div class="bd"><h5>Kentish Town Road</h5><div class="pr">£2,200 pcm</div><span class="status">Enquired</span>
             <div class="ag"><i></i>Carter Row Estates<span class="call">✆</span></div></div>
         </div>
@@ -420,9 +420,9 @@ footer .grow { flex: 1; }
       <div class="viewings reveal d1">
         <h4>Good morning. <em>Two viewings</em> booked.</h4>
         <p>Greenwich on Saturday, Shad Thames on Sunday. Bermondsey Street is your favourite so far.</p>
-        <div class="vrow soon"><div class="date"><b>27</b><span>Sat</span></div><div class="th"><img src="../assets/demo-images/flat-7.jpg" alt=""></div><div><h5>Greenwich High Road</h5><small>Parkside Lettings · 2 bed</small></div><span class="time">2:00pm</span></div>
-        <div class="vrow"><div class="date"><b>28</b><span>Sun</span></div><div class="th"><img src="../assets/demo-images/flat-11.jpg" alt=""></div><div><h5>Shad Thames</h5><small>Harbour &amp; Hale · 1 bed</small></div><span class="time">11:00am</span></div>
-        <div class="vrow"><div class="date"><b>02</b><span>Thu</span></div><div class="th"><img src="../assets/demo-images/flat-3.jpg" alt=""></div><div><h5>Canonbury Road</h5><small>Stanton Wolfe · 2 bed</small></div><span class="time">6:30pm</span></div>
+        <div class="vrow soon"><div class="date"><b>27</b><span>Sat</span></div><div class="th"><img src="assets/demo-images/flat-7.jpg" alt=""></div><div><h5>Greenwich High Road</h5><small>Parkside Lettings · 2 bed</small></div><span class="time">2:00pm</span></div>
+        <div class="vrow"><div class="date"><b>28</b><span>Sun</span></div><div class="th"><img src="assets/demo-images/flat-11.jpg" alt=""></div><div><h5>Shad Thames</h5><small>Harbour &amp; Hale · 1 bed</small></div><span class="time">11:00am</span></div>
+        <div class="vrow"><div class="date"><b>02</b><span>Thu</span></div><div class="th"><img src="assets/demo-images/flat-3.jpg" alt=""></div><div><h5>Canonbury Road</h5><small>Stanton Wolfe · 2 bed</small></div><span class="time">6:30pm</span></div>
       </div>
     </div>
 
@@ -439,7 +439,7 @@ footer .grow { flex: 1; }
         </ul>
       </div>
       <div class="score-visual reveal d1">
-        <video src="../assets/videos/04-score-viewing-mobile.mp4" autoplay muted loop playsinline poster="../assets/stills/04-score-viewing-mobile.png"></video>
+        <video src="assets/videos/04-score-viewing-mobile.mp4" autoplay muted loop playsinline poster="assets/stills/04-score-viewing-mobile.png"></video>
         <div class="float q"><h5>Could you picture living here?</h5><div class="rates"><span>1</span><span>2</span><span>3</span><span>4</span><span class="on">5</span></div></div>
         <div class="float gauge-card"><div class="gauge" id="scoreGauge"></div><div><small>Your score</small><h4>A home<br>to love</h4></div></div>
       </div>
@@ -458,7 +458,7 @@ footer .grow { flex: 1; }
         </ul>
       </div>
       <div class="together-visual reveal d1">
-        <div class="shot"><div class="bar"><i></i><i></i><i></i><span>Your favourites</span></div><div class="crop" style="aspect-ratio:16/11"><img src="../assets/stills/05-leaderboard-screen.png" alt="Leaderboard ranking homes by score" style="object-position:center 30%; transform:scale(1.5); transform-origin:center 40%"></div></div>
+        <div class="shot"><div class="bar"><i></i><i></i><i></i><span>Your favourites</span></div><div class="crop" style="aspect-ratio:16/11"><img src="assets/stills/05-leaderboard-screen.png" alt="Leaderboard ranking homes by score" style="object-position:center 30%; transform:scale(1.5); transform-origin:center 40%"></div></div>
         <div class="float codecard"><small>Board code</small><div class="tiles"><span>N</span><span>W</span><span>7</span><span>K</span><span>3</span><span>P</span></div></div>
         <div class="people">
           <div class="chat"><i style="background:#5f6b3a">✓</i><span>Everyone sees the same homes, scores and notes</span></div>
@@ -474,7 +474,7 @@ footer .grow { flex: 1; }
     <span class="eyebrow reveal">The tour</span>
     <h2 class="title reveal d1">See it in <em>eighteen seconds.</em></h2>
     <p class="lead reveal d2">Add a home, move it through your board, score a viewing, see your favourites and share with your partner.</p>
-    <video class="reveal d2" src="../assets/videos/00-full-flow.mp4" poster="../assets/stills/00-full-flow.png" controls muted playsinline preload="metadata"></video>
+    <video class="reveal d2" src="assets/videos/00-full-flow.mp4" poster="assets/stills/00-full-flow.png" controls muted playsinline preload="metadata"></video>
   </div>
 </section>
 
@@ -486,10 +486,10 @@ footer .grow { flex: 1; }
       <p class="lead reveal d2">No app to download. Add your email, start a board, paste your first link and you’re away.</p>
     </header>
     <div class="grid4">
-      <div class="step reveal"><div class="ph"><img src="../assets/demo-images/flat-1.jpg" alt=""></div><div class="bd"><div class="n">1</div><h4>Paste a link</h4><p>Any listing from any portal or agent. The details fill themselves in.</p></div></div>
-      <div class="step reveal d1"><div class="ph"><img src="../assets/demo-images/flat-4.jpg" alt=""></div><div class="bd"><div class="n">2</div><h4>Track agents &amp; viewings</h4><p>See who you’re waiting on and when you’re viewing next.</p></div></div>
-      <div class="step reveal d2"><div class="ph"><img src="../assets/demo-images/flat-9.jpg" alt=""></div><div class="bd"><div class="n">3</div><h4>Score after each viewing</h4><p>Two minutes on the walk home, while it’s still fresh.</p></div></div>
-      <div class="step reveal d3"><div class="ph"><img src="../assets/demo-images/flat-8.jpg" alt=""></div><div class="bd"><div class="n">4</div><h4>Shortlist together</h4><p>Share one code and decide with the people who matter.</p></div></div>
+      <div class="step reveal"><div class="ph"><img src="assets/demo-images/flat-1.jpg" alt=""></div><div class="bd"><div class="n">1</div><h4>Paste a link</h4><p>Any listing from any portal or agent. The details fill themselves in.</p></div></div>
+      <div class="step reveal d1"><div class="ph"><img src="assets/demo-images/flat-4.jpg" alt=""></div><div class="bd"><div class="n">2</div><h4>Track agents &amp; viewings</h4><p>See who you’re waiting on and when you’re viewing next.</p></div></div>
+      <div class="step reveal d2"><div class="ph"><img src="assets/demo-images/flat-9.jpg" alt=""></div><div class="bd"><div class="n">3</div><h4>Score after each viewing</h4><p>Two minutes on the walk home, while it’s still fresh.</p></div></div>
+      <div class="step reveal d3"><div class="ph"><img src="assets/demo-images/flat-8.jpg" alt=""></div><div class="bd"><div class="n">4</div><h4>Shortlist together</h4><p>Share one code and decide with the people who matter.</p></div></div>
     </div>
   </div>
 </section>
@@ -506,7 +506,7 @@ footer .grow { flex: 1; }
 <!-- FOUNDER -->
 <section class="founder">
   <div class="wrap">
-    <div class="arch-photo reveal"><img src="../assets/demo-images/flat-11.jpg" alt="Warm living room with timber beams"></div>
+    <div class="arch-photo reveal"><img src="assets/demo-images/flat-11.jpg" alt="Warm living room with timber beams"></div>
     <div>
       <span class="eyebrow reveal">Why we built it</span>
       <blockquote class="reveal d1">“I built Nest Well while buying my first home: too many agents, too many viewings and no way to compare. It made the whole thing <em>calmer</em>, and it helped me <em>decide.</em>”</blockquote>
@@ -515,7 +515,7 @@ footer .grow { flex: 1; }
   </div>
 </section>
 
-<!-- WHAT'S NEXT -->
+<!-- WHAT'S NEXT: hidden for launch (post-offer timeline). Remove the comment markers here and on the nav link to restore.
 <section class="next" id="next">
   <div class="wrap">
     <span class="eyebrow reveal">Coming next</span>
@@ -532,6 +532,7 @@ footer .grow { flex: 1; }
     </div>
   </div>
 </section>
+-->
 
 <!-- CTA -->
 <section class="cta">
@@ -541,11 +542,11 @@ footer .grow { flex: 1; }
     <p class="lead reveal d2">Start a board in seconds, paste your first listing and invite whoever you’re searching with. Free to start, no app to download.</p>
     <a href="#" data-cta="footer" class="btn pri reveal d3">Start your search →</a>
     <div class="thumbs reveal d3">
-      <div><img src="../assets/demo-images/flat-2.jpg" alt=""></div>
-      <div><img src="../assets/demo-images/flat-9.jpg" alt=""></div>
-      <div><img src="../assets/demo-images/flat-6.jpg" alt=""></div>
-      <div><img src="../assets/demo-images/flat-4.jpg" alt=""></div>
-      <div><img src="../assets/demo-images/flat-1.jpg" alt=""></div>
+      <div><img src="assets/demo-images/flat-2.jpg" alt=""></div>
+      <div><img src="assets/demo-images/flat-9.jpg" alt=""></div>
+      <div><img src="assets/demo-images/flat-6.jpg" alt=""></div>
+      <div><img src="assets/demo-images/flat-4.jpg" alt=""></div>
+      <div><img src="assets/demo-images/flat-1.jpg" alt=""></div>
     </div>
   </div>
 </section>

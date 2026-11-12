@@ -2,8 +2,6 @@
 
 **House hunting, kept calm.** One shared board for every listing, estate agent, viewing and gut feeling. Score each home while it's fresh, and decide together.
 
-![Nest Well board](docs/assets/screenshots/board.png)
-
 ## What it does
 
 - **Add a home:** paste a Rightmove, Zoopla, OnTheMarket or agent link, and the price, size, photos and agent fill in for you.
@@ -13,19 +11,12 @@
 - **Share the board:** a six-letter board code, so your partner, family or housemates see the same homes, scores and notes.
 - **Spot dead listings:** homes the agent has taken down are flagged "No longer listed", and your notes and scores are kept.
 
-| Property page | Favourites |
-|---|---|
-| ![Property page with score prompt](docs/assets/screenshots/property.png) | ![Favourites leaderboard](docs/assets/screenshots/favourites.png) |
-
-**Landing page** (`docs/landing/index.html`):
-
-![Landing page](docs/assets/screenshots/landing.png)
+**Landing page:** a static page in `landing/index.html`, with only the images and videos it uses in `landing/assets/`.
 
 ## Plans
 
-- **Free:** score one home. Starting a second scorecard on a board with 3+ homes opens the paywall.
-- **Search (£8, one-off):** up to 10 homes on one board.
-- **Unlimited (£15, one-off):** unlimited homes and boards.
+- **Free:** 3 homes to start, 5 with your email. Everyone starts here.
+- **Search pass (£9.99, one-off):** unlimited homes on one board, forever. No subscription.
 - **Shared boards:** one payment covers everyone on the board.
 - **Payments:** demo mode by default, switching to Stripe Checkout when the Stripe environment variables are set. Setup is in [docs/payments.md](docs/payments.md).
 
@@ -53,13 +44,12 @@ npm run build && npm start   # production server on :3000
 |---|---|
 | `DATABASE_URL` | Postgres connection |
 | `ADMIN_TOKEN` | Unlocks the admin funnel and user endpoints |
-| `STRIPE_SECRET_KEY`, `STRIPE_PRICE_TEN`, `STRIPE_PRICE_UNLIMITED` | Real Stripe Checkout |
+| `STRIPE_SECRET_KEY`, `STRIPE_PRICE_TEN` (the £9.99 pass) | Real Stripe Checkout |
 | `APP_URL` | Public app URL, for Checkout return links |
 
 ## Docs
 
-- [Demo videos, GIFs and stills](docs/README.md), with the Puppeteer recorder in `docs/scripts/`
-- [Design explorations](docs/design/look-and-feel.html) and the [Limewash sample](docs/design/limewash-sample.html)
 - [Payments, tracking and paywall](docs/payments.md)
+- [Content guidelines](docs/content-guidelines.md)
 
-Demo homes are fictional. Photos are from Unsplash and Pexels ([credits](docs/assets/demo-images/CREDITS.md)).
+Demo homes are fictional. Photos are from Unsplash and Pexels ([credits](landing/assets/demo-images/CREDITS.md)).
