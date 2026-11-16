@@ -13,13 +13,16 @@ export const PLANS = {
   free:      { label: 'Free',        homes: 5,    scorecards: null },       // 3 to start, 5 with an email (email is captured at sign-up)
   ten:       { label: 'Search pass', homes: null, price: 999,  boards: 1 }, // pence. The one paid plan: unlimited homes, one board, forever. (id kept as 'ten' so stored data and Stripe env names still match)
   unlimited: { label: 'Unlimited',   homes: null, price: 1500, boards: null }, // legacy: no longer offered, still honoured for existing buyers
+  beta:      { label: 'Free beta',   homes: null }, // everyone, while BETA_FREE isn't '0'
 }
+const betaFree = () => process.env.BETA_FREE !== '0'
 export const FREE_SCORE_AFTER = null // no scorecard paywall: the free limit is on homes only
 
 const EVENTS = new Set([
   'landing_view', 'landing_cta', 'app_open', 'onboarding_view', 'email_submitted', 'board_created', 'board_joined',
   'listing_added', 'scorecard_started', 'scorecard_saved', 'paywall_shown', 'paywall_dismissed', 'plan_selected',
   'checkout_started', 'purchase_completed', 'search_setup',
+  'waitlist_view', 'waitlist_joined', 'waitlist_shared',
 ])
 
 // ── Storage adapter ─────────────────────────────────────────────────────────────
@@ -104,6 +107,7 @@ const store = process.env.DATABASE_URL
 // A plan bought on a board covers everyone on it. Unlimited also covers every board the buyer owns.
 async function entitlement(board, email) {
   const bp = board ? await store.getBoardPlan(board) : null
+  if (betaFree()) return { plan: 'beta', homes: null, freeScoreAfter: null, owner: bp?.owner || null, demo: !stripeEnabled() }
   let plan = bp?.plan || 'free'
   if (plan !== 'unlimited' && bp?.owner) {
     const owner = await store.getUser(bp.owner)
@@ -133,6 +137,22 @@ async function stripe(method, endpoint, params) {
   const json = await res.json()
   if (!res.ok) throw new Error(json.error?.message || 'Stripe error')
   return json
+}
+
+// ── Sign-ups sheet + CSV ────────────────────────────────────────────────────────
+// People who tick "send me updates" are also added to the Google Sheet (docs/signups-sheet.gs).
+// Fire-and-forget: a slow or missing sheet never blocks sign-up.
+function addToSignupsSheet(row) {
+  const url = process.env.SIGNUPS_SHEET_URL
+  if (!url) return
+  fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(row) })
+    .catch(err => console.error('Sign-ups sheet:', err.message))
+}
+// Quote for CSV, and stop spreadsheet apps running values like "=HYPERLINK(...)" as formulas
+function csvCell(v) {
+  let s = v instanceof Date ? v.toISOString() : String(v ?? '')
+  if (/^[=+\-@]/.test(s)) s = "'" + s
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s
 }
 
 // ── HTTP ────────────────────────────────────────────────────────────────────────
@@ -166,6 +186,7 @@ export async function handleBillingApi(req, res) {
         ? Object.fromEntries(Object.entries(b.attribution).slice(0, 12).map(([k, v]) => [clean(k, 40), clean(String(v), 200)]))
         : null
       const user = await store.upsertUser({ email, name: clean(b.name, 80) || '', marketing: !!b.marketing, attribution })
+      if (b.marketing) addToSignupsSheet({ email, name: user.name, source: 'app', ...(attribution || {}) })
       return send(200, { ok: true, user: { email: user.email, name: user.name, plan: user.plan } })
     }
 
@@ -233,6 +254,16 @@ export async function handleBillingApi(req, res) {
       if (!token || given.length !== token.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(token))) return send(401, { ok: false, error: 'Unauthorised' })
       if (p === '/api/admin/funnel') return send(200, { ok: true, ...(await store.funnel()) })
       if (p === '/api/admin/users') return send(200, { ok: true, users: await store.users() })
+      if (p === '/api/admin/users.csv') {
+        const rows = (await store.users()).map(u => {
+          const a = u.attribution || {}
+          return [u.created_at || u.createdAt || '', u.email, u.name, u.marketing ? 'yes' : 'no', u.plan, a.source, a.searching, a.utm_source, a.utm_campaign]
+        })
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+        res.setHeader('Content-Disposition', 'attachment; filename="homeswoon-users.csv"')
+        res.end([['created', 'email', 'name', 'updates', 'plan', 'source', 'searching', 'utm_source', 'utm_campaign'], ...rows].map(r => r.map(csvCell).join(',')).join('\n'))
+        return true
+      }
     }
 
     return send(404, { ok: false, error: 'Not found' })

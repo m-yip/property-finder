@@ -1,0 +1,3 @@
+# Cloudflare Pages redirects for the Homeswoon site.
+# Fallback: to make the teaser the homepage, remove the "#" from the line below, commit and push.
+# /  /teaser  200

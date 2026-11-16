@@ -1576,7 +1576,7 @@ function AddModal({ boardSettings = {}, onClose, onAdd }) {
         }
       } catch {}
 
-      // Strategy 2: allorigins.win proxy + AI fallback
+      // Strategy 2: allorigins.win proxy + meta tag / page text extraction
       const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url.trim())}`;
       const pageRes = await fetch(proxyUrl);
       if (!pageRes.ok) throw new Error("Failed to fetch listing page");
@@ -1594,49 +1594,9 @@ function AddModal({ boardSettings = {}, onClose, onAdd }) {
         ? stripped.slice(0, 4000) + "\n[...]\n" + stripped.slice(-16000)
         : stripped;
 
-      const aiRes = await fetch("https://models.inference.ai.azure.com/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          max_tokens: 1200,
-          messages: [{
-            role: "user",
-            content: `Extract property listing details from this HTML. Page title/H1 hints: "${titleHints}". Use these to find the property address. Return ONLY a raw JSON object — no markdown, no backticks, no explanation. Use this exact structure:
-{
-  "name": "short display name from the H1/title: street name + area + postcode district ONLY e.g. 'Millennium Drive, London, E14' — NO house number, NO full postcode, NO agent name",
-  "address": "full street address including house number e.g. '42 Brunswick Court, Shoreditch, London, E1 6RF'",
-  "price": "asking price as shown e.g. '£450,000' or '£2,500 pcm'",
-  "bedrooms": "number only e.g. '2'",
-  "bathrooms": "number only e.g. '1'",
-  "sqft": "square footage number only if listed e.g. '750'",
-  "image": "the direct URL of the main hero/first photo of the property",
-  "agent": "the specific estate agency or branch marketing this property (e.g. 'Hurford Salvi Carr', 'Knight Frank Chelsea') — NOT the property portal or website name, so never 'Rightmove', 'Zoopla', 'OnTheMarket' etc.",
-  "agentPhone": "the estate agent's contact phone number if shown",
-  "serviceCharge": "annual service charge amount if listed e.g. '£2,400'",
-  "groundRent": "ground rent amount if listed e.g. '£250/yr' or 'Peppercorn'",
-  "leaseLength": "lease length remaining if listed e.g. '125 years'",
-  "tenure": "property tenure type if shown e.g. 'Leasehold' or 'Freehold'",
-  "dateListed": "date the property was first listed or added e.g. 'Added 12 Mar 2024'",
-  "description": "the full property description text as shown in the listing — copy it verbatim, do not summarise"
-}
-
-HTML:
-${trimmed}`
-          }]
-        })
-      });
-      const data = await aiRes.json();
-      const text = data.choices?.[0]?.message?.content || "";
+      // No AI call from the browser: any API key here would be visible to every visitor.
+      // The server scraper (Strategy 1) is the main path; this fallback reads meta tags and page text.
       let ext = {};
-      try {
-        const cleaned = text.replace(/```json|```/g, "").trim();
-        const match = cleaned.match(/\{[\s\S]*\}/);
-        if (match) ext = JSON.parse(match[0]);
-      } catch (e) {}
 
       if (!ext.image) {
         const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
@@ -2030,14 +1990,22 @@ function generateClientCode() {
 }
 
 // ─── ACCOUNT, TRACKING & PLANS ───────────────────────────────────────────────
+// Brand + links. Internal storage keys keep the old "nestwell-" prefix so existing sessions survive the rename.
+const BRAND = "Homeswoon";
+const LANDING_URL = import.meta.env.VITE_LANDING_URL || ""; // e.g. https://homeswoon.pages.dev (set on Railway)
+const PRIVACY_URL = LANDING_URL ? `${LANDING_URL}/privacy` : "/landing/privacy.html";
+const BetaPill = ({ small }) => (
+  <span style={{ fontFamily: "'Manrope', sans-serif", fontStyle: "normal", fontSize: small ? 9.5 : 10.5, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#5f6b3a", background: "#e3e4d0", padding: small ? "4px 8px" : "6px 10px", borderRadius: 99, lineHeight: 1, verticalAlign: "middle", whiteSpace: "nowrap" }}>Beta</span>
+);
 const USER_KEY = "nestwell-user", ANON_KEY = "nestwell-anon", ATTR_KEY = "nestwell-attribution";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PLAN_INFO = {
   free:      { name: "Free" },
+  beta:      { name: "Free beta" },
   ten:       { name: "Search pass", price: "£9.99" },
   unlimited: { name: "Unlimited", price: "£15" },
 };
-const FREE_ENTITLEMENT = { plan: "free", homes: 5, freeScoreAfter: null, demo: true };
+const FREE_ENTITLEMENT = { plan: "free", homes: null, freeScoreAfter: null, demo: true };
 
 function getUser() { try { return JSON.parse(localStorage.getItem(USER_KEY)) || null; } catch { return null; } }
 function saveUser(u) { localStorage.setItem(USER_KEY, JSON.stringify(u)); }
@@ -2145,7 +2113,7 @@ function EmailCapture({ title, subtitle, cta, context, onDone, onBack }) {
       track("email_submitted", { context, marketing });
       onDone(user);
     } catch (err) {
-      setError(err.message === "Failed to fetch" ? "We couldn’t reach Nest Well. Check your connection and try again." : err.message);
+      setError(err.message === "Failed to fetch" ? `We couldn’t reach ${BRAND}. Check your connection and try again.` : err.message);
     } finally { setBusy(false); }
   }
 
@@ -2160,12 +2128,12 @@ function EmailCapture({ title, subtitle, cta, context, onDone, onBack }) {
       <input value={name} onChange={e => setName(e.target.value)} placeholder="So your partner knows who’s who" autoComplete="given-name" style={{ ...field, marginBottom: 14 }} />
       <label style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 12.5, color: "#5b4c3f", lineHeight: 1.45, cursor: "pointer", marginBottom: 16 }}>
         <input type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} style={{ marginTop: 2, accentColor: "#a3462b", width: 15, height: 15, flexShrink: 0 }} />
-        Send me occasional house-hunting tips and product news. Unsubscribe anytime.
+        Send me updates on new features. We don’t do spam.
       </label>
       {error && <div style={{ fontSize: 12.5, color: "#9b3b2a", marginBottom: 12 }}>{error}</div>}
       <button type="submit" disabled={busy} style={{ ...primaryBtnSt, width: "100%", padding: "15px", fontSize: 15, opacity: busy ? 0.7 : 1 }}>{busy ? "One moment…" : cta}</button>
       <p style={{ fontSize: 11.5, color: "#8b7f72", lineHeight: 1.5, marginTop: 12, textAlign: "center" }}>
-        We use your email to keep your boards safe and send receipts. We never share it.
+        We use your email to keep your boards safe. We never share it. <a href={PRIVACY_URL} target="_blank" rel="noopener" style={{ color: "#8b7f72" }}>Privacy</a>
       </p>
       {onBack && <button type="button" onClick={onBack} style={{ display: "block", margin: "10px auto 0", background: "none", border: "none", color: "#8b7f72", fontSize: 12.5, cursor: "pointer", fontFamily: "'Manrope', sans-serif", textDecoration: "underline" }}>← Back</button>}
     </form>
@@ -2193,7 +2161,7 @@ function Paywall({ reason, homesCount, scoredCount, entitlement, boardCode, user
   }
 
   const heading = reason === "homes" ? "Room for more homes" : reason === "upgrade" ? "Unlock your board" : "Keep scoring every viewing";
-  const sub = "Try Nest Well free. When you’re ready to compare more homes, unlock your search for £9.99. One payment. No subscription.";
+  const sub = `Try ${BRAND} free. When you’re ready to compare more homes, unlock your search for £9.99. One payment. No subscription.`;
   // Free is always listed first; the Search pass is the one paid plan
   const plans = [
     { id: "free", name: "Free", price: "£0", tag: "Your plan", blurb: "Everything you need to start.", features: ["3 homes to start", "5 homes with your email", "Scorecards, board and sharing"] },
@@ -2300,8 +2268,9 @@ function LandingPage({ onStart, onJoin, migrationCode, starting, user, onUser })
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 38 }}>
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 64, fontWeight: 500, color: '#2b2521', letterSpacing: '-0.02em', lineHeight: 1 }}>
-            Nest <span style={{ color: '#a3462b' }}>Well</span>
+            Home<span style={{ color: '#a3462b' }}>swoon</span>
           </h1>
+          <div style={{ marginTop: 12 }}><BetaPill /></div>
           <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: '#5b4c3f', marginTop: 14, lineHeight: 1.25 }}>
             House hunting, kept calm.
           </p>
@@ -2371,7 +2340,7 @@ function LandingPage({ onStart, onJoin, migrationCode, starting, user, onUser })
 }
 
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
-export default function NestWell() {
+export default function Homeswoon() {
   const [boardCode, setBoardCode] = useState(null);
   const [boardName, setBoardName] = useState('');
   const [showBoardMenu, setShowBoardMenu] = useState(false);
@@ -2658,7 +2627,7 @@ export default function NestWell() {
       <div style={{ minHeight: "100vh", ...PLASTER_BG, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Manrope', sans-serif", color: "#2b2521" }}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } input::placeholder { color: #a89a8a; }`}</style>
         <div style={{ width: "100%", maxWidth: 420 }}>
-          <div style={{ textAlign: "center", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 44, fontWeight: 500, marginBottom: 22 }}>Nest <span style={{ color: "#a3462b" }}>Well</span></div>
+          <div style={{ textAlign: "center", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 44, fontWeight: 500, marginBottom: 22 }}>Home<span style={{ color: "#a3462b" }}>swoon</span> <BetaPill /></div>
           <EmailCapture context="shared-link" title={`You’ve been invited to ${boardName || `board ${boardCode}`}`}
             subtitle="Add your email to see the homes, viewings and scores, and add your own thoughts."
             cta="Open the board →"
@@ -2729,8 +2698,9 @@ export default function NestWell() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: narrow ? 10 : 18, minWidth: 0 }}>
           <h1 onClick={handleGoHome} style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: narrow ? 25 : 30, fontWeight: 500, letterSpacing: "-0.01em", color: "#2b2521", cursor: "pointer", whiteSpace: "nowrap", lineHeight: 1 }} title="Back to home">
-            Nest <span style={{ color: "#a3462b" }}>Well</span>
+            Home<span style={{ color: "#a3462b" }}>swoon</span>
           </h1>
+          <BetaPill small />
           {/* Board name dropdown trigger */}
           <div ref={boardMenuRef} style={{ position: "relative", borderLeft: "1px solid rgba(43,37,33,0.12)", paddingLeft: narrow ? 10 : 18 }}>
             <button onClick={() => { if (!showBoardMenu) setBoardMenuName(boardName); setShowBoardMenu(v => !v); }}
@@ -2773,7 +2743,7 @@ export default function NestWell() {
                       {PLAN_INFO[entitlement.plan]?.name}{entitlement.homes != null && <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 12, fontWeight: 500, color: "#8b7f72" }}> · {activeCount}/{entitlement.homes} homes</span>}
                     </div>
                   </div>
-                  {entitlement.plan !== "unlimited" && (
+                  {entitlement.plan !== "unlimited" && entitlement.plan !== "beta" && (
                     <button onClick={() => { setShowBoardMenu(false); setPaywall({ reason: "upgrade" }); }} style={{ ...primaryBtnSt, padding: "8px 14px", fontSize: 12 }}>Upgrade</button>
                   )}
                 </div>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nest Well — House hunting, kept calm</title>
+<title>Homeswoon — House hunting, kept calm</title>
 <meta name="description" content="Every listing, agent, viewing and gut feeling in one calm board. Score homes while they're fresh and decide together.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -249,6 +249,37 @@ blockquote em { font-style: italic; }
 .cta { padding: 140px 0 120px; text-align: center; position: relative; }
 .cta h2 { font: 400 clamp(48px, 6vw, 84px)/1 var(--serif); letter-spacing: -.02em; margin: 18px 0 20px; }
 .cta .lead { max-width: 30em; margin: 0 auto 36px; }
+.beta { font: 600 10px/1 var(--sans); font-style: normal; letter-spacing: .14em; text-transform: uppercase; color: var(--olive); background: var(--olive-soft); padding: 6px 9px; border-radius: 99px; vertical-align: middle; position: relative; top: -4px; margin-left: 4px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.updates { max-width: 470px; margin: 46px auto 0; }
+.updates .ulabel { font: 500 22px/1.2 var(--serif); margin-bottom: 14px; }
+.urow { display: flex; gap: 6px; padding: 5px; background: var(--paper); border: 1px solid var(--line-2); border-radius: 99px; transition: border-color .2s, box-shadow .2s; }
+.urow:focus-within { border-color: var(--terracotta); box-shadow: 0 0 0 4px var(--terracotta-soft); }
+.urow input { flex: 1; min-width: 0; font: 500 14.5px var(--sans); color: var(--umber); padding: 0 14px; border: 0; background: transparent; outline: none; }
+.urow .btn { padding: 12px 20px; font-size: 13px; }
+.updates .ufine { margin-top: 10px; font-size: 12px; color: var(--dust); }
+.updates .ufine a, footer a { text-decoration: underline; }
+.updates .umsg { margin-top: 10px; font: 600 13px var(--sans); color: var(--terracotta); }
+.updates .umsg:empty { display: none; }
+.updates.ok .urow, .updates.ok .ufine { display: none; }
+.updates.ok .umsg { color: var(--olive); font: italic 500 22px var(--serif); }
+@media (max-width: 600px) {
+  .wrap { width: calc(100% - 32px); }
+  .row, .row.flip, .hero .wrap, .problem .wrap, .founder .wrap { grid-template-columns: minmax(0, 1fr); }
+  .row > *, .hero .wrap > * { min-width: 0; }
+  .viewings { padding: 20px 16px; }
+  .vrow { grid-template-columns: 46px 56px minmax(0, 1fr) auto; gap: 10px; }
+  .vrow .date { padding-right: 8px; } .vrow .date b { font-size: 26px; }
+  .vrow .th { width: 56px; height: 44px; }
+  .vrow h5 { font-size: 16px; } .vrow .time { padding: 6px 9px; font-size: 11px; }
+  .follow { grid-template-columns: 1fr; padding: 18px; }
+  .grid4, .value .wrap { grid-template-columns: 1fr; }
+  .f-score { width: auto; right: 6%; grid-template-columns: 78px 1fr; padding: 16px; gap: 14px; }
+  .f-view { right: 0; }
+  .people { left: 0; } .codecard { right: 0; }
+  .cta .thumbs div:nth-child(n+4) { display: none; }
+}
+@media (max-width: 600px) { .urow { flex-direction: column; border-radius: 22px; padding: 8px; } .urow input { padding: 12px 10px; } .urow .btn { width: 100%; } }
 .cta .thumbs { display: flex; justify-content: center; gap: 14px; margin-top: 70px; }
 .cta .thumbs div { width: 120px; height: 90px; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-sm); }
 .cta .thumbs div:nth-child(2) { border-radius: 50%; width: 90px; }
@@ -276,7 +307,7 @@ footer .grow { flex: 1; }
 
 <nav>
   <div class="wrap">
-    <a href="#" class="logo">Nest <i>Well</i></a>
+    <a href="#" class="logo">Home<i>swoon</i> <span class="beta">Beta</span></a>
     <ul>
       <li><a href="#how">How it works</a></li>
       <li><a href="#scoring">Scorecard</a></li>
@@ -293,12 +324,12 @@ footer .grow { flex: 1; }
     <div>
       <span class="eyebrow reveal">For renters &amp; home buyers</span>
       <h1 class="reveal d1">Find your home,<em>without losing the thread.</em></h1>
-      <p class="lead reveal d2">Nest Well brings every listing, estate agent, viewing and gut feeling into one calm board. You always know who to call back, when you’re viewing next, and which home you loved most.</p>
+      <p class="lead reveal d2">Homeswoon brings every listing, estate agent, viewing and gut feeling into one calm board. You always know who to call back, when you’re viewing next, and which home you loved most.</p>
       <div class="ctas reveal d3">
         <a href="#" data-cta="hero" class="btn pri">Start your search →</a>
         <a href="#tour" class="btn ghost">▶ Watch the 18-second tour</a>
       </div>
-      <p class="works reveal d3">Paste a link from <b>Rightmove</b>, <b>Zoopla</b>, <b>OnTheMarket</b> or any agent’s site. Free to start.</p>
+      <p class="works reveal d3">Paste a link from <b>Rightmove</b>, <b>Zoopla</b>, <b>OnTheMarket</b> or any agent’s site. Free while in beta.</p>
     </div>
 
     <div class="collage reveal d2">
@@ -355,7 +386,7 @@ footer .grow { flex: 1; }
 <section class="features" id="how">
   <div class="wrap">
     <header>
-      <span class="eyebrow reveal">How Nest Well helps</span>
+      <span class="eyebrow reveal">How Homeswoon helps</span>
       <h2 class="title reveal d1">One calm place for the <em>whole search.</em></h2>
       <p class="lead reveal d2">From the first listing you save to the flat you can’t stop thinking about, every step lives on one shared board.</p>
     </header>
@@ -365,7 +396,7 @@ footer .grow { flex: 1; }
       <div class="copy reveal">
         <span class="num">01 — Add a home</span>
         <h3>Every agent, every listing, <em>one board.</em></h3>
-        <p class="lead">Paste a link from any portal or agency site and Nest Well fills in the price, size, photos and agent for you. No more tabs, screenshots or spreadsheets.</p>
+        <p class="lead">Paste a link from any portal or agency site and Homeswoon fills in the price, size, photos and agent for you. No more tabs, screenshots or spreadsheets.</p>
         <ul>
           <li>Works with Rightmove, Zoopla, OnTheMarket and agent websites</li>
           <li>Homes move from Saved → Enquired → Visiting → Seen</li>
@@ -373,7 +404,7 @@ footer .grow { flex: 1; }
         </ul>
       </div>
       <div class="reveal d1" style="position:relative">
-        <div class="shot"><div class="bar"><i></i><i></i><i></i><span>Nest Well · London Rentals 2026</span></div><div class="crop"><img src="assets/stills/01-board-overview-screen.png" alt="The Nest Well board with homes in Saved, Enquired, Visiting and Seen columns"></div></div>
+        <div class="shot"><div class="bar"><i></i><i></i><i></i><span>Homeswoon · London Rentals 2026</span></div><div class="crop"><img src="assets/stills/01-board-overview-screen.png" alt="The Homeswoon board with homes in Saved, Enquired, Visiting and Seen columns"></div></div>
         <div class="badge-float" style="left:-22px; bottom:40px"><i></i>Details filled in from the listing link</div>
       </div>
     </div>
@@ -410,7 +441,7 @@ footer .grow { flex: 1; }
       <div class="copy reveal">
         <span class="num">03 — Viewings</span>
         <h3>Always know <em>when you’re viewing next.</em></h3>
-        <p class="lead">Viewings line up in date order, and Nest Well greets you with what’s coming: no more “was it 11 or 2?” texts to the agent, or to each other.</p>
+        <p class="lead">Viewings line up in date order, and Homeswoon greets you with what’s coming: no more “was it 11 or 2?” texts to the agent, or to each other.</p>
         <ul>
           <li>Set the date and time right on the card</li>
           <li>Your board opens with the viewings you’ve booked</li>
@@ -509,7 +540,7 @@ footer .grow { flex: 1; }
     <div class="arch-photo reveal"><img src="assets/demo-images/flat-11.jpg" alt="Warm living room with timber beams"></div>
     <div>
       <span class="eyebrow reveal">Why we built it</span>
-      <blockquote class="reveal d1">“I built Nest Well while buying my first home: too many agents, too many viewings and no way to compare. It made the whole thing <em>calmer</em>, and it helped me <em>decide.</em>”</blockquote>
+      <blockquote class="reveal d1">“I built Homeswoon while buying my first home: too many agents, too many viewings and no way to compare. It made the whole thing <em>calmer</em>, and it helped me <em>decide.</em>”</blockquote>
       <p class="sig reveal d2"><b>The founder</b> · first-time buyer, London</p>
     </div>
   </div>
@@ -520,7 +551,7 @@ footer .grow { flex: 1; }
   <div class="wrap">
     <span class="eyebrow reveal">Coming next</span>
     <h2 class="title reveal d1">From “we love it” <em>to keys in hand.</em></h2>
-    <p class="lead reveal d2">Buying has even more moving parts: brokers, solicitors, surveyors and chains, all out of sight. Next, Nest Well turns your accepted offer into a live, guided timeline: who owns each step, what they need from you, and what’s holding things up.</p>
+    <p class="lead reveal d2">Buying has even more moving parts: brokers, solicitors, surveyors and chains, all out of sight. Next, Homeswoon turns your accepted offer into a live, guided timeline: who owns each step, what they need from you, and what’s holding things up.</p>
     <div class="timeline reveal d2">
       <div class="tstep done"><i></i><h5>Offer</h5><p>Accepted and recorded</p></div>
       <div class="tstep now"><i></i><h5>Mortgage</h5><p>Broker · valuation booked</p><span>You are here</span></div>
@@ -539,8 +570,19 @@ footer .grow { flex: 1; }
   <div class="wrap">
     <span class="eyebrow reveal">Start today</span>
     <h2 class="reveal d1">House hunting, <em>kept calm.</em></h2>
-    <p class="lead reveal d2">Start a board in seconds, paste your first listing and invite whoever you’re searching with. Free to start, no app to download.</p>
+    <p class="lead reveal d2">Start a board in seconds, paste your first listing and invite whoever you’re searching with. Free while in beta, no app to download.</p>
     <a href="#" data-cta="footer" class="btn pri reveal d3">Start your search →</a>
+    <form class="updates reveal d3" novalidate>
+      <p class="ulabel">Not searching yet? <em>Get the latest updates.</em></p>
+      <div class="urow">
+        <label for="upd-email" class="sr">Email address</label>
+        <input id="upd-email" type="email" name="email" placeholder="you@email.com" autocomplete="email">
+        <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="sr">
+        <button class="btn ghost" type="submit">Get updates</button>
+      </div>
+      <p class="ufine">Updates on new features. We don’t do spam. <a href="privacy.html">Privacy</a></p>
+      <p class="umsg" role="status"></p>
+    </form>
     <div class="thumbs reveal d3">
       <div><img src="assets/demo-images/flat-2.jpg" alt=""></div>
       <div><img src="assets/demo-images/flat-9.jpg" alt=""></div>
@@ -553,18 +595,27 @@ footer .grow { flex: 1; }
 
 <footer>
   <div class="wrap">
-    <span class="logo">Nest <i>Well</i></span>
+    <span class="logo">Home<i>swoon</i></span>
     <span class="grow">Every agent, viewing and gut feeling in one place.</span>
     <span>Photos: Unsplash &amp; Pexels · Demo homes are fictional</span>
+    <a href="privacy.html">Privacy</a>
   </div>
 </footer>
 
 <script>
-// ── Funnel tracking: landing → board ─────────────────────────────────────────
-// Set APP_URL to the live app before publishing. Events go to the app's /api/events.
-const APP_URL = 'http://localhost:5173'
-const anonId = localStorage.getItem('nestwell-anon') || (crypto.randomUUID?.() || String(Date.now()) + Math.random().toString(36).slice(2))
-localStorage.setItem('nestwell-anon', anonId)
+// ── Settings ──────────────────────────────────────────────────────────────────
+// APP_URL:   the live app on Railway (e.g. 'https://homeswoon.up.railway.app'). Empty = same site (local dev).
+// SHEET_URL: the Google Apps Script web app URL for the sign-ups sheet (see docs/signups-sheet.gs).
+const APP_URL = '' || location.origin
+const SHEET_URL = ''
+
+// ── Funnel tracking: landing → board (events go to the app's /api/events) ─────
+const store = {
+  get(k) { try { return localStorage.getItem(k) } catch { return null } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch {} },
+}
+const anonId = store.get('nestwell-anon') || (crypto.randomUUID?.() || String(Date.now()) + Math.random().toString(36).slice(2))
+store.set('nestwell-anon', anonId)
 const utm = Object.fromEntries([...new URLSearchParams(location.search)].filter(([k]) => k.startsWith('utm_')))
 function send(event, props) {
   fetch(`${APP_URL}/api/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
@@ -575,6 +626,32 @@ document.querySelectorAll('[data-cta]').forEach(a => {
   const qs = new URLSearchParams({ ref: 'landing', cta: a.dataset.cta, aid: anonId, ...utm })
   a.href = `${APP_URL}/?${qs}`
   a.addEventListener('click', () => send('landing_cta', { cta: a.dataset.cta }))
+})
+
+// ── Updates sign-up → Google Sheet (or the app's /api/users when SHEET_URL is empty) ──
+const upd = document.querySelector('.updates')
+upd.addEventListener('submit', async e => {
+  e.preventDefault()
+  const msg = upd.querySelector('.umsg'), btn = upd.querySelector('button')
+  const email = upd.email.value.trim().toLowerCase()
+  msg.textContent = ''
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.textContent = 'Please enter a valid email address.'; upd.email.focus(); return }
+  if (upd.website.value) { upd.classList.add('ok'); msg.textContent = 'You’re on the list.'; return } // bot trap
+  btn.disabled = true; btn.textContent = 'Adding…'
+  try {
+    if (SHEET_URL) {
+      await fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ email, source: 'landing', ...utm, referrer: document.referrer || '', page: location.href }) })
+    } else {
+      const res = await fetch(`${APP_URL}/api/users`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, marketing: true, attribution: { source: 'landing', ...utm } }) })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
+    }
+    upd.classList.add('ok'); msg.textContent = 'You’re on the list. We’ll keep you posted.'
+  } catch (ex) {
+    msg.textContent = ex.message === 'Failed to fetch' ? 'We couldn’t reach the server. Please try again in a moment.' : ex.message
+  } finally { btn.disabled = false; btn.textContent = 'Get updates' }
 })
 
 // Arch score gauge

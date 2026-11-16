@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homeswoon: house hunting, kept calm</title>
+<meta name="description" content="Every listing, estate agent and viewing on one shared board. Take the stress out of house hunting. Join the waitlist.">
+<!-- Social previews. Once the page has a domain, make og:image an absolute URL (https://yourdomain/landing/assets/...). -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Homeswoon: house hunting, kept calm">
+<meta property="og:description" content="Every listing, agent and viewing on one shared board. Join the waitlist.">
+<meta property="og:image" content="assets/demo-images/flat-6.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --plaster: #ebe3d8; --linen: #f6f1ea; --paper: #fbf8f3; --stone: #e3d8c9;
+  --umber: #2b2521; --clay: #5b4c3f; --dust: #8b7f72; --line: rgba(43,37,33,.10); --line-2: rgba(43,37,33,.18);
+  --terracotta: #a3462b; --terracotta-soft: #f1ddd2; --olive: #5f6b3a; --olive-soft: #e3e4d0;
+  --serif: 'Cormorant Garamond', serif; --sans: 'Manrope', sans-serif;
+  --shadow: 0 30px 60px -34px rgba(91,76,63,.55); --shadow-sm: 0 12px 26px -18px rgba(91,76,63,.55);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; }
+body { font-family: var(--sans); color: var(--umber); background: var(--plaster); -webkit-font-smoothing: antialiased; line-height: 1.5;
+  display: flex; flex-direction: column; min-height: 100vh;
+  background-image: radial-gradient(ellipse at 85% -5%, #f7f0e6 0%, transparent 45%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.28 0 0 0 0 0.2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+.wrap { width: min(1200px, 100% - 64px); margin: 0 auto; }
+em { font-style: italic; color: var(--terracotta); }
+.eyebrow { font: 600 11px/1 var(--sans); letter-spacing: .18em; text-transform: uppercase; color: var(--dust); display: inline-flex; align-items: center; gap: 10px; }
+.eyebrow::before { content: ''; width: 24px; height: 1px; background: currentColor; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: 600 14px/1 var(--sans); padding: 15px 24px; border-radius: 99px; transition: transform .2s, background .2s; cursor: pointer; border: 0; white-space: nowrap; }
+.btn:hover { transform: translateY(-2px); }
+.btn.pri { background: var(--terracotta); color: #fbf5ee; box-shadow: 0 14px 28px -14px rgba(163,70,43,.9); }
+.btn.pri:hover { background: #923c23; }
+.btn.ghost { border: 1px solid var(--line-2); background: rgba(251,248,243,.55); color: var(--umber); }
+.btn[disabled] { opacity: .6; cursor: progress; transform: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1); }
+.reveal.in { opacity: 1; transform: none; }
+.d1 { transition-delay: .08s } .d2 { transition-delay: .16s } .d3 { transition-delay: .24s }
+
+/* ── Header ─────────────────────────────────────────── */
+.top .wrap { display: flex; align-items: center; gap: 14px; height: 76px; }
+.logo { font: italic 500 30px/1 var(--serif); letter-spacing: -.01em; }
+.logo i { color: var(--terracotta); }
+.soon { font: 600 10.5px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--olive); background: var(--olive-soft); padding: 7px 11px; border-radius: 99px; }
+
+/* ── Hero ───────────────────────────────────────────── */
+main { flex: 1; display: flex; align-items: center; padding: 30px 0 70px; }
+main .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 64px; align-items: center; }
+h1 { font: 400 clamp(46px, 6vw, 84px)/.98 var(--serif); letter-spacing: -.025em; margin: 20px 0 22px; }
+h1 em { display: block; }
+.lead { font-size: 17px; line-height: 1.65; color: var(--clay); max-width: 31em; }
+
+.points { list-style: none; display: grid; gap: 10px; margin: 26px 0 30px; }
+.points li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; color: var(--umber); }
+.points li::before { content: ''; flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; background: var(--olive-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.5l2.6 2.5L13 6.5' fill='none' stroke='%235f6b3a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }
+
+/* Waitlist form */
+.join { max-width: 520px; }
+.join fieldset { border: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.join legend { float: left; font: 600 12.5px var(--sans); color: var(--clay); margin-right: 6px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.chip span { display: inline-block; font: 600 12.5px/1 var(--sans); padding: 9px 14px; border-radius: 99px; border: 1px solid var(--line-2); color: var(--clay); background: rgba(251,248,243,.6); transition: background .2s, color .2s, border-color .2s; }
+.chip input:checked + span { background: var(--terracotta); border-color: var(--terracotta); color: #fbf5ee; }
+.chip input:focus-visible + span { outline: 2px solid var(--terracotta); outline-offset: 2px; }
+.row { display: flex; gap: 8px; padding: 6px; background: var(--paper); border: 1px solid var(--line-2); border-radius: 99px; box-shadow: var(--shadow-sm); transition: border-color .2s, box-shadow .2s; }
+.row:focus-within { border-color: var(--terracotta); box-shadow: 0 0 0 4px var(--terracotta-soft); }
+.row input { flex: 1; min-width: 0; font: 500 15px var(--sans); color: var(--umber); padding: 0 14px; border: 0; background: transparent; outline: none; }
+.fine { margin-top: 12px; font-size: 12.5px; color: var(--dust); padding-left: 4px; }
+.err { margin-top: 10px; font: 600 13px var(--sans); color: var(--terracotta); padding-left: 4px; }
+.err:empty { display: none; }
+.done { display: none; background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 22px 24px; box-shadow: var(--shadow-sm); }
+.join.ok form { display: none; }
+.join.ok .done { display: block; }
+.done h2 { font: italic 500 30px/1.05 var(--serif); color: var(--terracotta); margin-bottom: 8px; }
+.done p { font-size: 14.5px; color: var(--clay); line-height: 1.6; }
+.done .btn { margin-top: 16px; }
+.copied { margin-left: 10px; font: 600 12.5px var(--sans); color: var(--olive); }
+
+/* Collage */
+.collage { position: relative; height: 600px; }
+.collage .main { position: absolute; right: 0; top: 0; width: 82%; height: 88%; border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); }
+.collage .main img, .collage .round img { width: 100%; height: 100%; object-fit: cover; }
+.collage .round { position: absolute; left: 0; top: 46px; width: 150px; height: 150px; border-radius: 50%; overflow: hidden; border: 6px solid var(--plaster); box-shadow: var(--shadow-sm); }
+.float { position: absolute; background: var(--paper); border-radius: 18px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.f-score { left: 2%; bottom: 0; width: 330px; padding: 20px; display: grid; grid-template-columns: 92px 1fr; gap: 18px; align-items: center; animation: bob 7s ease-in-out infinite; }
+.f-score small, .f-view small { font: 600 9.5px/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--dust); }
+.f-score h4 { font: italic 500 25px/1.05 var(--serif); color: var(--terracotta); margin: 6px 0 10px; }
+.bars { display: grid; gap: 6px; }
+.bars div { display: grid; grid-template-columns: 62px 1fr 22px; gap: 8px; align-items: center; font: 500 10.5px var(--sans); color: var(--clay); }
+.bars i { height: 4px; border-radius: 4px; background: var(--stone); overflow: hidden; } .bars i b { display: block; height: 100%; background: var(--terracotta); border-radius: inherit; }
+.bars em { font: 600 13px var(--serif); font-style: normal; color: var(--umber); text-align: right; }
+.f-view { right: -18px; top: 38%; padding: 14px 16px 14px 14px; display: flex; gap: 12px; align-items: center; animation: bob 8s ease-in-out infinite reverse; }
+.f-view .th { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; } .f-view .th img { width: 100%; height: 100%; object-fit: cover; }
+.f-view b { display: block; font: 600 17px/1.15 var(--serif); margin-top: 5px; }
+.f-view span { font-size: 12px; color: var(--olive); font-weight: 600; }
+@keyframes bob { 50% { transform: translateY(-10px); } }
+.gauge { position: relative; width: 92px; height: 110px; display: grid; place-items: center; }
+.gauge svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gauge .fill { transition: transform 1.6s cubic-bezier(.2,.7,.2,1) .4s; }
+.gauge b { position: relative; font: italic 600 42px/1 var(--serif); color: #fbf5ee; margin-top: 30px; }
+
+footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+footer .wrap { display: flex; gap: 24px; justify-content: space-between; flex-wrap: wrap; font-size: 12.5px; color: var(--dust); }
+
+@media (max-width: 960px) {
+  main .wrap { grid-template-columns: 1fr; gap: 48px; }
+  .collage { height: 500px; }
+}
+@media (max-width: 600px) {
+  .wrap { width: calc(100% - 32px); }
+  .top .wrap { height: 64px; } .logo { font-size: 26px; }
+  main { padding: 16px 0 56px; }
+  .row { flex-direction: column; border-radius: 22px; padding: 8px; }
+  .row input { padding: 12px 10px; }
+  .row .btn { width: 100%; }
+  .collage { height: 420px; }
+  .collage .round { width: 104px; height: 104px; top: 24px; }
+  .f-score { width: auto; right: 8%; grid-template-columns: 78px 1fr; padding: 16px; gap: 14px; }
+  .f-score .gauge { transform: scale(.85); transform-origin: left center; }
+  .f-view { right: 0; top: 30%; }
+}
+@media (prefers-reduced-motion: reduce) { .float { animation: none; } .reveal { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <span class="logo">Home<i>swoon</i></span>
+    <span class="soon">Opening soon</span>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div>
+      <span class="eyebrow reveal">For renters &amp; home buyers</span>
+      <h1 class="reveal d1">House hunting,<em>without the stress.</em></h1>
+      <p class="lead reveal d2">A dozen agents calling, viewings booked across three apps, and by Sunday nobody remembers which flat had the light. Homeswoon keeps it all on one shared board, so you can focus on finding the one.</p>
+
+      <ul class="points reveal d2">
+        <li>Every listing, agent and viewing in one place</li>
+        <li>Score each home in two minutes, while it’s fresh</li>
+        <li>Decide together on one shared shortlist</li>
+      </ul>
+
+      <div class="join reveal d3" id="join">
+        <form novalidate>
+          <fieldset>
+            <legend>I’m</legend>
+            <label class="chip"><input type="radio" name="searching" value="renting"><span>Renting</span></label>
+            <label class="chip"><input type="radio" name="searching" value="buying"><span>Buying</span></label>
+            <label class="chip"><input type="radio" name="searching" value="exploring"><span>Just looking</span></label>
+          </fieldset>
+          <div class="row">
+            <label for="email" class="sr">Email address</label>
+            <input id="email" type="email" name="email" placeholder="you@email.com" autocomplete="email" required>
+            <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="sr">
+            <button class="btn pri" type="submit">Join the waitlist</button>
+          </div>
+          <p class="fine">Get the latest updates on the beta and launch. We don’t do spam. <a href="privacy.html" style="text-decoration:underline">Privacy</a></p>
+          <p class="err" role="alert"></p>
+        </form>
+        <div class="done" aria-live="polite">
+          <h2>You’re on the list.</h2>
+          <p>We’ll keep you posted on the beta and launch. Searching with someone? Send them the link so you can start on the same board.</p>
+          <button class="btn ghost" type="button" data-share>Share Homeswoon</button><span class="copied" hidden>Link copied</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="collage reveal d2" aria-hidden="true">
+      <div class="main"><img src="assets/demo-images/flat-6.jpg" alt=""></div>
+      <div class="round"><img src="assets/demo-images/flat-8.jpg" alt=""></div>
+      <div class="float f-view">
+        <div class="th"><img src="assets/demo-images/flat-7.jpg" alt=""></div>
+        <div><small>Next viewing</small><b>Greenwich High Road</b><span>Saturday · 2:00pm</span></div>
+      </div>
+      <div class="float f-score">
+        <div class="gauge"></div>
+        <div>
+          <small>Your score</small>
+          <h4>A home to love</h4>
+          <div class="bars">
+            <div>Light<i><b style="width:93%"></b></i><em>93</em></div>
+            <div>Location<i><b style="width:94%"></b></i><em>94</em></div>
+            <div>Gut feel<i><b style="width:100%"></b></i><em>100</em></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Works with Rightmove, Zoopla, OnTheMarket and agent websites</span>
+    <span>Photos: Unsplash &amp; Pexels · Demo homes are fictional</span>
+  </div>
+</footer>
+
+<script>
+// ── Where sign-ups go ─────────────────────────────────────────────────────────
+// SHEET_URL: paste your Google Apps Script web app URL here (see docs/signups-sheet.gs).
+//            While it's set, sign-ups go to the Google Sheet and nothing else is needed.
+// API_URL:   used when SHEET_URL is empty. '' = the Homeswoon app on the same server,
+//            or the app's full URL (e.g. 'https://homeswoon.up.railway.app') once it's live.
+const SHEET_URL = ''
+const API_URL = ''
+
+const store = {
+  get(k) { try { return localStorage.getItem(k) } catch { return null } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch {} },
+}
+const anonId = store.get('nestwell-anon') || (crypto.randomUUID?.() || String(Date.now()) + Math.random().toString(36).slice(2))
+store.set('nestwell-anon', anonId)
+
+// UTM tags show which post or channel each sign-up came from (?utm_source=instagram&utm_campaign=teaser-1)
+const utm = Object.fromEntries([...new URLSearchParams(location.search)].filter(([k]) => k.startsWith('utm_') || k === 'ref'))
+
+function track(event, props) {
+  if (SHEET_URL) return // no app server yet: views and shares aren't tracked
+  fetch(`${API_URL}/api/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+    body: JSON.stringify({ event, anonId, props: { ...utm, ...props, referrer: document.referrer || undefined } }) }).catch(() => {})
+}
+track('waitlist_view', { path: location.pathname })
+
+// ── Waitlist form ─────────────────────────────────────────────────────────────
+const join = document.querySelector('.join')
+const form = join.querySelector('form')
+const err = join.querySelector('.err')
+const button = form.querySelector('button[type=submit]')
+
+if (store.get('nestwell-waitlist')) join.classList.add('ok')
+
+form.addEventListener('submit', async e => {
+  e.preventDefault()
+  err.textContent = ''
+  const email = form.email.value.trim().toLowerCase()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Please enter a valid email address.'; form.email.focus(); return }
+  const searching = form.searching.value || 'unspecified'
+  button.disabled = true; button.textContent = 'Joining…'
+  try {
+    if (form.website.value) throw 'bot' // hidden field only bots fill in
+    if (SHEET_URL) {
+      // Google only accepts this as a "simple" request, so the reply can't be read; a network error still throws
+      await fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ email, source: 'teaser', searching, ...utm, referrer: document.referrer || '', page: location.href }) })
+    } else {
+    const res = await fetch(`${API_URL}/api/users`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, marketing: false, // waitlist = beta and launch updates
+        attribution: { source: 'waitlist', searching, joinedAt: new Date().toISOString(), ...utm, referrer: document.referrer || '' } }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
+    }
+    track('waitlist_joined', { searching })
+    store.set('nestwell-waitlist', '1')
+    join.classList.add('ok')
+  } catch (ex) {
+    if (ex === 'bot') { join.classList.add('ok'); return }
+    err.textContent = ex.message === 'Failed to fetch' ? 'We couldn’t reach the server. Please try again in a moment.' : ex.message
+  } finally {
+    button.disabled = false; button.textContent = 'Join the waitlist'
+  }
+})
+
+// Share after joining: native share sheet on phones, copy link elsewhere
+join.querySelector('[data-share]').addEventListener('click', async () => {
+  const url = `${location.origin}${location.pathname}?ref=friend`
+  const text = 'House hunting? Homeswoon keeps every listing, agent and viewing on one shared board.'
+  track('waitlist_shared')
+  if (navigator.share) { try { await navigator.share({ title: 'Homeswoon', text, url }) } catch {} return }
+  try { await navigator.clipboard.writeText(url); const c = join.querySelector('.copied'); c.hidden = false; setTimeout(() => c.hidden = true, 2500) } catch { prompt('Copy this link:', url) }
+})
+
+// ── Arch score gauge + entrance ───────────────────────────────────────────────
+document.querySelectorAll('.gauge').forEach(el => {
+  const w = 92, h = 110, r = w / 2, d = `M0 ${h}V${r}a${r} ${r} 0 0 1 ${w} 0V${h}Z`, id = 'c' + Math.random().toString(36).slice(2, 7)
+  el.innerHTML = `<svg viewBox="0 0 ${w} ${h}"><defs><clipPath id="${id}"><path d="${d}"/></clipPath></defs><path d="${d}" fill="#e3d8c9"/><g clip-path="url(#${id})"><rect class="fill" width="${w}" height="${h}" fill="#a3462b" style="transform:translateY(${h}px)"/></g></svg><b>93</b>`
+})
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return
+  e.target.classList.add('in')
+  e.target.querySelectorAll('.gauge .fill').forEach(f => { f.style.transform = `translateY(${110 - 110 * 0.93}px)` })
+  io.unobserve(e.target)
+}), { threshold: 0.15 })
+document.querySelectorAll('.reveal').forEach(el => io.observe(el))
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'))
+</script>
+</body>
+</html>

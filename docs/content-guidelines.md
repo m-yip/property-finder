@@ -1,10 +1,10 @@
-# Nest Well content guidelines
+# Homeswoon content guidelines
 
 How we write in the app and on the landing page. Based on the copy as it stands today.
 
 ## The idea
 
-House hunting is stressful, so Nest Well sounds **calm, warm and clear**. We're the
+House hunting is stressful, so Homeswoon sounds **calm, warm and clear**. We're the
 friend who keeps the spreadsheet tidy, not the mate who makes jokes while you're
 trying to work out a mortgage.
 
