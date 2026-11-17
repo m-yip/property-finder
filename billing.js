@@ -45,6 +45,8 @@ function jsonStore(file) {
       save(s)
     },
     async addEvent(e) { const s = load(); s.events.push({ ...e, ts: new Date().toISOString() }); save(s) },
+    async addMessage(m) { const s = load(); (s.messages ||= []).push({ ...m, created_at: new Date().toISOString() }); save(s) },
+    async messages() { return [...(load().messages || [])].reverse() },
     async funnel() {
       const s = load(), by = {}
       for (const e of s.events) (by[e.event] ||= new Set()).add(e.anonId || e.email)
@@ -66,6 +68,8 @@ function pgStore(pool) {
     await pool.query(`CREATE TABLE IF NOT EXISTS events (
       id BIGSERIAL PRIMARY KEY, ts TIMESTAMPTZ DEFAULT NOW(), event TEXT NOT NULL, anon_id TEXT, email TEXT, board TEXT, props JSONB)`)
     await pool.query(`CREATE INDEX IF NOT EXISTS events_event_idx ON events (event)`)
+    await pool.query(`CREATE TABLE IF NOT EXISTS messages (
+      id BIGSERIAL PRIMARY KEY, created_at TIMESTAMPTZ DEFAULT NOW(), email TEXT NOT NULL, name TEXT, topic TEXT, message TEXT NOT NULL, page TEXT)`)
   }
   const q = async (sql, args) => {
     ready ||= setup().catch(err => { ready = null; throw err })
@@ -103,6 +107,10 @@ function pgStore(pool) {
       return { counts: Object.fromEntries(r.rows.map(x => [x.event, Number(x.n)])), users: Number(u.rows[0].n) }
     },
     async users() { return (await q('SELECT email, name, marketing, plan, created_at, attribution FROM users ORDER BY created_at DESC')).rows },
+    async addMessage(m) {
+      await q('INSERT INTO messages (email, name, topic, message, page) VALUES ($1, $2, $3, $4, $5)', [m.email, m.name || null, m.topic || null, m.message, m.page || null])
+    },
+    async messages() { return (await q('SELECT created_at, email, name, topic, message, page FROM messages ORDER BY created_at DESC')).rows },
   }
 }
 
@@ -155,6 +163,32 @@ function addToSignupsSheet(row) {
   fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(row) })
     .catch(err => console.error('Sign-ups sheet:', err.message))
 }
+// ── Contact form ────────────────────────────────────────────────────────────────
+// Messages from the website's contact form are saved first (so none are lost), then emailed
+// to CONTACT_EMAIL through FormSubmit in the background. FormSubmit can be slow, so the
+// visitor never waits for it. The first message ever sent triggers a one-off "Activate Form"
+// email to that inbox, which needs clicking once.
+const CONTACT_EMAIL = () => process.env.CONTACT_EMAIL || 'hello.homeswoon@gmail.com'
+const SITE_URL = () => process.env.SITE_URL || 'https://homeswoon.m-yip.workers.dev'
+function emailMessage(m) {
+  fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL()}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json', Origin: SITE_URL(), Referer: `${SITE_URL()}/faq` },
+    body: JSON.stringify({ _subject: `Homeswoon: ${m.topic || 'Message'}`, _template: 'table', _captcha: 'false', _replyto: m.email,
+      name: m.name || '(not given)', email: m.email, topic: m.topic, message: m.message, page: m.page }),
+    signal: AbortSignal.timeout(60000),
+  }).then(r => r.json()).then(j => { if (String(j.success) !== 'true') console.error('Contact email:', j.message) })
+    .catch(err => console.error('Contact email:', err.message))
+}
+// A few messages per visitor per hour is plenty; this stops a script flooding the inbox
+const recent = new Map()
+function tooMany(ip) {
+  const now = Date.now(), hits = (recent.get(ip) || []).filter(t => now - t < 3600e3)
+  hits.push(now); recent.set(ip, hits)
+  if (recent.size > 5000) recent.clear()
+  return hits.length > 5
+}
+
 // Quote for CSV, and stop spreadsheet apps running values like "=HYPERLINK(...)" as formulas
 function csvCell(v) {
   let s = v instanceof Date ? v.toISOString() : String(v ?? '')
@@ -175,7 +209,7 @@ async function readJson(req) {
 export async function handleBillingApi(req, res) {
   const url = new URL(req.url, 'http://localhost')
   const p = url.pathname
-  if (!/^\/api\/(users|events|entitlement|checkout|admin)/.test(p)) return false
+  if (!/^\/api\/(users|events|entitlement|checkout|admin|contact)/.test(p)) return false
 
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -195,6 +229,22 @@ export async function handleBillingApi(req, res) {
       const user = await store.upsertUser({ email, name: clean(b.name, 80) || '', marketing: !!b.marketing, attribution })
       if (b.marketing) addToSignupsSheet({ email, name: user.name, source: 'app', ...(attribution || {}) })
       return send(200, { ok: true, user: { email: user.email, name: user.name, plan: user.plan } })
+    }
+
+    // POST /api/contact — website contact form
+    if (p === '/api/contact' && req.method === 'POST') {
+      const b = await readJson(req)
+      if (b.website) return send(200, { ok: true }) // honeypot: only bots fill this in
+      const email = String(b.email || '').trim().toLowerCase()
+      const message = clean(String(b.message || '').trim(), 4000)
+      if (!isEmail(email)) return send(400, { ok: false, error: 'Please enter a valid email address so we can reply.' })
+      if (!message || message.length < 2) return send(400, { ok: false, error: 'Please write a short message.' })
+      const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim()
+      if (tooMany(ip)) return send(429, { ok: false, error: `You've sent a few messages already. Please email ${CONTACT_EMAIL()} instead.` })
+      const m = { email, name: clean(String(b.name || '').trim(), 80), topic: clean(String(b.topic || ''), 60), message, page: clean(String(b.page || ''), 300) }
+      await store.addMessage(m)
+      emailMessage(m)
+      return send(200, { ok: true })
     }
 
     // POST /api/events — funnel tracking
@@ -267,6 +317,13 @@ export async function handleBillingApi(req, res) {
       if (given.length !== token.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(token))) return send(401, { ok: false, error: `Token doesn't match. The link gave ${given.length} characters${/[#&?%\s]/.test(token) ? '; your ADMIN_TOKEN contains a symbol that links can break, so change it to letters and numbers only' : ''}.` })
       if (p === '/api/admin/funnel') return send(200, { ok: true, ...(await store.funnel()) })
       if (p === '/api/admin/users') return send(200, { ok: true, users: await store.users() })
+      if (p === '/api/admin/messages.csv') {
+        const rows = (await store.messages()).map(m => [m.created_at || '', m.email, m.name, m.topic, m.message, m.page])
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+        res.setHeader('Content-Disposition', 'attachment; filename="homeswoon-messages.csv"')
+        res.end([['sent', 'email', 'name', 'topic', 'message', 'page'], ...rows].map(r => r.map(csvCell).join(',')).join('\n'))
+        return true
+      }
       if (p === '/api/admin/users.csv') {
         const rows = (await store.users()).map(u => {
           const a = u.attribution || {}

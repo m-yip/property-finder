@@ -78,6 +78,8 @@ To download it, open the Sheet, then **File → Download → CSV**.
 
 **Download every sign-up (CSV):** open `https://<app>/api/admin/users.csv?token=<ADMIN_TOKEN>` in your browser (bookmark it). Rows with `updates = yes` asked for emails; `source` says which form they used.
 
+**Contact form messages:** saved in the database and emailed to `hello.homeswoon@gmail.com` (set `CONTACT_EMAIL` on Railway to change it). Download them all at `https://<app>/api/admin/messages.csv?token=<ADMIN_TOKEN>`. The first message ever sent triggers a FormSubmit "Activate Form" email; click it once.
+
 ## Docs
 
 - [Payments, tracking and paywall](docs/payments.md)

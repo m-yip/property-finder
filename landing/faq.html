@@ -170,8 +170,9 @@ footer a { color: var(--dust); }
 </footer>
 
 <script>
-// Messages are emailed to the inbox below by FormSubmit (formsubmit.co), no account needed.
-// The very first message triggers a one-off "Activate form" email to that inbox: click it once.
+// Messages go to the Homeswoon app, which saves them and emails them to CONTACT_EMAIL
+// (download them all: /api/admin/messages.csv?token=ADMIN_TOKEN). See /api/contact in billing.js.
+const APP_URL = ['localhost','127.0.0.1'].includes(location.hostname) ? location.origin : 'https://property-finder-production-97fcd87d.up.railway.app'
 const CONTACT_EMAIL = 'hello.homeswoon@gmail.com'
 
 // Jump to the form when arriving from a "Contact" link (faq.html#contact)
@@ -196,22 +197,19 @@ form.addEventListener('submit', async e => {
 
   button.disabled = true; button.textContent = 'Sending…'
   try {
-    const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
+    const res = await fetch(`${APP_URL}/api/contact`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({
-        _subject: `Homeswoon: ${topic}`,
-        _template: 'table',
-        _captcha: 'false',
-        name: name || '(not given)', email, topic, message,
-        page: location.href,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, topic, message, page: location.href }),
+      signal: AbortSignal.timeout(15000), // never leave the button stuck on "Sending…"
     })
     const data = await res.json().catch(() => ({}))
-    if (!res.ok || String(data.success) !== 'true') throw new Error(data.message || 'send failed')
+    if (!res.ok || !data.ok) throw new Error(data.error || 'send failed')
     document.getElementById('contact-card').classList.add('sent')
-  } catch {
-    err.innerHTML = `Sorry, that didn’t send. Please email us at ${mailto(`Homeswoon: ${topic}`, message)} instead.`
+  } catch (ex) {
+    // Our own validation messages are shown as they are; anything else (offline, timeout) offers email instead
+    if (ex.message && ex.message !== 'send failed' && !/fetch|abort|timed? ?out|network/i.test(ex.message + ex.name)) err.textContent = ex.message
+    else err.innerHTML = `Sorry, that didn’t send. Please email us at ${mailto(`Homeswoon: ${topic}`, message)} instead.`
   } finally {
     button.disabled = false; button.textContent = 'Send message'
   }
