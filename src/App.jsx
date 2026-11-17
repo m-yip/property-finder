@@ -1995,7 +1995,11 @@ const BRAND = "Homeswoon";
 const LANDING_URL = import.meta.env.VITE_LANDING_URL || "https://homeswoon.m-yip.workers.dev"; // the live website (override with VITE_LANDING_URL)
 const PRIVACY_URL = LANDING_URL ? `${LANDING_URL}/privacy` : "/landing/privacy.html";
 const BetaPill = ({ small }) => (
-  <span style={{ fontFamily: "'Manrope', sans-serif", fontStyle: "normal", fontSize: small ? 9.5 : 10.5, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#5f6b3a", background: "#e3e4d0", padding: small ? "4px 8px" : "6px 10px", borderRadius: 99, lineHeight: 1, verticalAlign: "middle", whiteSpace: "nowrap" }}>Beta</span>
+  <span style={{ fontFamily: "'Manrope', sans-serif", fontStyle: "normal", fontSize: small ? 9.5 : 10.5, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#5b4c3f", background: "#e3d8c9", border: "1px solid #d6c8b6", padding: small ? "4px 8px" : "6px 10px", borderRadius: 99, lineHeight: 1, verticalAlign: "middle", whiteSpace: "nowrap" }}>Beta</span>
+);
+// Wordmark: Unbounded SemiBold, lowercase, "swoon" in terracotta (matches the landing page)
+const Wordmark = ({ size, style, ...rest }) => (
+  <span {...rest} style={{ fontFamily: "'Unbounded', 'Arial Black', sans-serif", fontStyle: "normal", fontWeight: 600, fontSize: size, letterSpacing: "-0.03em", color: "#2b2521", lineHeight: 1, whiteSpace: "nowrap", ...style }}>home<span style={{ color: "#a3462b" }}>swoon</span></span>
 );
 const USER_KEY = "nestwell-user", ANON_KEY = "nestwell-anon", ATTR_KEY = "nestwell-attribution";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -2260,16 +2264,14 @@ function LandingPage({ onStart, onJoin, migrationCode, starting, user, onUser })
   const field = { width: '100%', padding: '13px 18px', border: '1px solid rgba(43,37,33,0.14)', borderRadius: 99, fontSize: 14, fontFamily: "'Manrope', sans-serif", color: '#2b2521', outline: 'none', background: '#fbf8f3' }
   return (
     <div style={{ minHeight: '100vh', ...PLASTER_BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'Manrope', sans-serif", color: '#2b2521', position: 'relative', overflow: 'hidden' }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } input::placeholder { color: #a89a8a; }`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&family=Unbounded:wght@600&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } input::placeholder { color: #a89a8a; }`}</style>
       {/* Soft limewashed arch behind the content */}
       <div style={{ position: 'absolute', top: '8vh', left: '50%', transform: 'translateX(-50%)', width: 'min(560px, 92vw)', height: '120vh', borderRadius: '999px 999px 0 0', background: 'linear-gradient(#f6efe5, rgba(246,239,229,0))', pointerEvents: 'none' }} />
       <div style={{ width: '100%', maxWidth: 400, animation: 'fadeUp 0.4s ease', position: 'relative' }}>
 
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 38 }}>
-          <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 64, fontWeight: 500, color: '#2b2521', letterSpacing: '-0.02em', lineHeight: 1 }}>
-            Home<span style={{ color: '#a3462b' }}>swoon</span>
-          </h1>
+          <h1 style={{ margin: 0 }}><Wordmark size={44} /></h1>
           <div style={{ marginTop: 12 }}><BetaPill /></div>
           <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: '#5b4c3f', marginTop: 14, lineHeight: 1.25 }}>
             House hunting, kept calm.
@@ -2625,9 +2627,9 @@ export default function Homeswoon() {
   if (!user) {
     return (
       <div style={{ minHeight: "100vh", ...PLASTER_BG, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Manrope', sans-serif", color: "#2b2521" }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } input::placeholder { color: #a89a8a; }`}</style>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&family=Unbounded:wght@600&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } input::placeholder { color: #a89a8a; }`}</style>
         <div style={{ width: "100%", maxWidth: 420 }}>
-          <div style={{ textAlign: "center", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 44, fontWeight: 500, marginBottom: 22 }}>Home<span style={{ color: "#a3462b" }}>swoon</span> <BetaPill /></div>
+          <div style={{ textAlign: "center", marginBottom: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}><Wordmark size={32} /> <BetaPill /></div>
           <EmailCapture context="shared-link" title={`You’ve been invited to ${boardName || `board ${boardCode}`}`}
             subtitle="Add your email to see the homes, viewings and scores, and add your own thoughts."
             cta="Open the board →"
@@ -2676,7 +2678,7 @@ export default function Homeswoon() {
       color: "#2b2521",
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&family=Unbounded:wght@600&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
@@ -2697,9 +2699,7 @@ export default function Homeswoon() {
         background: "rgba(243,236,226,0.85)", backdropFilter: "blur(14px)"
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: narrow ? 10 : 18, minWidth: 0 }}>
-          <h1 onClick={handleGoHome} style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: narrow ? 25 : 30, fontWeight: 500, letterSpacing: "-0.01em", color: "#2b2521", cursor: "pointer", whiteSpace: "nowrap", lineHeight: 1 }} title="Back to home">
-            Home<span style={{ color: "#a3462b" }}>swoon</span>
-          </h1>
+          <h1 onClick={handleGoHome} style={{ margin: 0, cursor: "pointer", lineHeight: 1 }} title="Back to home"><Wordmark size={narrow ? 18 : 22} /></h1>
           <BetaPill small />
           {/* Board name dropdown trigger */}
           <div ref={boardMenuRef} style={{ position: "relative", borderLeft: "1px solid rgba(43,37,33,0.12)", paddingLeft: narrow ? 10 : 18 }}>
@@ -2711,7 +2711,7 @@ export default function Homeswoon() {
                 <>
                   <span style={{ fontSize: 13, color: boardName ? "#5b4c3f" : "#b8ab9c", fontWeight: 600, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{boardName ? (boardName.length > 25 ? boardName.slice(0, 25) + "…" : boardName) : "Unnamed board"}</span>
                   <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", color: "#8b7f72", padding: "4px 8px", border: "1px solid rgba(43,37,33,0.2)", borderRadius: 99 }}>{boardCode}</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 8px", borderRadius: 99, background: entitlement.plan === "free" ? "#e3d8c9" : entitlement.plan === "unlimited" ? "#a3462b" : "#5f6b3a", color: entitlement.plan === "free" ? "#5b4c3f" : "#fbf5ee" }}>{PLAN_INFO[entitlement.plan]?.name}</span>
+                  {entitlement.plan !== "beta" && <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 8px", borderRadius: 99, background: entitlement.plan === "free" ? "#e3d8c9" : entitlement.plan === "unlimited" ? "#a3462b" : "#5f6b3a", color: entitlement.plan === "free" ? "#5b4c3f" : "#fbf5ee" }}>{PLAN_INFO[entitlement.plan]?.name}</span>}
                   <Icon icon="solar:alt-arrow-down-bold" width={12} style={{ color: "#b8ab9c", transition: "transform 0.15s", transform: showBoardMenu ? "rotate(180deg)" : "rotate(0deg)" }} />
                 </>
               )}

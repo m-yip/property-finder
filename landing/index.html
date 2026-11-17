@@ -4,10 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Homeswoon — House hunting, kept calm</title>
-<meta name="description" content="Every listing, agent, viewing and gut feeling in one calm board. Score homes while they're fresh and decide together.">
+<meta name="description" content="Every listing, estate agent, viewing and gut feeling in one calm board. Score homes while they're fresh and decide together.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&family=Unbounded:wght@600&display=swap" rel="stylesheet">
 <style>
 :root {
   --plaster: #ebe3d8; --linen: #f6f1ea; --paper: #fbf8f3; --stone: #e3d8c9; --sand: #d6c8b6;
@@ -43,8 +45,10 @@ h2.title { font: 400 clamp(38px, 4.6vw, 62px)/1.02 var(--serif); letter-spacing:
 /* ── Nav ─────────────────────────────────────────────── */
 nav { position: sticky; top: 0; z-index: 50; background: rgba(235,227,216,.78); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 nav .wrap { display: flex; align-items: center; gap: 36px; height: 74px; }
-.logo { font: italic 500 30px/1 var(--serif); letter-spacing: -.01em; }
-.logo i { color: var(--terracotta); }
+/* Wordmark: Unbounded SemiBold, lowercase, with “swoon” in terracotta */
+.logo { font: 600 28px/1 'Unbounded', 'Arial Black', sans-serif; letter-spacing: -.03em; color: var(--umber); white-space: nowrap; }
+.logo i { font-style: normal; color: var(--terracotta); }
+.logo .mark { width: .95em; height: .95em; display: inline-block; vertical-align: -.1em; margin-right: .3em; color: var(--umber); }
 nav ul { display: flex; gap: 28px; list-style: none; margin-left: auto; }
 nav ul a { font: 600 13px var(--sans); color: var(--clay); transition: color .2s; }
 nav ul a:hover { color: var(--terracotta); }
@@ -249,7 +253,7 @@ blockquote em { font-style: italic; }
 .cta { padding: 140px 0 120px; text-align: center; position: relative; }
 .cta h2 { font: 400 clamp(48px, 6vw, 84px)/1 var(--serif); letter-spacing: -.02em; margin: 18px 0 20px; }
 .cta .lead { max-width: 30em; margin: 0 auto 36px; }
-.beta { font: 600 10px/1 var(--sans); font-style: normal; letter-spacing: .14em; text-transform: uppercase; color: var(--olive); background: var(--olive-soft); padding: 6px 9px; border-radius: 99px; vertical-align: middle; position: relative; top: -4px; margin-left: 4px; }
+.beta { font: 600 10px/1 var(--sans); font-style: normal; letter-spacing: .14em; text-transform: uppercase; color: var(--clay); background: var(--stone); border: 1px solid var(--sand); padding: 5px 9px; border-radius: 99px; vertical-align: middle; position: relative; top: -4px; margin-left: 4px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .updates { max-width: 470px; margin: 46px auto 0; }
 .updates .ulabel { font: 500 22px/1.2 var(--serif); margin-bottom: 14px; }
@@ -287,7 +291,8 @@ blockquote em { font-style: italic; }
 .cta .thumbs img { width: 100%; height: 100%; object-fit: cover; }
 footer { border-top: 1px solid var(--line); padding: 34px 0 48px; }
 footer .wrap { display: flex; align-items: center; gap: 30px; font-size: 13px; color: var(--dust); }
-footer .logo { font-size: 24px; color: var(--umber); }
+footer .logo { font-size: 17px; }
+@media (max-width: 520px) { nav .logo { font-size: 21px; } nav .wrap { gap: 14px; } nav .btn { padding: 10px 14px; } }
 footer .grow { flex: 1; }
 
 @media (max-width: 960px) {
@@ -307,14 +312,14 @@ footer .grow { flex: 1; }
 
 <nav>
   <div class="wrap">
-    <a href="#" class="logo">Home<i>swoon</i> <span class="beta">Beta</span></a>
+    <a href="#" class="logo" aria-label="Homeswoon home">home<i>swoon</i> <span class="beta">Beta</span></a>
     <ul>
       <li><a href="#how">How it works</a></li>
       <li><a href="#scoring">Scorecard</a></li>
       <li><a href="#together">Shared boards</a></li>
       <!-- hidden for launch: <li><a href="#next">What’s next</a></li> -->
     </ul>
-    <a href="#" data-cta="nav" class="btn pri">Start your search</a>
+    <a href="#" data-cta="nav" class="btn pri">Try it free</a>
   </div>
 </nav>
 
@@ -326,10 +331,10 @@ footer .grow { flex: 1; }
       <h1 class="reveal d1">Find your home,<em>without losing the thread.</em></h1>
       <p class="lead reveal d2">Homeswoon brings every listing, estate agent, viewing and gut feeling into one calm board. You always know who to call back, when you’re viewing next, and which home you loved most.</p>
       <div class="ctas reveal d3">
-        <a href="#" data-cta="hero" class="btn pri">Start your search →</a>
-        <a href="#tour" class="btn ghost">▶ Watch the 18-second tour</a>
+        <a href="#" data-cta="hero" class="btn pri">Add your first home, free →</a>
+        <a href="#tour" class="btn ghost">▶ Watch the 30-second tour</a>
       </div>
-      <p class="works reveal d3">Paste a link from <b>Rightmove</b>, <b>Zoopla</b>, <b>OnTheMarket</b> or any agent’s site. Free while in beta.</p>
+      <p class="works reveal d3">Paste a link from <b>Rightmove</b>, <b>Zoopla</b>, <b>OnTheMarket</b> or any estate agent’s site. Free while in beta.</p>
     </div>
 
     <div class="collage reveal d2">
@@ -345,9 +350,9 @@ footer .grow { flex: 1; }
           <small>Bermondsey Street · your score</small>
           <h4>A home to love</h4>
           <div class="bars">
-            <div>Light<i><b style="width:93%"></b></i><em>93</em></div>
+            <div>Views &amp; light<i><b style="width:93%"></b></i><em>93</em></div>
             <div>Location<i><b style="width:94%"></b></i><em>94</em></div>
-            <div>Gut feel<i><b style="width:100%"></b></i><em>100</em></div>
+            <div>Gut feeling<i><b style="width:100%"></b></i><em>100</em></div>
           </div>
         </div>
       </div>
@@ -367,9 +372,9 @@ footer .grow { flex: 1; }
   <div class="wrap">
     <div>
       <span class="eyebrow reveal">The problem</span>
-      <h2 class="title reveal d1">Six agents. A dozen calls. <em>One notes app you stopped updating.</em></h2>
-      <p class="reveal d2">Searching for a home means a dozen agents from different agencies, all calling, emailing and texting. Viewings get booked in three different apps. Callbacks slip. And after five viewings in a weekend, nobody can remember which flat had the damp and which had the light.</p>
-      <p class="reveal d3">It’s the biggest decision most of us make, and it runs on memory and missed calls.</p>
+      <h2 class="title reveal d1">A dozen calls. Six different estate agents. Notes you can’t keep up with. <em>It’s a lot.</em></h2>
+      <p class="reveal d2">Searching for a home means a dozen estate agents calling, emailing and texting while you’re at work. Viewings get booked in three different apps. Callbacks slip. And after five viewings in a weekend, nobody can remember which flat had the damp and which had the light.</p>
+      <p class="reveal d3">It’s the biggest decision most of us make, squeezed around work and life, with no time for more admin.</p>
     </div>
     <div class="noise reveal d2">
       <div class="note n1"><i>HH</i><div><small>Missed call · 09:12</small>Harbour &amp; Hale, 020 7946 0321</div></div>
@@ -395,10 +400,10 @@ footer .grow { flex: 1; }
     <div class="row">
       <div class="copy reveal">
         <span class="num">01 — Add a home</span>
-        <h3>Every agent, every listing, <em>one board.</em></h3>
+        <h3>Every estate agent, every listing, <em>one board.</em></h3>
         <p class="lead">Paste a link from any portal or agency site and Homeswoon fills in the price, size, photos and agent for you. No more tabs, screenshots or spreadsheets.</p>
         <ul>
-          <li>Works with Rightmove, Zoopla, OnTheMarket and agent websites</li>
+          <li>Works with Rightmove, Zoopla, OnTheMarket and estate agents’ websites</li>
           <li>Homes move from Saved → Enquired → Visiting → Seen</li>
           <li>Archive the no’s without losing them</li>
         </ul>
@@ -416,7 +421,7 @@ footer .grow { flex: 1; }
         <h3>Know exactly <em>who to call back.</em></h3>
         <p class="lead">The estate agent sits on every card, so when your phone rings you know which flat it’s about. Enquired homes show who you’re waiting on, and calling back is one tap.</p>
         <ul>
-          <li>Agent and number on every home, straight from the board</li>
+          <li>The estate agent and their number on every home</li>
           <li>Enquired homes sit together, so you can see who to chase</li>
           <li>Notes stay with the home, not in your head</li>
         </ul>
@@ -463,10 +468,10 @@ footer .grow { flex: 1; }
         <span class="num">04 — Scorecard</span>
         <h3>Score while it’s fresh, <em>compare with confidence.</em></h3>
         <p class="lead">Walk out of a viewing, open your phone and rate it in about two minutes: around 20 quick questions across six categories, tailored to renting or buying, flats or houses. Every home ends up with a score you can trust long after the details blur.</p>
-        <div class="cats-strip"><span>Financials</span><span>The property</span><span>Light &amp; views</span><span>Location</span><span>Liveability</span><span>Gut feeling</span></div>
+        <div class="cats-strip"><span>Financials</span><span>The property</span><span>Views &amp; light</span><span>Location</span><span>Liveability</span><span>Gut feeling</span></div>
         <ul>
           <li>Deal-makers like a balcony or great light add bonus points</li>
-          <li>A written summary saves what you thought, in your words</li>
+          <li>A summary is written for you, and you can edit it in your own words</li>
         </ul>
       </div>
       <div class="score-visual reveal d1">
@@ -481,11 +486,10 @@ footer .grow { flex: 1; }
       <div class="copy reveal">
         <span class="num">05 — Shared boards</span>
         <h3>Shortlist with <em>everyone who matters.</em></h3>
-        <p class="lead">Share your board with a six-letter code. Your partner, parents or the friend who knows the area all see the same homes, scores and notes, so everyone’s input lands in one place, not five group chats.</p>
+        <p class="lead">Share your board with a six-character code. Your partner, parents or the friend who knows the area all see the same homes, scores and notes, so everyone’s input lands in one place, not five group chats.</p>
         <ul>
           <li>One code: they add their email and join in seconds, on any device</li>
           <li>Favourites ranks every home you’ve scored, with best and weakest points</li>
-          <li>Disagree on one? The scores show you why</li>
         </ul>
       </div>
       <div class="together-visual reveal d1">
@@ -503,7 +507,7 @@ footer .grow { flex: 1; }
 <section class="tour" id="tour">
   <div class="wrap">
     <span class="eyebrow reveal">The tour</span>
-    <h2 class="title reveal d1">See it in <em>eighteen seconds.</em></h2>
+    <h2 class="title reveal d1">See it in <em>half a minute.</em></h2>
     <p class="lead reveal d2">Add a home, move it through your board, score a viewing, see your favourites and share with your partner.</p>
     <video class="reveal d2" src="assets/videos/00-full-flow.mp4" poster="assets/stills/00-full-flow.png" controls muted playsinline preload="metadata"></video>
   </div>
@@ -517,8 +521,8 @@ footer .grow { flex: 1; }
       <p class="lead reveal d2">No app to download. Add your email, start a board, paste your first link and you’re away.</p>
     </header>
     <div class="grid4">
-      <div class="step reveal"><div class="ph"><img src="assets/demo-images/flat-1.jpg" alt=""></div><div class="bd"><div class="n">1</div><h4>Paste a link</h4><p>Any listing from any portal or agent. The details fill themselves in.</p></div></div>
-      <div class="step reveal d1"><div class="ph"><img src="assets/demo-images/flat-4.jpg" alt=""></div><div class="bd"><div class="n">2</div><h4>Track agents &amp; viewings</h4><p>See who you’re waiting on and when you’re viewing next.</p></div></div>
+      <div class="step reveal"><div class="ph"><img src="assets/demo-images/flat-1.jpg" alt=""></div><div class="bd"><div class="n">1</div><h4>Paste a link</h4><p>Any listing from any portal or estate agent. The details fill themselves in.</p></div></div>
+      <div class="step reveal d1"><div class="ph"><img src="assets/demo-images/flat-4.jpg" alt=""></div><div class="bd"><div class="n">2</div><h4>Track estate agents &amp; viewings</h4><p>See who you’re waiting on and when you’re viewing next.</p></div></div>
       <div class="step reveal d2"><div class="ph"><img src="assets/demo-images/flat-9.jpg" alt=""></div><div class="bd"><div class="n">3</div><h4>Score after each viewing</h4><p>Two minutes on the walk home, while it’s still fresh.</p></div></div>
       <div class="step reveal d3"><div class="ph"><img src="assets/demo-images/flat-8.jpg" alt=""></div><div class="bd"><div class="n">4</div><h4>Shortlist together</h4><p>Share one code and decide with the people who matter.</p></div></div>
     </div>
@@ -528,7 +532,7 @@ footer .grow { flex: 1; }
 <!-- VALUE -->
 <section class="value">
   <div class="wrap">
-    <div class="vcell reveal"><b>One <em>board</em></b><h4>For every agent and listing</h4><p>Stop juggling portals, inboxes and missed calls. Everything about every home, in one place.</p></div>
+    <div class="vcell reveal"><b>One <em>board</em></b><h4>For every estate agent and listing</h4><p>Stop juggling portals, inboxes and missed calls. Everything about every home, in one place.</p></div>
     <div class="vcell reveal d1"><b>Two <em>minutes</em></b><h4>To score a viewing</h4><p>Capture what you really thought before the next viewing blurs it, then compare like for like.</p></div>
     <div class="vcell reveal d2"><b>Every <em>voice</em></b><h4>In one shortlist</h4><p>Partners, family, housemates and friends add homes, notes and scores on the same board, so decisions feel shared, not stressful.</p></div>
   </div>
@@ -540,7 +544,7 @@ footer .grow { flex: 1; }
     <div class="arch-photo reveal"><img src="assets/demo-images/flat-11.jpg" alt="Warm living room with timber beams"></div>
     <div>
       <span class="eyebrow reveal">Why we built it</span>
-      <blockquote class="reveal d1">“I built Homeswoon while buying my first home: too many agents, too many viewings and no way to compare. It made the whole thing <em>calmer</em>, and it helped me <em>decide.</em>”</blockquote>
+      <blockquote class="reveal d1">“I built Homeswoon while buying my first home: too many estate agents, too many viewings and no way to compare. It made the whole thing <em>calmer</em>, and it helped me <em>decide.</em>”</blockquote>
       <p class="sig reveal d2"><b>The founder</b> · first-time buyer, London</p>
     </div>
   </div>
@@ -571,7 +575,7 @@ footer .grow { flex: 1; }
     <span class="eyebrow reveal">Start today</span>
     <h2 class="reveal d1">House hunting, <em>kept calm.</em></h2>
     <p class="lead reveal d2">Start a board in seconds, paste your first listing and invite whoever you’re searching with. Free while in beta, no app to download.</p>
-    <a href="#" data-cta="footer" class="btn pri reveal d3">Start your search →</a>
+    <a href="#" data-cta="footer" class="btn pri reveal d3">Add your first home, free →</a>
     <form class="updates reveal d3" novalidate>
       <p class="ulabel">Not searching yet? <em>Get the latest updates.</em></p>
       <div class="urow">
@@ -595,8 +599,8 @@ footer .grow { flex: 1; }
 
 <footer>
   <div class="wrap">
-    <span class="logo">Home<i>swoon</i></span>
-    <span class="grow">Every agent, viewing and gut feeling in one place.</span>
+    <span class="logo"><svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M7 0H93A7 7 0 0 1 100 7V93A7 7 0 0 1 93 100H7A7 7 0 0 1 0 93V7A7 7 0 0 1 7 0Z" fill="currentColor"/><path d="M7 5H29.67A2 2 0 0 1 31.67 7V29.67A2 2 0 0 1 29.67 31.67H7A2 2 0 0 1 5 29.67V7A2 2 0 0 1 7 5Z" fill="var(--plaster)"/><path d="M38.67 5H61.33A2 2 0 0 1 63.33 7V29.67A2 2 0 0 1 61.33 31.67H38.67A2 2 0 0 1 36.67 29.67V7A2 2 0 0 1 38.67 5Z" fill="var(--plaster)"/><path d="M70.33 5H93A2 2 0 0 1 95 7V29.67A2 2 0 0 1 93 31.67H70.33A2 2 0 0 1 68.33 29.67V7A2 2 0 0 1 70.33 5Z" fill="var(--plaster)"/><path d="M7 36.67H29.67A2 2 0 0 1 31.67 38.67V61.33A2 2 0 0 1 29.67 63.33H7A2 2 0 0 1 5 61.33V38.67A2 2 0 0 1 7 36.67Z" fill="var(--plaster)"/><path d="M38.67 36.67H61.33A2 2 0 0 1 63.33 38.67V61.33A2 2 0 0 1 61.33 63.33H38.67A2 2 0 0 1 36.67 61.33V38.67A2 2 0 0 1 38.67 36.67Z" fill="var(--plaster)"/><path d="M70.33 36.67H93A2 2 0 0 1 95 38.67V61.33A2 2 0 0 1 93 63.33H70.33A2 2 0 0 1 68.33 61.33V38.67A2 2 0 0 1 70.33 36.67Z" fill="var(--terracotta)"/><path d="M7 68.33H29.67A2 2 0 0 1 31.67 70.33V93A2 2 0 0 1 29.67 95H7A2 2 0 0 1 5 93V70.33A2 2 0 0 1 7 68.33Z" fill="var(--plaster)"/><path d="M38.67 68.33H61.33A2 2 0 0 1 63.33 70.33V93A2 2 0 0 1 61.33 95H38.67A2 2 0 0 1 36.67 93V70.33A2 2 0 0 1 38.67 68.33Z" fill="var(--plaster)"/><path d="M70.33 68.33H93A2 2 0 0 1 95 70.33V93A2 2 0 0 1 93 95H70.33A2 2 0 0 1 68.33 93V70.33A2 2 0 0 1 70.33 68.33Z" fill="var(--plaster)"/></svg>home<i>swoon</i></span>
+    <span class="grow">Every estate agent, viewing and gut feeling in one place.</span>
     <span>Photos: Unsplash &amp; Pexels · Demo homes are fictional</span>
     <a href="privacy.html">Privacy</a>
   </div>
