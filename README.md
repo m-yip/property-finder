@@ -76,7 +76,7 @@ Everyone who asks for updates lands in one Google Sheet. Set it up with [docs/si
 
 To download it, open the Sheet, then **File → Download → CSV**.
 
-**Backup of every app user:** `curl -H "Authorization: Bearer $ADMIN_TOKEN" https://<app>/api/admin/users.csv -o users.csv`
+**Download every sign-up (CSV):** open `https://<app>/api/admin/users.csv?token=<ADMIN_TOKEN>` in your browser (bookmark it). Rows with `updates = yes` asked for emails; `source` says which form they used.
 
 ## Docs
 
