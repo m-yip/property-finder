@@ -254,7 +254,8 @@ export async function handleBillingApi(req, res) {
       const token = (process.env.ADMIN_TOKEN || '').trim()
       // Header for scripts; ?token= so the CSV can be a browser bookmark
       const given = ((req.headers.authorization || '').replace(/^Bearer /, '') || (url.searchParams.get('token') || '').trim().replace(/ /g, '+')).trim()
-      if (!token || given.length !== token.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(token))) return send(401, { ok: false, error: 'Unauthorised' })
+      if (!token) return send(503, { ok: false, error: 'ADMIN_TOKEN is not set on this server' })
+      if (given.length !== token.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(token))) return send(401, { ok: false, error: 'Unauthorised' })
       if (p === '/api/admin/funnel') return send(200, { ok: true, ...(await store.funnel()) })
       if (p === '/api/admin/users') return send(200, { ok: true, users: await store.users() })
       if (p === '/api/admin/users.csv') {
