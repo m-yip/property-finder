@@ -49,9 +49,9 @@ em { font-style: italic; color: var(--terracotta); }
 
 /* ── Header ─────────────────────────────────────────── */
 .top .wrap { display: flex; align-items: center; gap: 14px; height: 76px; }
-.logo { font: 600 24px/1 'Unbounded', 'Arial Black', sans-serif; letter-spacing: -.03em; white-space: nowrap; }
+.logo { font: 600 28px/1 'Unbounded', 'Arial Black', sans-serif; letter-spacing: -.03em; color: var(--umber); white-space: nowrap; }
 .logo i { font-style: normal; color: var(--terracotta); }
-.soon { font: 600 10.5px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--olive); background: var(--olive-soft); padding: 7px 11px; border-radius: 99px; }
+.soon { font: 600 10px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: #5b4c3f; background: #e3d8c9; border: 1px solid #d6c8b6; padding: 5px 9px; border-radius: 99px; }
 
 /* ── Hero ───────────────────────────────────────────── */
 main { flex: 1; display: flex; align-items: center; padding: 30px 0 70px; }
@@ -111,7 +111,10 @@ h1 em { display: block; }
 .gauge b { position: relative; font: italic 600 42px/1 var(--serif); color: #fbf5ee; margin-top: 30px; }
 
 footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
-footer .wrap { display: flex; gap: 24px; justify-content: space-between; flex-wrap: wrap; font-size: 12.5px; color: var(--dust); }
+footer .wrap { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; font-size: 12.5px; color: var(--dust); }
+footer .grow { flex: 1; }
+footer .logo { font-size: 17px; }
+.logo .mark { width: .95em; height: .95em; display: inline-block; vertical-align: -.1em; margin-right: .3em; color: var(--umber); }
 
 @media (max-width: 960px) {
   main .wrap { grid-template-columns: 1fr; gap: 48px; }
@@ -119,7 +122,8 @@ footer .wrap { display: flex; gap: 24px; justify-content: space-between; flex-wr
 }
 @media (max-width: 600px) {
   .wrap { width: calc(100% - 32px); }
-  .top .wrap { height: 64px; } .logo { font-size: 20px; }
+  .top .wrap { height: 64px; } .top .logo { font-size: 21px; }
+  footer .wrap { flex-direction: column; align-items: flex-start; gap: 10px; }
   main { padding: 16px 0 56px; }
   .row { flex-direction: column; border-radius: 22px; padding: 8px; }
   .row input { padding: 12px 10px; }
@@ -205,7 +209,8 @@ footer .wrap { display: flex; gap: 24px; justify-content: space-between; flex-wr
 
 <footer>
   <div class="wrap">
-    <span>Works with Rightmove, Zoopla, OnTheMarket and agent websites</span>
+    <span class="logo"><svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M7 0H93A7 7 0 0 1 100 7V93A7 7 0 0 1 93 100H7A7 7 0 0 1 0 93V7A7 7 0 0 1 7 0Z" fill="currentColor"/><path d="M7 5H29.67A2 2 0 0 1 31.67 7V29.67A2 2 0 0 1 29.67 31.67H7A2 2 0 0 1 5 29.67V7A2 2 0 0 1 7 5Z" fill="var(--plaster)"/><path d="M38.67 5H61.33A2 2 0 0 1 63.33 7V29.67A2 2 0 0 1 61.33 31.67H38.67A2 2 0 0 1 36.67 29.67V7A2 2 0 0 1 38.67 5Z" fill="var(--plaster)"/><path d="M70.33 5H93A2 2 0 0 1 95 7V29.67A2 2 0 0 1 93 31.67H70.33A2 2 0 0 1 68.33 29.67V7A2 2 0 0 1 70.33 5Z" fill="var(--plaster)"/><path d="M7 36.67H29.67A2 2 0 0 1 31.67 38.67V61.33A2 2 0 0 1 29.67 63.33H7A2 2 0 0 1 5 61.33V38.67A2 2 0 0 1 7 36.67Z" fill="var(--plaster)"/><path d="M38.67 36.67H61.33A2 2 0 0 1 63.33 38.67V61.33A2 2 0 0 1 61.33 63.33H38.67A2 2 0 0 1 36.67 61.33V38.67A2 2 0 0 1 38.67 36.67Z" fill="var(--plaster)"/><path d="M70.33 36.67H93A2 2 0 0 1 95 38.67V61.33A2 2 0 0 1 93 63.33H70.33A2 2 0 0 1 68.33 61.33V38.67A2 2 0 0 1 70.33 36.67Z" fill="var(--terracotta)"/><path d="M7 68.33H29.67A2 2 0 0 1 31.67 70.33V93A2 2 0 0 1 29.67 95H7A2 2 0 0 1 5 93V70.33A2 2 0 0 1 7 68.33Z" fill="var(--plaster)"/><path d="M38.67 68.33H61.33A2 2 0 0 1 63.33 70.33V93A2 2 0 0 1 61.33 95H38.67A2 2 0 0 1 36.67 93V70.33A2 2 0 0 1 38.67 68.33Z" fill="var(--plaster)"/><path d="M70.33 68.33H93A2 2 0 0 1 95 70.33V93A2 2 0 0 1 93 95H70.33A2 2 0 0 1 68.33 93V70.33A2 2 0 0 1 70.33 68.33Z" fill="var(--plaster)"/></svg>home<i>swoon</i></span>
+    <span class="grow">Works with Rightmove, Zoopla, OnTheMarket and estate agents’ websites</span>
     <span>Photos: Unsplash &amp; Pexels · Demo homes are fictional</span>
   </div>
 </footer>
