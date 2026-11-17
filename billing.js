@@ -249,9 +249,11 @@ export async function handleBillingApi(req, res) {
 
     // GET /api/admin/funnel · /api/admin/users — needs ADMIN_TOKEN
     if (p.startsWith('/api/admin/')) {
-      const token = process.env.ADMIN_TOKEN
+      // Trim both sides: tokens pasted into Railway or a link often pick up a stray space or newline.
+      // A '+' in a link arrives as a space, so put it back.
+      const token = (process.env.ADMIN_TOKEN || '').trim()
       // Header for scripts; ?token= so the CSV can be a browser bookmark
-      const given = (req.headers.authorization || '').replace(/^Bearer /, '') || url.searchParams.get('token') || ''
+      const given = ((req.headers.authorization || '').replace(/^Bearer /, '') || (url.searchParams.get('token') || '').trim().replace(/ /g, '+')).trim()
       if (!token || given.length !== token.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(token))) return send(401, { ok: false, error: 'Unauthorised' })
       if (p === '/api/admin/funnel') return send(200, { ok: true, ...(await store.funnel()) })
       if (p === '/api/admin/users') return send(200, { ok: true, users: await store.users() })
