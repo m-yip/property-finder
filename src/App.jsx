@@ -1992,7 +1992,7 @@ function generateClientCode() {
 // ─── ACCOUNT, TRACKING & PLANS ───────────────────────────────────────────────
 // Brand + links. Internal storage keys keep the old "nestwell-" prefix so existing sessions survive the rename.
 const BRAND = "Homeswoon";
-const LANDING_URL = import.meta.env.VITE_LANDING_URL || ""; // e.g. https://homeswoon.pages.dev (set on Railway)
+const LANDING_URL = import.meta.env.VITE_LANDING_URL || "https://homeswoon.m-yip.workers.dev"; // the live website (override with VITE_LANDING_URL)
 const PRIVACY_URL = LANDING_URL ? `${LANDING_URL}/privacy` : "/landing/privacy.html";
 const BetaPill = ({ small }) => (
   <span style={{ fontFamily: "'Manrope', sans-serif", fontStyle: "normal", fontSize: small ? 9.5 : 10.5, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#5f6b3a", background: "#e3e4d0", padding: small ? "4px 8px" : "6px 10px", borderRadius: 99, lineHeight: 1, verticalAlign: "middle", whiteSpace: "nowrap" }}>Beta</span>

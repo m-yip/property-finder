@@ -606,7 +606,7 @@ footer .grow { flex: 1; }
 // ── Settings ──────────────────────────────────────────────────────────────────
 // APP_URL:   the live app on Railway (e.g. 'https://homeswoon.up.railway.app'). Empty = same site (local dev).
 // SHEET_URL: the Google Apps Script web app URL for the sign-ups sheet (see docs/signups-sheet.gs).
-const APP_URL = '' || location.origin
+const APP_URL = ['localhost','127.0.0.1'].includes(location.hostname) ? location.origin : 'https://property-finder-production-97fcd87d.up.railway.app'
 const SHEET_URL = ''
 
 // ── Funnel tracking: landing → board (events go to the app's /api/events) ─────

@@ -214,7 +214,7 @@ footer .wrap { display: flex; gap: 24px; justify-content: space-between; flex-wr
 // API_URL:   used when SHEET_URL is empty. '' = the Homeswoon app on the same server,
 //            or the app's full URL (e.g. 'https://homeswoon.up.railway.app') once it's live.
 const SHEET_URL = ''
-const API_URL = ''
+const API_URL = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : 'https://property-finder-production-97fcd87d.up.railway.app'
 
 const store = {
   get(k) { try { return localStorage.getItem(k) } catch { return null } },
