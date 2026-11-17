@@ -54,7 +54,9 @@ function jsonStore(file) {
 }
 
 function pgStore(pool) {
-  const ready = (async () => {
+  // Create tables on first use (not at import time), and retry if the database wasn't reachable
+  let ready = null
+  const setup = async () => {
     await pool.query(`CREATE TABLE IF NOT EXISTS users (
       email TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', marketing BOOLEAN NOT NULL DEFAULT FALSE,
       plan TEXT NOT NULL DEFAULT 'free', plan_at TIMESTAMPTZ, attribution JSONB, created_at TIMESTAMPTZ DEFAULT NOW())`)
@@ -63,8 +65,12 @@ function pgStore(pool) {
     await pool.query(`CREATE TABLE IF NOT EXISTS events (
       id BIGSERIAL PRIMARY KEY, ts TIMESTAMPTZ DEFAULT NOW(), event TEXT NOT NULL, anon_id TEXT, email TEXT, board TEXT, props JSONB)`)
     await pool.query(`CREATE INDEX IF NOT EXISTS events_event_idx ON events (event)`)
-  })()
-  const q = async (sql, args) => { await ready; return pool.query(sql, args) }
+  }
+  const q = async (sql, args) => {
+    ready ||= setup().catch(err => { ready = null; throw err })
+    await ready
+    return pool.query(sql, args)
+  }
   const user = r => r && { email: r.email, name: r.name, marketing: r.marketing, plan: r.plan, attribution: r.attribution }
   return {
     async upsertUser(u) {

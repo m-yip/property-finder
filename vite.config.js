@@ -1,14 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { fetchPropertyData, checkListingStatus } from './scraper.js'
-import { handleBillingApi } from './billing.js'
+
+// The API code (scraper, accounts, database) is only loaded by the local dev server,
+// never during `vite build`, so building on Railway doesn't try to reach the database.
 
 export default defineConfig({
   plugins: [
     react(),
     {
       name: 'property-scraper',
-      configureServer(server) {
+      async configureServer(server) {
+        const { fetchPropertyData, checkListingStatus } = await import('./scraper.js')
+        const { handleBillingApi } = await import('./billing.js')
         // Accounts, funnel events, plans & checkout (JSON-file store in dev)
         server.middlewares.use(async (req, res, next) => {
           if (!(await handleBillingApi(req, res))) next()
