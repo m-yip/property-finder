@@ -30,9 +30,10 @@ function jsonStore(file) {
   const load = () => { try { return JSON.parse(fs.readFileSync(file, 'utf8')) } catch { return { users: {}, boardPlans: {}, events: [] } } }
   const save = s => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(s, null, 2)) }
   return {
+    // A "yes" to updates sticks: opening the app later without ticking the box doesn't undo it
     async upsertUser(u) {
       const s = load(), prev = s.users[u.email] || { plan: 'free', createdAt: new Date().toISOString() }
-      s.users[u.email] = { ...prev, ...u, plan: prev.plan, attribution: prev.attribution || u.attribution }
+      s.users[u.email] = { ...prev, ...u, marketing: !!(prev.marketing || u.marketing), plan: prev.plan, attribution: prev.attribution || u.attribution }
       save(s); return s.users[u.email]
     },
     async getUser(email) { return load().users[email] || null },
@@ -75,7 +76,7 @@ function pgStore(pool) {
   return {
     async upsertUser(u) {
       const r = await q(`INSERT INTO users (email, name, marketing, attribution) VALUES ($1, $2, $3, $4)
-        ON CONFLICT (email) DO UPDATE SET name = COALESCE(NULLIF(EXCLUDED.name, ''), users.name), marketing = EXCLUDED.marketing
+        ON CONFLICT (email) DO UPDATE SET name = COALESCE(NULLIF(EXCLUDED.name, ''), users.name), marketing = users.marketing OR EXCLUDED.marketing
         RETURNING *`, [u.email, u.name || '', !!u.marketing, u.attribution || null])
       return user(r.rows[0])
     },

@@ -260,8 +260,8 @@ form.addEventListener('submit', async e => {
     } else {
     const res = await fetch(`${API_URL}/api/users`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, marketing: false, // waitlist = beta and launch updates
-        attribution: { source: 'waitlist', searching, joinedAt: new Date().toISOString(), ...utm, referrer: document.referrer || '' } }),
+      body: JSON.stringify({ email, marketing: true, // they asked for updates on the beta and launch
+        attribution: { source: 'teaser', searching, joinedAt: new Date().toISOString(), ...utm, referrer: document.referrer || '' } }),
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok || !data.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
