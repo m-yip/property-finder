@@ -321,17 +321,30 @@ export async function handleBillingApi(req, res) {
         const rows = (await store.messages()).map(m => [m.created_at || '', m.email, m.name, m.topic, m.message, m.page])
         res.setHeader('Content-Type', 'text/csv; charset=utf-8')
         res.setHeader('Content-Disposition', 'attachment; filename="homeswoon-messages.csv"')
-        res.end([['sent', 'email', 'name', 'topic', 'message', 'page'], ...rows].map(r => r.map(csvCell).join(',')).join('\n'))
+        res.end('\uFEFF' + [['sent', 'email', 'name', 'topic', 'message', 'page'], ...rows].map(r => r.map(csvCell).join(',')).join('\n'))
         return true
       }
+      // Everyone in one list: sign-ups, plus anyone who only used the contact form.
+      // Contact messages appear in the last column (oldest first, "Topic: message", separated by blank lines).
       if (p === '/api/admin/users.csv') {
-        const rows = (await store.users()).map(u => {
-          const a = u.attribution || {}
-          return [u.created_at || u.createdAt || '', u.email, u.name, u.marketing ? 'yes' : 'no', u.plan, a.source, a.searching, a.utm_source, a.utm_campaign]
+        const users = await store.users()
+        const byEmail = new Map() // email → { first, name, texts }
+        for (const m of [...(await store.messages())].reverse()) { // oldest first
+          const e = byEmail.get(m.email) || { first: m, name: m.name, texts: [] }
+          e.texts.push(`${m.topic ? m.topic + ': ' : ''}${m.message}`)
+          byEmail.set(m.email, e)
+        }
+        const rows = users.map(u => {
+          const a = u.attribution || {}, msgs = byEmail.get(u.email)
+          byEmail.delete(u.email)
+          return [u.created_at || u.createdAt || '', u.email, u.name || msgs?.name || '', u.marketing ? 'yes' : 'no', u.plan, a.source, a.searching, a.utm_source, a.utm_campaign, msgs ? msgs.texts.join('\n\n') : '']
         })
+        for (const [email, e] of byEmail) rows.push([e.first.created_at || '', email, e.name || '', 'no', '', 'contact form', '', '', '', e.texts.join('\n\n')])
+        const iso = d => d instanceof Date ? d.toISOString() : String(d)
+        rows.sort((x, y) => iso(y[0]).localeCompare(iso(x[0]))) // newest first
         res.setHeader('Content-Type', 'text/csv; charset=utf-8')
         res.setHeader('Content-Disposition', 'attachment; filename="homeswoon-users.csv"')
-        res.end([['created', 'email', 'name', 'updates', 'plan', 'source', 'searching', 'utm_source', 'utm_campaign'], ...rows].map(r => r.map(csvCell).join(',')).join('\n'))
+        res.end('\uFEFF' + [['created', 'email', 'name', 'updates', 'plan', 'source', 'searching', 'utm_source', 'utm_campaign', 'messages'], ...rows].map(r => r.map(csvCell).join(',')).join('\n'))
         return true
       }
     }
