@@ -257,11 +257,13 @@ export async function handleBillingApi(req, res) {
     if (p.startsWith('/api/admin/')) {
       // Trim both sides: tokens pasted into Railway or a link often pick up a stray space or newline.
       // A '+' in a link arrives as a space, so put it back.
-      const token = (process.env.ADMIN_TOKEN || '').trim()
+      const token = (process.env.ADMIN_TOKEN || '').trim().replace(/^(['"])(.*)\1$/, '$2').trim()
       // Header for scripts; ?token= so the CSV can be a browser bookmark
       const given = ((req.headers.authorization || '').replace(/^Bearer /, '') || (url.searchParams.get('token') || '').trim().replace(/ /g, '+')).trim()
       if (!token) return send(503, { ok: false, error: 'ADMIN_TOKEN is not set on this server' })
-      if (given.length !== token.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(token))) return send(401, { ok: false, error: 'Unauthorised' })
+      if (!given) return send(401, { ok: false, error: 'No token given. Add ?token=YOUR_ADMIN_TOKEN to the end of the link.' })
+      // Echo only the length of what was sent (the visitor's own input), to spot links cut short by # & ? %
+      if (given.length !== token.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(token))) return send(401, { ok: false, error: `Token doesn't match. The link gave ${given.length} characters${/[#&?%\s]/.test(token) ? '; your ADMIN_TOKEN contains a symbol that links can break, so change it to letters and numbers only' : ''}.` })
       if (p === '/api/admin/funnel') return send(200, { ok: true, ...(await store.funnel()) })
       if (p === '/api/admin/users') return send(200, { ok: true, users: await store.users() })
       if (p === '/api/admin/users.csv') {
