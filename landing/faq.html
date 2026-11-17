@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homeswoon help and FAQ</title>
+<meta name="description" content="Answers to common questions about the Homeswoon beta, and how to get in touch.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600&family=Unbounded:wght@600&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+<style>
+:root {
+  --plaster: #ebe3d8; --paper: #fbf8f3; --umber: #2b2521; --clay: #5b4c3f; --dust: #8b7f72;
+  --line: rgba(43,37,33,.10); --terracotta: #a3462b; --olive: #5f6b3a; --olive-soft: #e3e4d0;
+  --serif: 'Cormorant Garamond', serif; --sans: 'Manrope', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); color: var(--umber); background: var(--plaster); -webkit-font-smoothing: antialiased; line-height: 1.65; }
+a { color: var(--terracotta); }
+.wrap { width: min(760px, 100% - 64px); margin: 0 auto; }
+header { border-bottom: 1px solid var(--line); }
+header .wrap { display: flex; align-items: center; gap: 12px; height: 72px; }
+.logo { font: 600 22px/1 'Unbounded', 'Arial Black', sans-serif; letter-spacing: -.03em; color: var(--umber); text-decoration: none; white-space: nowrap; }
+.logo i { font-style: normal; color: var(--terracotta); }
+.beta { font: 600 10px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--clay); background: #e3d8c9; border: 1px solid #d6c8b6; padding: 5px 9px; border-radius: 99px; }
+main { padding: 64px 0 90px; }
+h1 { font: 400 clamp(40px, 6vw, 60px)/1.02 var(--serif); letter-spacing: -.02em; }
+h1 em { color: var(--terracotta); }
+.intro { font-size: 17px; color: var(--clay); margin: 18px 0 36px; }
+h2 { font: 500 30px/1.15 var(--serif); margin: 56px 0 8px; }
+p, li { font-size: 15.5px; color: var(--clay); }
+b { color: var(--umber); font-weight: 600; }
+
+/* ── Questions ─────────────────────────────────────── */
+.faq { border-top: 1px solid var(--line); }
+details { border-bottom: 1px solid var(--line); }
+summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 20px 2px; font: 500 22px/1.25 var(--serif); color: var(--umber); }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: '+'; font: 400 22px/1 var(--sans); color: var(--terracotta); transition: transform .2s; flex-shrink: 0; }
+details[open] summary::after { transform: rotate(45deg); }
+summary:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 4px; border-radius: 6px; }
+details > div { padding: 0 2px 22px; }
+details p + p { margin-top: 10px; }
+
+/* ── Contact form ──────────────────────────────────── */
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 30px 32px; margin-top: 14px; }
+.card > p { margin-bottom: 22px; }
+form { display: grid; gap: 16px; }
+.two { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
+label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--umber); }
+label span { font-weight: 400; color: var(--dust); }
+input, select, textarea { font: 15px/1.4 var(--sans); color: var(--umber); background: #fff; border: 1px solid rgba(43,37,33,.18); border-radius: 12px; padding: 12px 14px; width: 100%; }
+textarea { min-height: 140px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--terracotta); outline-offset: 1px; border-color: transparent; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.send { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+button { font: 600 15px/1 var(--sans); color: #fbf5ee; background: var(--umber); border: 0; border-radius: 99px; padding: 15px 26px; cursor: pointer; }
+button:hover { background: var(--terracotta); }
+button:disabled { opacity: .6; cursor: default; }
+.fine { font-size: 12.5px; color: var(--dust); }
+.err { font-size: 13.5px; color: var(--terracotta); min-height: 1em; }
+.done { display: none; }
+.card.sent form { display: none; }
+.card.sent .done { display: block; }
+.done h3 { font: 500 26px/1.2 var(--serif); margin-bottom: 6px; }
+
+footer { border-top: 1px solid var(--line); padding: 26px 0 40px; font-size: 13px; color: var(--dust); }
+footer .wrap { display: flex; gap: 22px; flex-wrap: wrap; }
+footer .grow { flex: 1; }
+footer a { color: var(--dust); }
+@media (max-width: 600px) {
+  .wrap { width: calc(100% - 32px); } main { padding: 44px 0 70px; }
+  .two { grid-template-columns: 1fr; }
+  .card { padding: 24px 20px; }
+  summary { font-size: 20px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap"><a href="./" class="logo">home<i>swoon</i></a><span class="beta">Beta</span></div>
+</header>
+
+<main>
+  <div class="wrap">
+    <h1>Questions, <em>answered.</em></h1>
+    <p class="intro">Homeswoon is in beta, so it’s free and still growing. Here are the things people ask most. If your question isn’t here, send us a message at the bottom of the page.</p>
+
+    <div class="faq">
+      <details>
+        <summary>What is Homeswoon?</summary>
+        <div><p>A calm place to keep your house hunt together. Paste a listing link and Homeswoon pulls in the photos, price and agent. Then track viewings, score each home and add notes, all on one board instead of spread across tabs, emails and screenshots.</p></div>
+      </details>
+      <details>
+        <summary>Is it free?</summary>
+        <div><p>Yes, everything is free while Homeswoon is in beta. If that ever changes, we’ll tell you well before it does.</p></div>
+      </details>
+      <details>
+        <summary>What does “beta” mean here?</summary>
+        <div><p>The app works and your boards are saved, but we’re still adding features and smoothing rough edges. You might spot the odd glitch. If you do, please tell us using the form below. It really helps.</p></div>
+      </details>
+      <details>
+        <summary>Which property sites does it work with?</summary>
+        <div><p>Paste a link from Rightmove, Zoopla, OnTheMarket, OpenRent or most estate agents’ own websites. If we can’t read a page, choose <b>Enter details manually</b> and add the home yourself.</p></div>
+      </details>
+      <details>
+        <summary>What happens when a listing is taken down?</summary>
+        <div><p>Agents often remove adverts once a home is under offer or let. When that happens the home is marked <b>No longer listed</b>, and everything you saved stays on your board: photos, price, notes and scores.</p></div>
+      </details>
+      <details>
+        <summary>Can I search with my partner or housemates?</summary>
+        <div><p>Yes. Every board has a code. Share it, and anyone who enters it with <b>I have a board code</b> sees the same board, so you can compare scores and notes together. Only share it with people you trust, as they can see and edit everything on the board.</p></div>
+      </details>
+      <details>
+        <summary>Can estate agents see my notes?</summary>
+        <div><p>No. Agents never see your board. Only people you’ve given your board code to can see it.</p></div>
+      </details>
+      <details>
+        <summary>Does it work on my phone?</summary>
+        <div><p>Yes. Homeswoon runs in your phone’s browser, so there’s nothing to install. It’s handy for scoring a home while you’re still at the viewing.</p></div>
+      </details>
+      <details>
+        <summary>How do I delete my data?</summary>
+        <div><p>Send us a message below choosing <b>Data or privacy request</b>, and we’ll delete your account and boards within 30 days. Our <a href="privacy.html">privacy notice</a> explains what we store and why.</p></div>
+      </details>
+      <details>
+        <summary>How do I stop update emails?</summary>
+        <div><p>Every update email has a link to stop them. You can also ask us using the form below.</p></div>
+      </details>
+    </div>
+
+    <h2 id="contact">Still have a question?</h2>
+    <div class="card" id="contact-card">
+      <p>Send us a message and we’ll get back to you by email, usually within a couple of days.</p>
+      <form id="contact-form" novalidate>
+        <div class="two">
+          <label>Your name <span>(optional)</span><input name="name" autocomplete="given-name" maxlength="80"></label>
+          <label>Your email<input name="email" type="email" autocomplete="email" required maxlength="254"></label>
+        </div>
+        <label>What’s it about?
+          <select name="topic">
+            <option>A question</option>
+            <option>Something isn’t working</option>
+            <option>Feedback or an idea</option>
+            <option>Data or privacy request</option>
+            <option>Something else</option>
+          </select>
+        </label>
+        <label>Message<textarea name="message" required maxlength="4000"></textarea></label>
+        <label class="hp" aria-hidden="true">Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label>
+        <p class="err" id="contact-err" role="alert"></p>
+        <div class="send">
+          <button type="submit">Send message</button>
+          <span class="fine">We only use your email to reply. <a href="privacy.html">Privacy</a></span>
+        </div>
+      </form>
+      <div class="done" role="status">
+        <h3>Thanks, message sent.</h3>
+        <p>We’ll reply to your email soon. While you wait, <a href="./">head back to Homeswoon</a>.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap"><span class="grow">Homeswoon · House hunting, kept calm.</span><a href="./">Home</a><a href="privacy.html">Privacy</a></div>
+</footer>
+
+<script>
+// Messages are emailed to the inbox below by FormSubmit (formsubmit.co), no account needed.
+// The very first message triggers a one-off "Activate form" email to that inbox: click it once.
+const CONTACT_EMAIL = 'hello.homeswoon@gmail.com'
+
+// Jump to the form when arriving from a "Contact" link (faq.html#contact)
+if (location.hash === '#contact') document.getElementById('contact').scrollIntoView()
+
+const form = document.getElementById('contact-form')
+const err = document.getElementById('contact-err')
+const button = form.querySelector('button')
+const mailto = (subject, body) =>
+  `<a href="mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}">${CONTACT_EMAIL}</a>`
+
+form.addEventListener('submit', async e => {
+  e.preventDefault()
+  err.textContent = ''
+  const name = form.name.value.trim()
+  const email = form.email.value.trim()
+  const topic = form.topic.value
+  const message = form.message.value.trim()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Please enter a valid email address so we can reply.'; form.email.focus(); return }
+  if (message.length < 5) { err.textContent = 'Please write a short message.'; form.message.focus(); return }
+  if (form.website.value) { document.getElementById('contact-card').classList.add('sent'); return } // only bots fill this in
+
+  button.disabled = true; button.textContent = 'Sending…'
+  try {
+    const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        _subject: `Homeswoon: ${topic}`,
+        _template: 'table',
+        _captcha: 'false',
+        name: name || '(not given)', email, topic, message,
+        page: location.href,
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || String(data.success) !== 'true') throw new Error(data.message || 'send failed')
+    document.getElementById('contact-card').classList.add('sent')
+  } catch {
+    err.innerHTML = `Sorry, that didn’t send. Please email us at ${mailto(`Homeswoon: ${topic}`, message)} instead.`
+  } finally {
+    button.disabled = false; button.textContent = 'Send message'
+  }
+})
+</script>
+</body>
+</html>

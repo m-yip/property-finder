@@ -38,6 +38,9 @@ ul { padding-left: 20px; display: grid; gap: 8px; margin-top: 8px; }
 b { color: var(--umber); font-weight: 600; }
 .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; margin-top: 44px; }
 footer { border-top: 1px solid var(--line); padding: 26px 0 40px; font-size: 13px; color: var(--dust); }
+footer .wrap { display: flex; gap: 22px; flex-wrap: wrap; }
+footer .grow { flex: 1; }
+footer a { color: var(--dust); }
 @media (max-width: 600px) { .wrap { width: calc(100% - 32px); } main { padding: 44px 0 70px; } }
 </style>
 </head>
@@ -49,7 +52,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 40px; font-size: 13p
 <main>
   <div class="wrap">
     <h1>Privacy, <em>in plain English.</em></h1>
-    <p class="updated">Last updated 16 November 2026</p>
+    <p class="updated">Last updated 17 November 2026</p>
     <p class="intro">Homeswoon helps you keep track of homes, agents and viewings. To do that we store a small amount of information about you. Here’s what it is, why we need it, and how to have it removed.</p>
 
     <h2>What we collect</h2>
@@ -57,6 +60,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 40px; font-size: 13p
       <li><b>Your email address</b>, and your first name if you give it. This is how we recognise you and keep your boards safe.</li>
       <li><b>What you add to your boards:</b> listing links, prices, agents, viewing dates, scores and notes. Anyone you share your board code with can see these too.</li>
       <li><b>Whether you want updates</b>, if you tick the box or use an updates form.</li>
+      <li><b>Messages you send us</b> through the contact form: your email, your name if you give it, and what you wrote.</li>
       <li><b>How the site is used:</b> simple events such as “added a home” or “joined a board”, tied to a random ID stored in your browser, plus which link or campaign brought you here.</li>
     </ul>
     <p>We don’t collect payment details during the beta, and we don’t use advertising trackers.</p>
@@ -74,7 +78,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 40px; font-size: 13p
     <ul>
       <li><b>Railway</b> hosts the app and its database.</li>
       <li><b>Cloudflare</b> hosts this website.</li>
-      <li><b>Google</b> stores the list of people who asked for updates (Google Sheets), and serves the site’s fonts.</li>
+      <li><b>FormSubmit</b> delivers messages from the contact form to our inbox, and <b>Google</b> (Gmail) hosts that inbox and serves the site’s fonts.</li>
       <li>When you paste a listing link, our server (and occasionally a public page-fetching service) reads that public listing page to fill in its details.</li>
     </ul>
     <p>Some of these providers may store data outside the UK. Where they do, they use the standard legal safeguards for international transfers.</p>
@@ -86,13 +90,13 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 40px; font-size: 13p
     <p>You can ask for a copy of your information, ask us to correct or delete it, or stop updates at any time. If you’re unhappy with how we’ve handled your data, you can also contact the UK Information Commissioner’s Office (<a href="https://ico.org.uk" rel="noopener">ico.org.uk</a>).</p>
 
     <div class="card">
-      <p><b>Questions, or want your data removed?</b><br>Email <a href="mailto:hello.meumstudio@gmail.com">hello.meumstudio@gmail.com</a> and we’ll reply within a few days.</p>
+      <p><b>Questions, or want your data removed?</b><br><a href="faq.html#contact">Send us a message</a> or email <a href="mailto:hello.homeswoon@gmail.com">hello.homeswoon@gmail.com</a>, and we’ll reply within a few days.</p>
     </div>
   </div>
 </main>
 
 <footer>
-  <div class="wrap">Homeswoon · House hunting, kept calm.</div>
+  <div class="wrap"><span class="grow">Homeswoon · House hunting, kept calm.</span><a href="./">Home</a><a href="faq.html">FAQ</a><a href="faq.html#contact">Contact</a></div>
 </footer>
 </body>
 </html>
